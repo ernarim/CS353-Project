@@ -15,7 +15,7 @@ const darkModePalette = {
   border: "#34495E",
 };
 
-export const ProzekTheme = {
+export const Theme = {
   font: {
     ...fontFamilies
   },
