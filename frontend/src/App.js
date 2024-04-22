@@ -15,6 +15,9 @@ import { EventDetailPage } from "./pages/EventDetailPage";
 import { SelectTicketPage } from "./pages/SelectTicketPage";
 import { ShoppingCartPage } from "./pages/ShoppingCartPage";
 import { CreateNewEventPage } from "./pages/CreateNewEventPage";
+import { TicketCategoryAndSeatingPage } from "./pages/TicketCategoryAndSeatingPage";
+import { NewLocationRequestPage } from "./pages/NewLocationRequestPage";
+import { EventInsightPage } from "./pages/EventInsightPage";
 
 function App() {
 
@@ -30,6 +33,9 @@ function App() {
         { path: "/event_detail/:id?", element:  <EventDetailPage/>,},
         { path: "/shopping_cart", element:  <ShoppingCartPage/>,},
         { path: "/create_event", element:  <CreateNewEventPage/>,},
+        { path: "/ticket_category_and_seating", element:  <TicketCategoryAndSeatingPage/>,},
+        { path: "/location_request", element:  <NewLocationRequestPage/>,},
+        { path: "/event_insight/:id?", element:  <EventInsightPage/>,},
 
       ],
       errorElement:  <></>

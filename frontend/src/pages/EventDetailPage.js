@@ -15,8 +15,9 @@ export function EventDetailPage () {
           {/* Event Image and Details */}
           <div style={{ flex: 3, margin:'20px' }}>
           <Card
-                
-                cover={<img alt="example" src="event-image.jpg" />} // Replace "event-image.jpg" with the path to your event image
+                cover={<div style={{ height: '200px', background: 'rgba(0,0,0,0.05)' }}></div>} // Placeholder for an image
+
+                //cover={<img alt="example" src="event-image.jpg" />} // Replace "event-image.jpg" with the path to your event image
             >
                 <Card.Meta
                 title="Event A"
