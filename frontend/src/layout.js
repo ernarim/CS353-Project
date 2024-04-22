@@ -10,13 +10,13 @@ export const AppLayout = () =>{
     return(
         <>
             <Layout className="layout-root">
-                <Layout style={{ minHeight: '100vh' }}>
+                <Layout style={{ minHeight: '100vh',  }}>
                     <Header className="akd-sidebar" breakpoint="lg" collapsedWidth="50">
                        <Topbar/>
                     </Header>
                     <Layout>
                         <Content >
-                            <Outlet />
+                            <Outlet/>
                         </Content>
 
                     </Layout>
