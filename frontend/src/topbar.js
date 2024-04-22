@@ -18,6 +18,11 @@ const Topbar = () => {
     { key: 'select_ticket', label:<Link to="/select_ticket"><span className="site-name">Select Ticket</span></Link>, className: "page-name" },
     { key: 'event_detail', label:<Link to="/event_detail"> <span className="site-name">Event Detail</span></Link>, className: "page-name" },
     { key: 'shopping_cart', label:<Link to="/shopping_cart"><span className="site-name">Shopping Cart</span></Link> , className: "page-name" },
+    { key: 'create_event', label:<Link to="/create_event"><span className="site-name">Create Event</span></Link>, className: "page-name" },
+    { key: 'ticket_category_and_seating', label:<Link to="/ticket_category_and_seating"> <span className="site-name">Ticket Category And Seating</span></Link>, className: "page-name" },
+    { key: 'location_request', label:<Link to="/location_request"><span className="site-name">Location Request</span></Link> , className: "page-name" },
+    { key: 'event_insight', label:<Link to="/event_insight"> <span className="site-name">Event Insight</span></Link>, className: "page-name" },
+    { key: 'buyer_profile', label:<Link to="/buyer_profile"><span className="site-name">Buyer Profile</span></Link> , className: "page-name" },
   ];
 
   return (

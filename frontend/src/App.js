@@ -18,6 +18,7 @@ import { CreateNewEventPage } from "./pages/CreateNewEventPage";
 import { TicketCategoryAndSeatingPage } from "./pages/TicketCategoryAndSeatingPage";
 import { NewLocationRequestPage } from "./pages/NewLocationRequestPage";
 import { EventInsightPage } from "./pages/EventInsightPage";
+import { BuyerProfilePage } from "./pages/BuyerProfilePage";
 
 function App() {
 
@@ -36,6 +37,7 @@ function App() {
         { path: "/ticket_category_and_seating", element:  <TicketCategoryAndSeatingPage/>,},
         { path: "/location_request", element:  <NewLocationRequestPage/>,},
         { path: "/event_insight/:id?", element:  <EventInsightPage/>,},
+        { path: "/buyer_profile", element:  <BuyerProfilePage/>,},
 
       ],
       errorElement:  <></>
