@@ -16,7 +16,7 @@ class TicketBuyer(BaseModel):
     birth_date: datetime
     name: str
     surname: str
-    current_cart: List[int] = []
+    current_cart: UUID
     ticket_list: List[int] = []
 
 class EventOrganizer(BaseModel):
