@@ -7,7 +7,7 @@ router = APIRouter()
 async def root():
     return {"message": "Hello World"}
 
-@router.post("/items/")
+@router.post("/items")
 async def create_item(item: Item):
     cursor.execute(
         "INSERT INTO item (name, description, price, tax) VALUES (%s, %s, %s, %s) RETURNING id",
@@ -16,6 +16,12 @@ async def create_item(item: Item):
     item_id = cursor.fetchone()[0]
     conn.commit()
     return {"id": item_id}
+
+@router.get('/item')
+async def get_item(item_id: int):
+    cursor.execute("SELECT * FROM item WHERE id = %s", (item_id,))
+    item = cursor.fetchone()
+    return item
 
 @router.get("/items")
 async def get_items():
