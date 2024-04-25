@@ -7,10 +7,10 @@ class User(BaseModel):
     user_id: UUID
     password: str
     email: str
-    phone: str
-    last_login: datetime
+    phone: Optional[str]
+    last_login: Optional[datetime]
 
-class TicketBuyer(BaseModel):
+class TicketBuyer(User):
     user_id: UUID
     balance: float
     birth_date: datetime
@@ -19,10 +19,10 @@ class TicketBuyer(BaseModel):
     current_cart: UUID
     ticket_list: List[int] = []
 
-class EventOrganizer(BaseModel):
+class EventOrganizer(User):
     user_id: UUID
     organizer_name: str
 
-class Admin(BaseModel):
+class Admin(User):
     user_id: UUID
     group_privilige: str

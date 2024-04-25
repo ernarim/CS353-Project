@@ -1,0 +1,24 @@
+              List of relations
+ Schema |      Name       | Type  |  Owner   
+--------+-----------------+-------+----------
+ public | added           | table | postgres
+ public | admin           | table | postgres
+ public | cart            | table | postgres
+ public | event           | table | postgres
+ public | event_category  | table | postgres
+ public | event_organizer | table | postgres
+ public | gift            | table | postgres
+ public | gifted          | table | postgres
+ public | item            | table | eren
+ public | owned           | table | postgres
+ public | report          | table | postgres
+ public | restricted      | table | postgres
+ public | restriction     | table | postgres
+ public | seating_plan    | table | postgres
+ public | seats           | table | postgres
+ public | ticket          | table | postgres
+ public | ticket_buyer    | table | postgres
+ public | ticket_category | table | postgres
+ public | ticket_list     | table | postgres
+ public | transaction     | table | postgres
+:
