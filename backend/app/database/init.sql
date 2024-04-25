@@ -15,7 +15,6 @@ BEGIN
         );
         RAISE NOTICE 'Table ''item'' created successfully.';
     ELSE
-        -- Print a message if the table already exists
         RAISE NOTICE 'Table ''item'' already exists. Skipping creation.';
     END IF;
 
@@ -35,7 +34,6 @@ BEGIN
 
         RAISE NOTICE 'Table ''Cart'' created successfully.';
     ELSE
-        -- Print a message if the table already exists
         RAISE NOTICE 'Table ''Cart'' already exists. Skipping creation.';
     END IF;
 
@@ -55,6 +53,7 @@ BEGIN
         );
         RAISE NOTICE 'Table ''Users'' created successfully.';
     END IF;
+    
 
     IF NOT EXISTS (
         SELECT 1
