@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.database.session import cursor, conn
-from app.models.event import Event, EventRead
+from app.models.event import Event, EventRead, EventCreate
 from app.models.restriction import Restriction
 from app.api.restriction import create_restriction, read_restriction, delete_restriction_by_event_id
 from fastapi import HTTPException
@@ -149,7 +149,8 @@ async def read_event(event_id: UUID):
 
 
 @router.post("")
-async def create_event(event: Event):
+async def create_event(event: EventCreate):
+    event_id = uuid4()
     if not check_foreign_key("event_category", "category_id", str(event.category_id)):
         raise HTTPException(status_code=404, detail=f"Category ID {event.category_id} not found")
 
@@ -165,7 +166,7 @@ async def create_event(event: Event):
     RETURNING *;
     """
     try:
-        cursor.execute(query, (str(event.event_id), event.name, event.date, event.description, event.is_done,
+        cursor.execute(query, (str(event_id), event.name, event.date, event.description, event.is_done,
                                event.remaining_seat_no, event.return_expire_date, str(event.organizer_id),
                                 str(event.venue_id), str(event.category_id)))
         new_event = cursor.fetchone()
@@ -186,7 +187,7 @@ async def create_event(event: Event):
         conn.commit()
 
 
-        restriction = await create_restriction(event.restriction, str(event.event_id))
+        restriction = await create_restriction(event.restriction, str(event_id))
 
         #return both new event and restriction
         return new_event_data, restriction

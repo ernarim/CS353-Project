@@ -8,3 +8,4 @@ class SeatingPlan(BaseModel):
     column_number: int
     is_available: bool
     category_id: UUID
+    

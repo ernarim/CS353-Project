@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from uuid import UUID
 
+
 class Venue(BaseModel):
     venue_id: UUID
     name: str
@@ -12,3 +13,11 @@ class Venue(BaseModel):
     row_count: int = None
     column_count: int = None
     
+class VenueCreate(BaseModel):
+    name: str
+    city: str
+    state: str
+    street: str = None
+    capacity: int = None
+    row_count: int = None
+    column_count: int = None

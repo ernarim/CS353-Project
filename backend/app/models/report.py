@@ -7,3 +7,7 @@ class Report(BaseModel):
     name: str
     description: str
     
+class ReportCreate(BaseModel):
+    admin_id: UUID
+    name: str
+    description: str

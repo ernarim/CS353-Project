@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.database.session import cursor, conn
-from app.models.restriction import Restriction
+from app.models.restriction import Restriction, RestrictionCreate
 from fastapi import HTTPException
 from uuid import UUID, uuid4
 from psycopg2.errors import ForeignKeyViolation
@@ -39,8 +39,9 @@ async def read_restriction(restriction_id: UUID):
         raise HTTPException(status_code=404, detail="Restriction not found")
     return restriction
 
-@router.post("/restrictions", response_model=Restriction, status_code=201)
-async def create_restriction(restriction: Restriction, event_id: UUID):
+@router.post("", response_model=Restriction, status_code=201)
+async def create_restriction(restriction: RestrictionCreate, event_id: UUID):
+    restriction_id = uuid4()
     query = """
     INSERT INTO Restriction (restriction_id, alcohol, smoke, age, max_ticket)
     VALUES (%s, %s, %s, %s, %s)
@@ -52,7 +53,7 @@ async def create_restriction(restriction: Restriction, event_id: UUID):
     """
     try:
         # Insert the new restriction
-        cursor.execute(query, (str(restriction.restriction_id), restriction.alcohol,
+        cursor.execute(query, (str(restriction_id), restriction.alcohol,
                                restriction.smoke, restriction.age, restriction.max_ticket))
         new_restriction = cursor.fetchone()
         
@@ -62,7 +63,7 @@ async def create_restriction(restriction: Restriction, event_id: UUID):
             raise HTTPException(status_code=404, detail="Failed to create restriction")
         
         # Insert into Restricted table
-        cursor.execute(restricted_query, (str(restriction.restriction_id), str(event_id)))
+        cursor.execute(restricted_query, (str(restriction_id), str(event_id)))
         conn.commit()
         
         # Prepare the response model

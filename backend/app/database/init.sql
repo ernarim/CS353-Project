@@ -27,9 +27,9 @@ BEGIN
 
     ) THEN
         CREATE TABLE Cart (
-        cart_id UUID,
-        is_gift BOOLEAN  DEFAULT FALSE,
-        PRIMARY KEY (cart_id)
+            cart_id UUID,
+            is_gift BOOLEAN  DEFAULT FALSE,
+            PRIMARY KEY (cart_id)
         );
 
         RAISE NOTICE 'Table ''Cart'' created successfully.';
@@ -218,6 +218,10 @@ BEGIN
             event_id UUID,
             category_name VARCHAR(255)NOT NULL,	
             price DECIMAL(10, 2),
+            start_column INT,
+            end_column INT,
+            start_row INT,
+            end_row INT,
             PRIMARY KEY (event_id, category_name),
             FOREIGN KEY(event_id) REFERENCES Event(event_id)
         );

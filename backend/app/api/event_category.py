@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.database.session import cursor, conn
-from app.models.event_category import EventCategory
+from app.models.event_category import EventCategory, EventCategoryCreate
 from fastapi import HTTPException
 from uuid import UUID, uuid4
 from psycopg2.errors import ForeignKeyViolation
@@ -38,13 +38,14 @@ async def read_event_category(category_id: UUID):
     return category_dict
 
 @router.post("", response_model=EventCategory, status_code=201)
-async def create_event_category(category: EventCategory):
+async def create_event_category(category: EventCategoryCreate):
+    category_id = uuid4()
     query = """
     INSERT INTO public.Event_Category (category_id, name)
     VALUES (%s, %s) RETURNING *;
     """
     try:
-        cursor.execute(query, (str(category.category_id), category.name))
+        cursor.execute(query, (str(category_id), category.name))
         new_category = cursor.fetchone()
         conn.commit()
         new_category = {
