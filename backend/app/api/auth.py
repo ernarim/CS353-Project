@@ -2,7 +2,7 @@ from fastapi import FastAPI, status, HTTPException, Depends, APIRouter, Path
 from uuid import UUID, uuid4
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import RedirectResponse
-from app.models.user import User, TicketBuyer, EventOrganizer
+from app.models.user import User, TicketBuyer, EventOrganizer, UserCreate, TicketBuyerCreate, EventOrganizerCreate
 from app.utils.deps import get_current_user
 from app.database.session import cursor, conn
 from app.utils.utils import (
@@ -40,7 +40,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 @router.post('/register', summary="Create new user")
-async def create_user(user: User):
+async def create_user(user: UserCreate):
     email = user.email
     password = get_hashed_password(user.password)
     user_id = str(uuid4())
@@ -62,7 +62,7 @@ async def create_user(user: User):
         )
     
 @router.post('/register/ticketbuyer', summary="Register a new ticket buyer")
-async def register_ticket_buyer(buyer: TicketBuyer):
+async def register_ticket_buyer(buyer: TicketBuyerCreate):
     email = buyer.email
     hashed_password = get_hashed_password(buyer.password)
     user_id = str(uuid4())  # Ensuring user_id is a string
@@ -99,7 +99,7 @@ async def register_ticket_buyer(buyer: TicketBuyer):
         )
 
 @router.post('/register/eventorganizer', summary="Register a new event organizer")
-async def register_event_organizer(organizer: EventOrganizer):
+async def register_event_organizer(organizer: EventOrganizerCreate):
     email = organizer.email
     hashed_password = get_hashed_password(organizer.password)
     user_id = str(uuid4())
