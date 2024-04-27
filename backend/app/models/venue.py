@@ -6,9 +6,9 @@ class Venue(BaseModel):
     name: str
     city: str
     state: str
-    street: str
-    is_verified: bool
-    capacity: int
-    row_count: int
-    column_count: int
+    street: str = None 
+    is_verified: bool = False
+    capacity: int = None
+    row_count: int = None
+    column_count: int = None
     

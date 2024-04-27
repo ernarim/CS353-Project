@@ -95,17 +95,29 @@ BEGIN
         SELECT 1
         FROM information_schema.tables
         WHERE table_schema = 'public'
-        AND table_name = 'Event_Category' OR table_name = 'event_category'
+        AND (table_name = 'Event_Category' OR table_name = 'event_category')
     ) THEN
-        CREATE TABLE Event_Category (
-            category_id UUID,
-            name VARCHAR(255) NOT NULL,
-            PRIMARY KEY(category_id)
+        -- Create the Event_Category table
+        CREATE TABLE public.Event_Category (
+            category_id UUID PRIMARY KEY,
+            name VARCHAR(255) NOT NULL
         );
+        CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-        RAISE NOTICE 'Table ''Event_Category'' created successfully.';
+        -- Insert default categories
+        INSERT INTO public.Event_Category (category_id, name) VALUES
+        (uuid_generate_v4(), 'Music'),
+        (uuid_generate_v4(), 'Sports'),
+        (uuid_generate_v4(), 'Theater'),
+        (uuid_generate_v4(), 'Conference'),
+        (uuid_generate_v4(), 'Comedy'),
+        (uuid_generate_v4(), 'Dance'),
+        (uuid_generate_v4(), 'Festival'),
+        (uuid_generate_v4(), 'Food & Drink');
+
+        -- Raise a notice to indicate success
+        RAISE NOTICE 'Table ''Event_Category'' created successfully and default categories inserted.';
     END IF;
-
 
     IF NOT EXISTS (
         SELECT 1

@@ -3,6 +3,8 @@ from app.database.session import cursor, conn
 from app.models.user import User
 from fastapi import HTTPException, status
 from typing import List
+from fastapi import Path
+from uuid import UUID, uuid4
 router = APIRouter()
 
 
@@ -20,3 +22,34 @@ async def list_users():
         )
 
 
+@router.delete('/{user_id}', summary="Delete a user")
+async def delete_user(user_id: UUID = Path(..., description="The UUID of the user to delete")):
+    user_id_str = str(user_id)  # Convert UUID to string for database operations
+
+    try:
+        # Retrieve and delete any associated carts from the Owned and Cart tables if the user is a ticket buyer
+        cursor.execute("SELECT cart_id FROM owned WHERE user_id = %s", (user_id_str,))
+        carts = cursor.fetchall()  # Fetch all cart IDs associated with the user
+
+        # Delete entries from the Owned table
+        cursor.execute("DELETE FROM owned WHERE user_id = %s", (user_id_str,))
+
+        # Delete each cart associated with the user
+        for cart in carts:
+            cursor.execute("DELETE FROM cart WHERE cart_id = %s", (cart[0],))  # cart[0] because fetchall returns a list of tuples
+
+        # Delete user-specific information from child tables
+        cursor.execute("DELETE FROM ticket_buyer WHERE user_id = %s", (user_id_str,))
+        cursor.execute("DELETE FROM event_organizer WHERE user_id = %s", (user_id_str,))
+        
+        # Finally, delete the user from the main users table
+        cursor.execute("DELETE FROM users WHERE user_id = %s", (user_id_str,))
+        conn.commit()
+
+        return {"detail": "User successfully deleted"}
+    except Exception as e:
+        conn.rollback()  # Ensure the database is rolled back to the state before the transaction in case of error
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
