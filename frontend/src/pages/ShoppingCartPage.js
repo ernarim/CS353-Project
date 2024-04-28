@@ -52,7 +52,7 @@ export function ShoppingCartPage() {
                 <Input placeholder="email" style={{ marginBottom: '10px' }} />
 
                 <Button type="primary" style={{ backgroundColor: '#a0d911', borderColor: '#a0d911', color: '#000', marginTop: '10px', width: '100%'}}>
-                     Buy & Gift
+                     Buy or Gift
                 </Button>
 
             </Card>

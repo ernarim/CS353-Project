@@ -37,11 +37,15 @@ const Topbar = () => {
         style={{ width: 200 }}
       />
     </Col>
-    <Col span={4} style={{ textAlign: 'right',display:'flex', justifyContent:'center' }}>
+    <Col span={4} style={{ textAlign: 'right', display: 'flex', justifyContent: 'center' }}>
       <Badge count={5}>
-        <ShoppingCartOutlined style={{ fontSize: '24px', color: '#fff' }} />
+        <Link to="/shopping_cart" style={{ lineHeight: 'inherit', display: 'inline-flex' }}>
+          <ShoppingCartOutlined style={{ fontSize: '24px', color: '#fff' }} />
+        </Link>
       </Badge>
-      <UserOutlined style={{ fontSize: '24px', color: '#fff', marginLeft: '20px' }} />
+      <Link to="/buyer_profile" style={{ lineHeight: 'inherit', display: 'inline-flex', marginLeft: '20px' }}>
+        <UserOutlined style={{ fontSize: '24px', color: '#fff' }} />
+      </Link>
     </Col>
   </Row>
   );
