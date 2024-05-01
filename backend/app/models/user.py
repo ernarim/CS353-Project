@@ -7,13 +7,17 @@ class User(BaseModel):
     user_id: UUID
     password: str
     email: str
-    phone: Optional[str]
+    phone: str
     last_login: Optional[datetime]
+
+class UserLogin(BaseModel):
+    email: str
+    password: str
 
 class UserCreate(BaseModel):
     password: str
     email: str
-    phone: Optional[str]
+    phone: str
     last_login: Optional[datetime]
 
 class TicketBuyer(User):
@@ -30,8 +34,6 @@ class TicketBuyerCreate(UserCreate):
     birth_date: datetime
     name: str
     surname: str
-    current_cart: UUID
-    ticket_list: List[int] = []
 
 class EventOrganizer(User):
     user_id: UUID
@@ -39,7 +41,6 @@ class EventOrganizer(User):
 
 class EventOrganizerCreate(UserCreate):
     organizer_name: str
-
 
 class Admin(User):
     user_id: UUID
