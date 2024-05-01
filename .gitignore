@@ -1,0 +1,14 @@
+# Ignore auxiliary files
+.idea
+.vscode/
+.DS_Store
+**/.env
+
+# Ignore pycache
+__pycache__/
+*.pyc
+backend/**/__pycache__/
+
+# Ignore python virtual environment
+venv/
+env/
