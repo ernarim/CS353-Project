@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import List, Optional
 from uuid import UUID
 
+
 class User(BaseModel):
     user_id: UUID
     password: str

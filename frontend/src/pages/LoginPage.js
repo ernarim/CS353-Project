@@ -3,27 +3,40 @@ import { Form, Input, Button, Checkbox } from 'antd';
 import Axios from '../Axios';
 
 
-export function LoginPage() {
-    const onFinish = (values) => {
-        console.log('Success:', values);
+export  function LoginPage()  {
+
+
+    const onFinish =  async (values) => {
+        const formData = new FormData();
+        formData.append('username', values.email);
+        formData.append('password', values.password);
         
-        try {
-            Axios.post('/auth/login', values)
-                .then((response) => {
-                    console.log(response);
-                    if (response.status === 200) {
-                        console.log('Login successful');
-                    }
-                })
-                .catch((error) => {
-                    console.error('Login failed', error);
-                });
+        const config = {
+          headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        };
+        
+        try{
+          let result = await Axios.post('/auth/login', formData, config);
+          let accessToken = result.data.access_token;
+          localStorage.setItem("token", accessToken);
+          Axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
         }
         catch (error) {
-            console.error('Login failed', error);
+          console.error('Login failed', error);
+        } 
+
+        try {
+          let result = await Axios.get('/auth/me');
+          let userId = result.data.user_id;
+          localStorage.setItem("userId", userId);
+        }
+        catch (error) {
+          console.error('User info failed', error);
         }
 
-        
+
 
     };
     
