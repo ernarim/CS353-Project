@@ -65,8 +65,8 @@ async def create_user(user: UserCreate):
 async def register_ticket_buyer(buyer: TicketBuyerCreate):
     email = buyer.email
     hashed_password = get_hashed_password(buyer.password)
-    user_id = str(uuid4())  # Ensuring user_id is a string
-    current_cart_str = str(buyer.current_cart) if isinstance(buyer.current_cart, UUID) else buyer.current_cart  # Ensuring current_cart is a string if it's a UUID
+    user_id = str(uuid4())
+    current_cart_str = str(buyer.current_cart) if isinstance(buyer.current_cart, UUID) else buyer.current_cart
 
     try:
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
@@ -110,6 +110,8 @@ async def register_event_organizer(organizer: EventOrganizerCreate):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User with this email already exists"
             )
+    
+
         cursor.execute("INSERT INTO users (user_id, email, password) VALUES (%s, %s, %s)", (user_id, email, hashed_password))
         cursor.execute("INSERT INTO event_organizer (user_id, organizer_name) VALUES (%s, %s)", (user_id, organizer.organizer_name))
         conn.commit()

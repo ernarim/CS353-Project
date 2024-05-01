@@ -1,14 +1,36 @@
 import React from 'react';
 import { Form, Input, Button, Checkbox } from 'antd';
+import Axios from '../Axios';
+
 
 export function LoginPage() {
     const onFinish = (values) => {
         console.log('Success:', values);
-      };
+        
+        try {
+            Axios.post('/auth/login', values)
+                .then((response) => {
+                    console.log(response);
+                    if (response.status === 200) {
+                        console.log('Login successful');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Login failed', error);
+                });
+        }
+        catch (error) {
+            console.error('Login failed', error);
+        }
+
+        
+
+    };
     
-      const onFinishFailed = (errorInfo) => {
-        console.log('Failed:', errorInfo);
-      };
+
+
+  
+    
     
       return (
         <div style={{height:'80vh', padding: '50px', maxWidth: '300px', margin: 'auto', display:'flex', flexDirection:'column',justifyContent:'center', alignItems:'center' }}>
