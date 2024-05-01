@@ -66,8 +66,8 @@ async def register_ticket_buyer(buyer: TicketBuyerCreate):
     email = buyer.email
     hashed_password = get_hashed_password(buyer.password)
     user_id = str(uuid4())
-    current_cart_str = str(buyer.current_cart) if isinstance(buyer.current_cart, UUID) else buyer.current_cart
-
+    current_cart_str = str(uuid4())
+    balance = 0
     try:
         cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         if cursor.fetchone():
@@ -82,15 +82,15 @@ async def register_ticket_buyer(buyer: TicketBuyerCreate):
             cursor.execute("INSERT INTO cart (cart_id) VALUES (%s)", (current_cart_str,))
 
         # Insert into users table
-        cursor.execute("INSERT INTO users (user_id, email, password) VALUES (%s, %s, %s)", (user_id, email, hashed_password))
+        cursor.execute("INSERT INTO users (user_id, email, password, phone) VALUES (%s, %s, %s, %s)", (user_id, email, hashed_password, buyer.phone))
         # Insert into ticket_buyer table
         cursor.execute("INSERT INTO ticket_buyer (user_id, birth_date, balance, current_cart) VALUES (%s, %s, %s, %s)",
-                       (user_id, buyer.birth_date, buyer.balance, current_cart_str))
+                       (user_id, buyer.birth_date, balance, current_cart_str))
 
         cursor.execute("INSERT INTO owned (user_id, cart_id) VALUES (%s, %s)", (user_id, current_cart_str))
 
         conn.commit()
-        return {"user_id": user_id, "email": email, "name": buyer.name, "surname": buyer.surname}
+        return {"user_id": user_id, "email": email, "name": buyer.name, "surname": buyer.surname,"phone": buyer.phone ,"birth_date": buyer.birth_date, "balance": balance, "current_cart": current_cart_str, }
     except Exception as e:
         conn.rollback()
         raise HTTPException(
@@ -111,7 +111,6 @@ async def register_event_organizer(organizer: EventOrganizerCreate):
                 detail="User with this email already exists"
             )
     
-
         cursor.execute("INSERT INTO users (user_id, email, password) VALUES (%s, %s, %s)", (user_id, email, hashed_password))
         cursor.execute("INSERT INTO event_organizer (user_id, organizer_name) VALUES (%s, %s)", (user_id, organizer.organizer_name))
         conn.commit()

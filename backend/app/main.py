@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.database.session import cursor, conn
+from fastapi.staticfiles import StaticFiles
 
 
 app = FastAPI()
@@ -16,6 +17,7 @@ app.add_middleware(
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
 )
+app.mount("/api/static", StaticFiles(directory="app/static"), name="static")
 
 
 def execute_sql_script(file_path, conn):

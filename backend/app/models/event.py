@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from fastapi import UploadFile
 from uuid import UUID
 from typing import Optional
 from .restriction import Restriction, RestrictionCreate
@@ -23,14 +24,16 @@ class Event(BaseModel):
 class EventCreate(BaseModel):
     name: str
     date: datetime
-    description: str
-    is_done: bool
+    description: Optional[str] = None
+    is_done: Optional[bool] = False
     remaining_seat_no: Optional[int] = None
     return_expire_date: Optional[datetime] = None
     organizer_id: UUID
     venue_id: UUID
     category_id: UUID
     restriction : Optional[RestrictionCreate] = None
+    photo: Optional[str]
+    
 
 class EventRead(BaseModel):
     event_id: UUID

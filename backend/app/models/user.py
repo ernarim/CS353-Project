@@ -8,7 +8,7 @@ class User(BaseModel):
     user_id: UUID
     password: str
     email: str
-    phone: str
+    phone: Optional[str]
     last_login: Optional[datetime]
 
 class UserLogin(BaseModel):
@@ -18,8 +18,7 @@ class UserLogin(BaseModel):
 class UserCreate(BaseModel):
     password: str
     email: str
-    phone: str
-    last_login: Optional[datetime]
+    phone: Optional[str]
 
 class TicketBuyer(User):
     user_id: UUID
@@ -31,7 +30,7 @@ class TicketBuyer(User):
     ticket_list: List[int] = []
 
 class TicketBuyerCreate(UserCreate):
-    balance: float
+    balance: float = 0.0
     birth_date: datetime
     name: str
     surname: str

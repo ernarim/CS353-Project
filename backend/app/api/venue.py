@@ -56,8 +56,8 @@ async def read_venue(venue_id: UUID):
 async def create_venue(venue: VenueCreate):
     venue_id = uuid4()
     venue_query = """
-    INSERT INTO Venue (venue_id, name, city, state, street, is_verified, capacity, row_count, column_count)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO Venue (venue_id, name, city, state, street, capacity, row_count, column_count)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING *;
     """
     seats_query = """
@@ -66,7 +66,7 @@ async def create_venue(venue: VenueCreate):
     """
     try:
         cursor.execute(venue_query, (str(venue_id), venue.name, venue.city, venue.state, venue.street, 
-                               venue.is_verified, venue.capacity, venue.row_count, venue.column_count))
+                                venue.capacity, venue.row_count, venue.column_count))
         new_venue = cursor.fetchone()
 
         # Commit early if there are no seats to create

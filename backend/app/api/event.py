@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, UploadFile, File
 from app.database.session import cursor, conn
 from app.models.event import Event, EventRead, EventCreate
 from app.models.restriction import Restriction
@@ -9,6 +9,8 @@ from psycopg2.errors import ForeignKeyViolation
 from typing import List, Dict
 import logging
 import asyncio
+import os
+import shutil
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -43,7 +45,8 @@ async def get_all_events():
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name
+        e.category_id, c.name AS category_name,
+        e.photo
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -82,7 +85,8 @@ async def get_all_events():
             "category": {
                 "category_id": event[18],
                 "category_name": event[19]
-            }
+            },
+            "photo": event[20]
         }
         # Fetch restriction asynchronously
         event_dict["restriction"] = await read_restriction(str(event[0]))
@@ -142,11 +146,24 @@ async def read_event(event_id: UUID):
             "category_id": event[18],
             "category_name": event[19]
         },
-        "restriction": await read_restriction(str(event[0]))
+        "restriction": await read_restriction(str(event[0])),
+        "photo": event[20]
     }
    
     return event_data
 
+@router.post("/upload_photo")
+async def upload_photo(photo: UploadFile = File(...)):
+    try:
+        os.makedirs("static/events", exist_ok=True)
+        filename = f"{uuid4()}{os.path.splitext(photo.filename)[1]}"
+        photo_path = os.path.join("app/static", "events", filename)
+        with open(photo_path, "wb") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+        return {"detail": "Photo uploaded successfully", "filename": filename}
+    except Exception as e:
+        logging.error(f"Failed to upload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("")
 async def create_event(event: EventCreate):
@@ -160,15 +177,16 @@ async def create_event(event: EventCreate):
     if not check_foreign_key("venue", "venue_id", str(event.venue_id)):
         raise HTTPException(status_code=404, detail=f"Venue ID {event.venue_id} not found")
 
+
     query = """
-    INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id, photo)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING *;
     """
     try:
         cursor.execute(query, (str(event_id), event.name, event.date, event.description, event.is_done,
                                event.remaining_seat_no, event.return_expire_date, str(event.organizer_id),
-                                str(event.venue_id), str(event.category_id)))
+                                str(event.venue_id), str(event.category_id), event.photo))
         new_event = cursor.fetchone()
   
         new_event_data = {
@@ -183,6 +201,7 @@ async def create_event(event: EventCreate):
             "venue_id": new_event[8],
             "category_id": new_event[9],
             "restriction": event.restriction
+
         }
         conn.commit()
 

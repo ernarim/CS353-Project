@@ -176,6 +176,7 @@ BEGIN
             organizer_id UUID NOT NULL,
             venue_id UUID NOT NULL,
             category_id UUID NOT NULL,
+            photo VARCHAR(255),
             PRIMARY KEY(event_id),
             FOREIGN KEY(category_id) REFERENCES Event_Category(category_id),
             FOREIGN KEY(venue_id) REFERENCES Venue(venue_id),

@@ -1,9 +1,11 @@
 import React from 'react';
-import { Form, Input, Button, Checkbox } from 'antd';
+import { useNavigate, Link } from "react-router-dom";
+import { Form, Input, Button, Checkbox, message } from 'antd';
 import Axios from '../Axios';
 
 
 export  function LoginPage()  {
+  const navigate = useNavigate();
 
 
     const onFinish =  async (values) => {
@@ -22,29 +24,34 @@ export  function LoginPage()  {
           let accessToken = result.data.access_token;
           localStorage.setItem("token", accessToken);
           Axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+          message.success('Login successful');
+
+          try {
+            let result = await Axios.get('/auth/me');
+            let userId = result.data.user_id;
+            localStorage.setItem("userId", userId);
+            navigate('/');
+          }
+          catch (error) {
+            console.error('User info failed', error);
+          } 
+
         }
         catch (error) {
           console.error('Login failed', error);
+          message.error('Email or password wrong');
+          
         } 
 
-        try {
-          let result = await Axios.get('/auth/me');
-          let userId = result.data.user_id;
-          localStorage.setItem("userId", userId);
-        }
-        catch (error) {
-          console.error('User info failed', error);
-        }
+        
+        
+        
 
 
 
     };
-    
-
-
   
-    
-    
       return (
         <div style={{height:'80vh', padding: '50px', maxWidth: '300px', margin: 'auto', display:'flex', flexDirection:'column',justifyContent:'center', alignItems:'center' }}>
           <div style={{ marginBottom: '24px', textAlign: 'center', fontSize: '24px', fontWeight: 'bold' }}>
@@ -77,8 +84,11 @@ export  function LoginPage()  {
               </Button>
             </Form.Item>
             <div style={{ textAlign: 'center' }}>
-              Register as: <a href="/register">Ticket Buyer</a> or <a href="/register">Event Organizer</a>
-            </div>
+              Register as: 
+              <Link to="/register/ticketbuyer"> Ticket Buyer</Link> or 
+              <Link to="/register/eventorganizer"> Event Organizer</Link>
+          </div>
+
           </Form>
         </div>
     );

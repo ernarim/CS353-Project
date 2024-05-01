@@ -25,7 +25,7 @@ function App() {
   const routesConfig = [
     
     { path: "/login", element: <LoginPage />, },
-    { path: "/register", element: <RegisterPage/>, },
+    { path: "/register/:type", element: <RegisterPage/>, },
     {
       element: <AppLayout />,
       children: [
