@@ -1,9 +1,11 @@
-import {Button, Card, Carousel, Col, Divider, Row, Select} from "antd";
+import {Button, Card, Carousel, Col, Divider, Row, Select, DatePicker} from "antd";
 import Search from "antd/lib/input/Search";
 import { useNavigate } from "react-router-dom";
 import React, {useContext, useEffect, useState} from "react";
 import {Theme} from "../style/theme";
 import Axios from "../Axios";
+import turkishCities from '../data/cities.json';
+
 
 const baseURLCategory = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/event_categories/`;
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
@@ -160,12 +162,15 @@ export function MainPage (){
                 {/* Search bar */}
                 <div className="search-bar" style={searchBarStyle}>
                     <Search placeholder="Search event" loading={false} onSearch={value => console.log(value)} style={{ width: 200 }} />
-                    <Select defaultValue="Indonesia" style={{ width: 120 }} onChange={value => console.log(value)}>
-                        {/* Options for places */}
+                    <Select placeholder="Select a city" style={{ width: 120 }} onChange={value => console.log(value)}>
+                        {turkishCities.map(city => (
+                            <Select.Option key={city.id} value={city.name}>{city.name}</Select.Option>
+                        ))}
                     </Select>
-                    <Select defaultValue="Any date" style={{ width: 120 }} onChange={value => console.log(value)}>
-                        {/* Options for dates */}
-                    </Select>
+                    <DatePicker.RangePicker
+                        style={{ width: 240 }}
+                        onChange={dates => console.log(dates)}
+                    />
                     <Button type="primary">Search</Button>
                 </div>
 
@@ -191,10 +196,9 @@ export function MainPage (){
 
 
                 {/* Event List */}
-                <Row gutter={16}>
+                <Row gutter={[20,30]} style={{margin:'0px 5%'}}>
                     {events.map(event => (
-                        console.log(event.photo),
-                        <Col span={8} key={event.event_id}>
+                        <Col span={6} key={event.event_id}>
                             <Card
                                 onClick={()=> navigate(`/event_detail/${event.event_id}`)}
                                 hoverable
@@ -208,7 +212,7 @@ export function MainPage (){
                                             src={baseURLEvents + event.photo}
                                             style={{
                                                 width: '100%',        // Ensures the image takes the full width of the card
-                                                height: '400px',      // Fixed height for all images
+                                                height: '350px',      // Fixed height for all images
                                                 objectFit: 'contain'    // Ensures the image covers the area without distorting the aspect ratio
                                             }}
                                         />
