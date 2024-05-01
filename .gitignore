@@ -12,3 +12,5 @@ backend/**/__pycache__/
 # Ignore python virtual environment
 venv/
 env/
+backend/venv/
+backend/env/
