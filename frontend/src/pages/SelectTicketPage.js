@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Table, Button, InputNumber, message } from 'antd';
+import SeatMatrix from '../components/SeatMatrix';
 
 export function SelectTicketPage () {
     const [ticketData, setTicketData] = useState([
@@ -26,7 +27,7 @@ export function SelectTicketPage () {
         },
         // ... other categories
       ]);
-    
+
       const handleAddToCart = (record) => {
         if (record.select > 0 && record.select <= record.available) {
           // Process the ticket selection, e.g., add to cart
@@ -35,7 +36,7 @@ export function SelectTicketPage () {
           message.error('Invalid number of tickets selected');
         }
       };
-    
+
       const columns = [
         {
           title: 'Ticket Type',
@@ -74,9 +75,28 @@ export function SelectTicketPage () {
           ),
         },
       ];
-    
+
+
+      // fill 2d arrsy with available seats from [1,1] to [10,10]
+
+      const available_seats = []
+      for (let i = 1; i <= 10; i++) {
+        for (let j = 1; j <= 10; j++) {
+          available_seats.push([i, j]);
+        }
+      }
+
+      // discard some seats in RANDOM
+      for (let i = 0; i < 30; i++) {
+        available_seats.splice(Math.floor(Math.random()*available_seats.length), 1);
+        console.log(available_seats);
+      }
+
+
       return (
         <>
+            <SeatMatrix rows={10} columns={10} available_seats={available_seats}/>
+            <br />
             <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
                 <h2>Select Tickets</h2>
                 <Table dataSource={ticketData} columns={columns} pagination={false} />
