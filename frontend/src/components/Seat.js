@@ -1,10 +1,25 @@
-import React from 'react';
-import '../style/Seat.css';
-export default function Seat({number, isActive}){
-    const activeStyle = (isActive) ? "seat_active" : "seat_inactive";
-    return(
-        <>
-        <div className={activeStyle}><span>{number}</span></div>
-        </>
-    )
+import React, { useState } from "react";
+import "../style/Seat.css";
+export default function Seat({ number, isActive, onSeatClick }) {
+  const [isClicked, setIsClicked] = useState(false);
+
+  const activeStatus = isActive ? "seat active" : "seat inactive";
+  const clickedStyle = isClicked ? "selected" : "";
+
+  const handleClick = () => {
+    if (onSeatClick) {
+      onSeatClick(number); // Call onSeatClick function
+    }
+    if (isActive) {
+      setIsClicked(!isClicked);
+    }
+  };
+
+  return (
+    <>
+      <div className={`${activeStatus} ${clickedStyle}`} onClick={handleClick}>
+        <span>{number}</span>
+      </div>
+    </>
+  );
 }

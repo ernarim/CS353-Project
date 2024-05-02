@@ -1,24 +1,20 @@
-              List of relations
- Schema |      Name       | Type  |  Owner   
---------+-----------------+-------+----------
- public | added           | table | postgres
- public | admin           | table | postgres
- public | cart            | table | postgres
- public | event           | table | postgres
- public | event_category  | table | postgres
- public | event_organizer | table | postgres
- public | gift            | table | postgres
- public | gifted          | table | postgres
- public | item            | table | eren
- public | owned           | table | postgres
- public | report          | table | postgres
- public | restricted      | table | postgres
- public | restriction     | table | postgres
- public | seating_plan    | table | postgres
- public | seats           | table | postgres
- public | ticket          | table | postgres
- public | ticket_buyer    | table | postgres
- public | ticket_category | table | postgres
- public | ticket_list     | table | postgres
- public | transaction     | table | postgres
-:
+Test Insertions:
+    INSERT INTO Users (user_id, password, email, phone, last_login)
+    VALUES ('3bf3aa38-fee5-4ef2-9589-c6528376c04f', 'password123', 'example@example.com', '+1234567890', NULL);
+
+
+    INSERT INTO Event_Organizer (user_id, organizer_name) VALUES
+        ('3bf3aa38-fee5-4ef2-9589-c6528376c04f', 'Organizer2');
+
+
+    INSERT INTO Venue (venue_id, name, city, state, street, is_verified, row_count, column_count) VALUES
+    ('ef061a29-d24f-48e6-b29a-c2ac6982ba05', 'Venue1', 'City', 'State', 'Street', TRUE, 50, 100);
+
+
+
+    INSERT INTO Event (event_id, name, date, description, is_done, organizer_id, venue_id, category_id) VALUES
+    ('3bf3aa38-fee5-4ef2-9589-c6528376c04f', 'Event1', '2024-06-15', 'Desc', FALSE, '3bf3aa38-fee5-4ef2-9589-c6528376c04f', 'ef061a29-d24f-48e6-b29a-c2ac6982ba05', '36f9c3cd-c6be-424f-b4f5-8b899b9df685');
+
+
+    INSERT INTO Seating_Plan (event_id, row_number, column_number)
+    VALUES('3bf3aa38-fee5-4ef2-9589-c6528376c04f', 1, 1);

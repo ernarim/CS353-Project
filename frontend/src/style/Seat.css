@@ -1,7 +1,6 @@
-.seat_active{
+.seat{
     width: 22px;
     height: 22px;
-    background: #aaaaaa;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -16,7 +15,7 @@
     cursor: pointer;
 }
 
-.seat_active::after {
+.seat::after {
     content: "";
     position: absolute;
     left: 5px;
@@ -27,20 +26,14 @@
     background: white;
 }
 
-.seat_inactive{
-    width: 22px;
-    height: 22px;
+.seat.active {
+    background: #aaaaaa;
+}
+
+.seat.deactive {
     background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    position: relative;
-    border: 0;
-    border-radius: 7px;
-    padding-bottom: 5px;
-    font-size: 11px;
-    font-weight: 700;
-    color: transparent;
-    cursor: pointer;
+}
+
+.seat.selected {
+    background: greenyellow;
 }

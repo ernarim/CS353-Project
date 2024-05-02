@@ -4,25 +4,6 @@ BEGIN
         SELECT 1
         FROM information_schema.tables
         WHERE table_schema = 'public'
-        AND table_name = 'item' or table_name = 'Item'
-    ) THEN
-        CREATE TABLE item (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            description TEXT NOT NULL,
-            price NUMERIC(10, 2) NOT NULL,
-            tax NUMERIC(10, 2) NOT NULL
-        );
-        RAISE NOTICE 'Table ''item'' created successfully.';
-    ELSE
-        RAISE NOTICE 'Table ''item'' already exists. Skipping creation.';
-    END IF;
-
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
         AND table_name = 'Cart' OR table_name = 'cart'
 
     ) THEN
@@ -53,7 +34,7 @@ BEGIN
         );
         RAISE NOTICE 'Table ''Users'' created successfully.';
     END IF;
-    
+
 
     IF NOT EXISTS (
         SELECT 1
@@ -217,7 +198,7 @@ BEGIN
     ) THEN
         CREATE TABLE Ticket_Category (
             event_id UUID,
-            category_name VARCHAR(255)NOT NULL,	
+            category_name VARCHAR(255)NOT NULL,
             price DECIMAL(10, 2),
             start_column INT,
             end_column INT,
@@ -238,14 +219,10 @@ BEGIN
     ) THEN
         CREATE TABLE Ticket (
             ticket_id UUID,
-            seat_number VARCHAR(10) NOT NULL,
             is_sold BOOLEAN DEFAULT FALSE,
             event_id UUID NOT NULL,
-            category_name VARCHAR(255) NOT NULL,
-            PRIMARY KEY (ticket_id),
-            FOREIGN KEY (event_id, category_name) REFERENCES Ticket_Category(event_id, category_name)
+            PRIMARY KEY (ticket_id)
         );
-
         RAISE NOTICE 'Table ''Ticket'' created successfully.';
     END IF;
 
@@ -298,7 +275,7 @@ BEGIN
             gift_id UUID,
             gift_msg TEXT,
             gift_date TIMESTAMP,
-            receiver_mail VARCHAR(255) NOT NULL, 
+            receiver_mail VARCHAR(255) NOT NULL,
             PRIMARY KEY (gift_id)
         );
 
@@ -314,14 +291,17 @@ BEGIN
     ) THEN
         CREATE TABLE Seating_Plan(
             event_id UUID,
+            ticket_id UUID,
             category_name VARCHAR(255),
             row_number INT NOT NULL,
             column_number INT NOT NULL,
             is_available BOOLEAN DEFAULT TRUE,
+            is_reserved BOOLEAN DEFAULT FALSE,
             category_id UUID,
             PRIMARY KEY (event_id, row_number, column_number),
             FOREIGN KEY(event_id) REFERENCES Event(event_id),
-            FOREIGN KEY(event_id, category_name) REFERENCES Ticket_Category(event_id, category_name)
+            FOREIGN KEY(event_id, category_name) REFERENCES Ticket_Category(event_id, category_name),
+            FOREIGN KEY(ticket_id) REFERENCES Ticket(ticket_id)
         );
         RAISE NOTICE 'Table ''Seating_Plan'' created successfully.';
     END IF;
