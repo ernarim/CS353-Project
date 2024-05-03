@@ -106,8 +106,10 @@ async def read_event(event_id: UUID):
             "category_id": event[18],
             "category_name": event[19]
         },
-        "restriction": await read_restriction(str(event[0]))
+        "restriction": await read_restriction(str(event[0])),
+        #"photo": event[20]
     }
+    print("heee: %s", event_data["restriction"])
    
     return event_data
 

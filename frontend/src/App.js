@@ -31,7 +31,7 @@ function App() {
       children: [
         { path: "/", element:  <MainPage/>, },
         { path: "/select_ticket/:eventId?", element:  <SelectTicketPage/>, },
-        { path: "/event_detail/:id?", element:  <EventDetailPage/>,},
+        { path: "/event_detail/:event_id", element:  <EventDetailPage/>,},
         { path: "/shopping_cart", element:  <ShoppingCartPage/>,},
         { path: "/create_event", element:  <CreateNewEventPage/>,},
         { path: "/ticket_category_and_seating", element:  <TicketCategoryAndSeatingPage/>,},
