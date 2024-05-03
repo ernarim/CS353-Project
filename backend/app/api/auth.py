@@ -14,8 +14,8 @@ from app.utils.utils import (
 
 router = APIRouter()
 @router.post('/login', summary="Create access and refresh tokens for user")
-async def login(logged_user: UserLogin):
-    cursor.execute("SELECT * FROM users WHERE email = %s", (logged_user.email,))
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    cursor.execute("SELECT * FROM users WHERE email = %s", (form_data.username,))
     user = cursor.fetchone()
     conn.commit()
 
@@ -26,7 +26,7 @@ async def login(logged_user: UserLogin):
         )
     print(user)
     hashed_pass = user[1]
-    if not verify_password(logged_user.password, hashed_pass):
+    if not verify_password(form_data.password, hashed_pass):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Incorrect email or password"
