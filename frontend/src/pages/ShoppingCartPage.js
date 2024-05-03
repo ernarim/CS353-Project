@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Axios from "../Axios";
 import { Card, List, Input, Button, Typography, Row, Col } from 'antd';
+import { formToJSON } from 'axios';
 
 const { Text } = Typography;
 
@@ -21,8 +22,9 @@ export function ShoppingCartPage() {
 
   const fetchBalance = async () => {
   try {
-    const res = await Axios.get('/auth/me');
-    setBalance(res.data.balance);
+    localStorage.getItem('user');
+    let res = JSON.parse(localStorage.getItem('user'));
+    console.log(res);
   } catch (error) {
     console.error('Failed to fetch balance:', error.response ? error.response.data : 'No response');
   }
