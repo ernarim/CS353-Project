@@ -2,46 +2,59 @@ import React, { useEffect, useState } from 'react';
 import { Card, List, Button } from 'antd';
 import { useParams } from 'react-router-dom';
 import Axios from "../Axios";
+const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
 
 export function EventDetailPage() {
   const { event_id } = useParams();
   const [eventDetails, setEventDetails] = useState(null);
   const [ticketCategories, setTicketCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   console.log("help");
 
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
         const response = await Axios.get(`/event/${event_id}`);
-        console.log("hellp");
+        console.log(response.data);
         setEventDetails(response.data);
       } catch (error) {
         console.error('Failed to fetch event details', error);
       }
+
     };
 
     const fetchTicketCategories = async () => {
       try {
         const response = await Axios.get(`/ticket_category/${event_id}`);
-        console.log("hellp1");
         setTicketCategories(response.data);
       } catch (error) {
         console.error('Failed to fetch ticket categories', error);
+        setTicketCategories([]);
       }
     };
 
-    fetchEventDetails();
-    fetchTicketCategories();
+
+    const fetchData = async () => {
+      await fetchEventDetails();
+      await fetchTicketCategories();
+      setLoading(false);
+
+    };
+
+    fetchData(); 
   }, [event_id]);
 
-  if (!eventDetails || ticketCategories.length === 0) {
+  if (loading) {
     return <div>Loading...</div>;
   }
 
   return (
-    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between', }}>
       {/* Event Image and Details */}
-      <Card style={{ width: '60%', margin: '0 20px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)' }}>
+      <Card style={{ width: '60%', margin: '0 20px',boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display:'flex', flexDirection:'column', justifyContent:'space-around' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <img src={`${baseURLEvents}${eventDetails.photo}`} alt="event" style={{ width: '500px', height: '100%', objectFit: 'contain', borderRadius: '8px 8px 0 0' }} />
+        </div>
         <div style={{ marginTop: '20px' }}>
           <h2>{eventDetails.name}</h2>
           <p>{eventDetails.description}</p>
@@ -49,7 +62,9 @@ export function EventDetailPage() {
       </Card>
 
       {/* Organizer, Venue, and Tickets */}
-      <div style={{ width: '35%', margin: '0 20px', padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)' }}>
+      <div style={{ width: '35%', margin: '0 20px', padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)'
+          , position:'relative'
+       }}>
         <h3>Organizer</h3>
         <p>{eventDetails.organizer.organizer_name}</p>
         <h3>Venue</h3>
@@ -83,7 +98,7 @@ export function EventDetailPage() {
             </List.Item>
           )}
         />
-        <Button type="primary" style={{ width: '100%', marginTop: '10px' }}>
+        <Button type="primary" style={{ width: '97%', marginTop: '10px', position:'absolute', bottom:10, left:10 }}>
           Choose Ticket
         </Button>
       </div>

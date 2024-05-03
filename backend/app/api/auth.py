@@ -98,4 +98,6 @@ async def register_event_organizer(organizer: EventOrganizerCreate):
 
 @router.get('/me', summary='Get details of currently logged in user')
 async def get_me(user: User = Depends(get_current_user)):
+
+    # Default return if no specific role data found (unlikely case)
     return user

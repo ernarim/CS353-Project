@@ -43,7 +43,7 @@ async def get_all_events():
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name
+        e.category_id, c.name AS category_name, e.photo
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -64,7 +64,7 @@ async def read_event(event_id: UUID):
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name
+        e.category_id, c.name AS category_name, e.photo
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -107,14 +107,13 @@ async def read_event(event_id: UUID):
             "category_name": event[19]
         },
         "restriction": await read_restriction(str(event[0])),
-        #"photo": event[20]
+        "photo": event[20]
     }
-    print("heee: %s", event_data["restriction"])
    
     return event_data
 
 
-@router.post("create")
+@router.post("/")
 async def create_event(event: EventCreate):
     event_id = uuid4()
     if not check_foreign_key("event_category", "category_id", str(event.category_id)):
@@ -168,7 +167,7 @@ async def create_event(event: EventCreate):
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 @router.patch("/{event_id}", response_model=Event)
-async def update_event(event_id: UUID, update_data: Event):
+async def update_event(event_id: UUID, update_data: EventCreate):
     query = """
     UPDATE Event SET name = %s, date = %s, description = %s, is_done = %s, remaining_seat_no = %s, return_expire_date = %s, organizer_id = %s, venue_id = %s, category_id = %s
     WHERE event_id = %s RETURNING *;
@@ -253,7 +252,8 @@ async def prepare_event_data(event):
         "category": {
             "category_id": event[18],
             "category_name": event[19]
-        }
+        },
+        "photo": event[20]
     }
     # Fetch restriction asynchronously
     event_dict["restriction"] = await read_restriction(str(event[0]))

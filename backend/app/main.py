@@ -16,6 +16,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],  # Allows all methods
     allow_headers=["*"],  # Allows all headers
+    
 )
 app.mount("/api/static", StaticFiles(directory="app/static"), name="static")
 

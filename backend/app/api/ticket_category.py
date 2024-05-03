@@ -38,8 +38,10 @@ async def read_ticket_category(event_id: UUID, category_name: str):
     """
     cursor.execute(query, (str(event_id), category_name))
     ticket_category = cursor.fetchone()
+    print(ticket_category)
     if not ticket_category:
         raise HTTPException(status_code=404, detail="Ticket category not found")
+        
     ticket_category = {
         "event_id": ticket_category[0],
         "category_name": ticket_category[1],

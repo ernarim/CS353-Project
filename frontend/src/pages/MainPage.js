@@ -176,7 +176,7 @@ export function MainPage (){
 
                 <Row gutter={50} style={{margin:'50px 0px', justifyContent:'center'}}>
                     {eventCategories.map((category, index) => (
-                        <Col key={index} xs={12} sm={8} md={6} lg={3} style={{textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', width:180}}>
+                        <Col key={index} xs={5} sm={4} md={3} lg={2} style={{textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', width:180}}>
                                 <img 
                                     src={category.image} 
                                     alt={category.name} 

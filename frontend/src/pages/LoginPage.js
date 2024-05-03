@@ -30,6 +30,10 @@ export  function LoginPage()  {
           try {
             let result = await Axios.get('/auth/me');
             let userId = result.data.user_id;
+            localStorage.setItem("user", JSON.stringify(result.data));
+            //get user as jso
+            console.log(result.data);
+            let user = JSON.parse(localStorage.getItem("user"));
             localStorage.setItem("userId", userId);
             navigate('/');
           }
