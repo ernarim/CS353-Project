@@ -8,3 +8,9 @@ class Ticket(BaseModel):
     event_id: UUID
     category_name: str
     
+class TicketInfo(BaseModel):
+    ticket_id: UUID
+    event_id: UUID
+    seat_number: str
+    price: float
+    category_name: str
