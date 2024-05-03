@@ -36,7 +36,7 @@ function App() {
         { path: "/create_event", element:  <CreateNewEventPage/>,},
         { path: "/ticket_category_and_seating", element:  <TicketCategoryAndSeatingPage/>,},
         { path: "/location_request", element:  <NewLocationRequestPage/>,},
-        { path: "/event_insight/:id?", element:  <EventInsightPage/>,},
+        { path: "/event_insight/:event_id", element:  <EventInsightPage/>,},
         { path: "/buyer_profile", element:  <BuyerProfilePage/>,},
 
       ],
