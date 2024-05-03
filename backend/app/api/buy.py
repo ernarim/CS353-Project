@@ -74,7 +74,7 @@ async def make_cart_a_gift(cart_id: UUID, gift_data: Gift):
 
 
 async def get_db():
-    return await asyncpg.connect(user='your_user', password='your_password', database='your_db', host='127.0.0.1')
+    return await asyncpg.connect(user='postgres', password='Ekim2005', database='cs353', host='127.0.0.1')
 
 @router.post('/transaction')
 async def transaction(transaction_data: Transaction, db=Depends(get_db)):
