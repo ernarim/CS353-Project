@@ -17,12 +17,9 @@ reuseable_oauth = OAuth2PasswordBearer(
     scheme_name="JWT"
 )
 
-
-
 async def get_current_user(token: str = Depends(reuseable_oauth)) -> User:
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-        
         user_id = payload.get("sub")
         print("User ID from token:", user_id)
         if user_id is None:

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import Axios from "../Axios";
 import { Card, List, Input, Button, Typography, Row, Col } from 'antd';
+import { formToJSON } from 'axios';
 
 const { Text } = Typography;
 
@@ -10,20 +11,24 @@ export function ShoppingCartPage() {
   const [email, setEmail] = useState('');
 
   useEffect(() => {
-    // Bilet ve bakiye bilgilerini çek
     fetchTickets();
     fetchBalance();
   }, []);
 
   const fetchTickets = async () => {
-    const res = await axios.get('/api/get_tickets');
+    const res = await Axios.get('/buy/get_tickets');
     setTickets(res.data);
   };
 
   const fetchBalance = async () => {
-    const res = await axios.get('/api/balance');
-    setBalance(res.data.balance);
-  };
+  try {
+    localStorage.getItem('user');
+    let res = JSON.parse(localStorage.getItem('user'));
+    console.log(res);
+  } catch (error) {
+    console.error('Failed to fetch balance:', error.response ? error.response.data : 'No response');
+  }
+};
 
   const calculateTotal = (items) => {
     return items.reduce((acc, item) => acc + item.price, 0);
@@ -32,7 +37,7 @@ export function ShoppingCartPage() {
   const handlePurchase = async () => {
     try {
       const total = calculateTotal(tickets);
-      await axios.post('/api/transaction', {
+      await Axios.post('/buy/transaction', {
         amount: total,
         buyer_id: 1, // Get ticket buyer id from session
         organizer_id: 1, //Get organizer id from event
