@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Row, Col } from "antd";
 import Seat from "./Seat";
 import SeatHeader from "./SeatHeader";
@@ -9,8 +9,45 @@ export default function SeatMatrix({
   available_seats,
   onSeatClick,
 }) {
-  const seatMatrix = [];
+  if (onSeatClick == null) {
+    onSeatClick = () => {};
+  }
 
+  const [selectedSeats, setSelectedSeats] = useState([]); // [row, column]
+  useEffect(() => {
+    console.log(selectedSeats);
+  }, [selectedSeats]);
+
+  useEffect(() => {
+    console.log("Rows changed: ", rows);
+    // Handle selected but now disabled seats, if any seat with row higher than rows then remove it from selectedSeats
+    const newSelectedSeats = selectedSeats.filter((seat) => seat[0] <= rows);
+    setSelectedSeats(newSelectedSeats);
+    onSeatClick(newSelectedSeats); // NOT SURE
+  }, [rows]);
+
+  useEffect(() => {
+    console.log("Columns changed: ", columns);
+    // Handle selected but now disabled seats, if any seat with column higher than rows then remove it from selectedSeats
+    const newSelectedSeats = selectedSeats.filter((seat) => seat[1] <= columns);
+    setSelectedSeats(newSelectedSeats); // NOT SURE
+  }, [columns]);
+
+  const handleSeatClick = (row, column) => {
+    const newSelectedSeats = selectedSeats.slice();
+    const index = newSelectedSeats.findIndex(
+      (seat) => seat[0] == row && seat[1] == column
+    );
+    if (index == -1) {
+      newSelectedSeats.push([row, column]);
+    } else {
+      newSelectedSeats.splice(index, 1);
+    }
+    setSelectedSeats(newSelectedSeats);
+    onSeatClick(newSelectedSeats);
+  };
+
+  const seatMatrix = [];
   for (let i = 0; i < rows; i++) {
     seatMatrix.push([]);
     for (let j = 0; j < columns; j++) {
@@ -49,7 +86,7 @@ export default function SeatMatrix({
                   <Seat
                     number={seat[0] + "-" + seat[1]}
                     isActive={true}
-                    onSeatClick={() => onSeatClick(seat[0], seat[1])}
+                    onSeatClick={() => handleSeatClick(seat[0], seat[1])}
                   />
                 </Col>
               );

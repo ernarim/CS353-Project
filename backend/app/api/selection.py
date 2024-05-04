@@ -7,6 +7,17 @@ router = APIRouter()
 
 @router.post("/reserve")
 async def reserve_seat(reserved_seat:ReserverSeating):
+    availablity_query = '''
+        SELECT
+            CASE
+                WHEN is_available = TRUE THEN TRUE
+                ELSE FALSE
+            END AS availability_status
+        FROM seating_plan
+        WHERE event_id = %(event_id)s
+            AND row_number = %(row)s
+            AND column_number = %(col)s
+    '''
     seating_plan_query = '''
         WITH current_status AS (
             SELECT
@@ -29,6 +40,22 @@ async def reserve_seat(reserved_seat:ReserverSeating):
         RETURNING current_status.reservation_status AS result
     '''
     try:
+        cursor.execute(
+            availablity_query,
+            {
+                'event_id': str(reserved_seat.event_id),
+                'row': reserved_seat.row_number,
+                'col': reserved_seat.column_number
+            }
+        )
+        availability_status = cursor.fetchone()[0]
+
+        if not availability_status :
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Seat is already sold."
+            )
+
         cursor.execute(
             seating_plan_query,
             {
@@ -58,6 +85,5 @@ async def reserve_seat(reserved_seat:ReserverSeating):
             }
     except Exception as e:
         conn.rollback()
-        print(e)
         raise Exception(str(e))
 
