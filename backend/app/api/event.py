@@ -2,13 +2,21 @@ from fastapi import APIRouter, Query
 from app.database.session import cursor, conn
 from app.models.event import Event, EventRead, EventCreate
 from app.models.restriction import Restriction
-from app.api.restriction import create_restriction, read_restriction, delete_restriction_by_event_id
+from app.api.restriction import create_restriction, read_restriction, delete_restriction_by_event_id, update_restriction
 from fastapi import HTTPException
 from uuid import UUID, uuid4
 from psycopg2.errors import ForeignKeyViolation
+from psycopg2.extras import DictCursor, RealDictCursor
+from fastapi import APIRouter, HTTPException, UploadFile, File
+import os
+import shutil
+
+
+
 from typing import List, Dict, Optional
 import logging
 import asyncio
+
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -43,7 +51,7 @@ async def get_all_events():
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name
+        e.category_id, c.name AS category_name, e.photo
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -64,7 +72,7 @@ async def read_event(event_id: UUID):
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name
+        e.category_id, c.name AS category_name, e.photo
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -107,14 +115,13 @@ async def read_event(event_id: UUID):
             "category_name": event[19]
         },
         "restriction": await read_restriction(str(event[0])),
-        #"photo": event[20]
+        "photo": event[20]
     }
-    print("heee: %s", event_data["restriction"])
    
     return event_data
 
 
-@router.post("create")
+@router.post("/")
 async def create_event(event: EventCreate):
     event_id = uuid4()
     if not check_foreign_key("event_category", "category_id", str(event.category_id)):
@@ -152,7 +159,6 @@ async def create_event(event: EventCreate):
         }
         conn.commit()
 
-
         restriction = await create_restriction(event.restriction, str(event_id))
 
         #return both new event and restriction
@@ -167,19 +173,51 @@ async def create_event(event: EventCreate):
         logger.error(f"Unhandled exception: {e}")
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
-@router.patch("/{event_id}", response_model=Event)
-async def update_event(event_id: UUID, update_data: Event):
+
+@router.patch("/{event_id}")
+async def update_event(event_id: UUID, update_data: EventCreate):
     query = """
-    UPDATE Event SET name = %s, date = %s, description = %s, is_done = %s, remaining_seat_no = %s, return_expire_date = %s, organizer_id = %s, venue_id = %s, category_id = %s
-    WHERE event_id = %s RETURNING *;
+    UPDATE Event SET 
+        name = %s, 
+        date = %s, 
+        description = %s, 
+        is_done = %s, 
+        remaining_seat_no = %s, 
+        return_expire_date = %s, 
+        organizer_id = %s, 
+        venue_id = %s, 
+        category_id = %s,
+        photo = %s
+    WHERE event_id = %s 
+    RETURNING *;
     """
-    cursor.execute(query, (update_data.name, update_data.date, update_data.description, update_data.is_done,
-                           update_data.remaining_seat_no, update_data.return_expire_date, update_data.organizer_id,
-                           update_data.venue_id, update_data.category_id, str(event_id)))
-    updated_event = cursor.fetchone()
-    conn.commit()
+    # Convert any UUIDs to strings before executing the query
+
+    params = (
+        update_data.name, 
+        update_data.date, 
+        update_data.description, 
+        update_data.is_done,
+        update_data.remaining_seat_no, 
+        update_data.return_expire_date, 
+        str(update_data.organizer_id) if isinstance(update_data.organizer_id, UUID) else update_data.organizer_id,
+        str(update_data.venue_id) if isinstance(update_data.venue_id, UUID) else update_data.venue_id,
+        str(update_data.category_id) if isinstance(update_data.category_id, UUID) else update_data.category_id,
+        update_data.photo,
+        str(event_id)
+    )
+
+    with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute(query, params)
+        updated_event = cursor.fetchone()
+        conn.commit()
+
+    restriction =  await read_restriction(str(event_id))
+    await update_restriction(restriction["restriction_id"], update_data.restriction)
+
     if updated_event is None:
         raise HTTPException(status_code=404, detail="Event not found")
+    
     return updated_event
 
 
@@ -196,6 +234,19 @@ async def delete_event(event_id: UUID):
         raise HTTPException(status_code=404, detail="Event not found")
     return {"detail": "Event deleted successfully"}
 
+@router.post("/upload_photo")
+async def upload_photo(photo: UploadFile = File(...)):
+    try:
+        os.makedirs("static/events", exist_ok=True)
+        filename = f"{uuid4()}{os.path.splitext(photo.filename)[1]}"
+        photo_path = os.path.join("app/static", "events", filename)
+        with open(photo_path, "wb") as buffer:
+            shutil.copyfileobj(photo.file, buffer)
+        return {"detail": "Photo uploaded successfully", "filename": filename}
+    except Exception as e:
+        logging.error(f"Failed to upload: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 @router.get("/search_events", response_model=List[Event])
 async def search_events(name: Optional[str] = Query(None, description="Search by event name")):
@@ -253,7 +304,8 @@ async def prepare_event_data(event):
         "category": {
             "category_id": event[18],
             "category_name": event[19]
-        }
+        },
+        "photo": event[20]
     }
     # Fetch restriction asynchronously
     event_dict["restriction"] = await read_restriction(str(event[0]))

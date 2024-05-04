@@ -16,8 +16,8 @@ const carouselStyle = {
     padding:'0px',
     margin:'0px',
     width: '100%',
-    height: '300px',
-    zIndex:'1'
+    height: '310px',
+    zIndex:'1',
 }
 
 const contentStyle = {
@@ -26,6 +26,7 @@ const contentStyle = {
     lineHeight: '350px',
     textAlign: 'center',
     background: '#364d79',
+    borderBottom: '2px solid #364d79',
 };
 
 
@@ -34,10 +35,9 @@ const searchBarStyle = {
     flexDirection:'row',
     justifyContent:'center',
     alignItems:'center',
-
-    background: 'black',
-    height:'100px',
-    width:'800px',
+    backgroundColor: 'rgba(5,25,35,0.9)',
+    height:'80px',
+    width:'750px',
     borderRadius: '10px',
     zIndex: '2',
     gap:'15px'
@@ -176,7 +176,7 @@ export function MainPage (){
 
                 <Row gutter={50} style={{margin:'50px 0px', justifyContent:'center'}}>
                     {eventCategories.map((category, index) => (
-                        <Col key={index} xs={12} sm={8} md={6} lg={3} style={{textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', width:180}}>
+                        <Col key={index} xs={5} sm={4} md={3} lg={2} style={{textAlign:'center', display:'flex', flexDirection:'column', alignItems:'center', width:180}}>
                                 <img 
                                     src={category.image} 
                                     alt={category.name} 
