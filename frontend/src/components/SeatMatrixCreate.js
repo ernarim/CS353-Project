@@ -4,34 +4,10 @@ import SeatHeader from "./SeatHeader";
 import SeatCreate from "./SeatCreate";
 
 
-function CategorySelector({ categories, currentCategory, setCurrentCategory }) {
-    return (
-        <Select 
-            defaultValue={currentCategory}
-            style={{ width: 120 }}
-            onChange={setCurrentCategory}
-        >
-            {Object.keys(categories).map(cat => (
-                <Select.Option key={cat} value={cat}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{
-                            display: 'inline-block',
-                            width: '12px',
-                            height: '12px',
-                            backgroundColor: categories[cat],
-                            marginRight: '8px',
-                            borderRadius: '50%'
-                        }}></span>
-                        {cat}
-                    </div>
-                </Select.Option>
-            ))}
-        </Select>
-    );
-}
-
 
 export default function SeatMatrixCreate({ venue }) {
+
+
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [rows, setRows] = useState(0);
   const [columns, setColumns] = useState(0);
@@ -147,6 +123,53 @@ export default function SeatMatrixCreate({ venue }) {
       document.removeEventListener('mouseup', handleMouseUp);
     };
   }, []);
+  
+  const onSelectChange =  async (value) => {
+    console.log(`selected ${value}`);
+    setCurrentCategory(value);
+    if(value == currentCategory){
+      assignCategoryToSelectedSeats();
+    }
+
+
+  }
+
+  useEffect(() => {
+    if (currentCategory) {
+      assignCategoryToSelectedSeats();
+    }
+  }, [currentCategory]); 
+
+
+  function CategorySelector({ categories, currentCategory, setCurrentCategory }) {
+    return (
+        <Select 
+            defaultValue={currentCategory}
+            style={{ width: 120 }}
+            onSelect={ onSelectChange}
+            
+            
+        >
+            {Object.keys(categories).map(cat => (
+                <Select.Option key={cat} value={cat} >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{
+                            display: 'inline-block',
+                            width: '12px',
+                            height: '12px',
+                            backgroundColor: categories[cat],
+                            marginRight: '8px',
+                            borderRadius: '50%'
+                        }}></span>
+                        {cat}
+                    </div>
+                </Select.Option>
+            ))}
+        </Select>
+    );
+}
+
+
 
   return (
     <div onMouseUp={handleMouseUp} style={{ userSelect: 'none', display:'flex', flexDirection:'column', alignItems:'center' }}>
@@ -190,7 +213,6 @@ export default function SeatMatrixCreate({ venue }) {
       <div>
         <Button onClick={toggleCannotSell} style={{ backgroundColor: '#cccccc', color: 'white', marginRight:'8px'  }}>Toggle Cannot Sell</Button>
         <Button style={{marginRight:'8px'}} onClick={resetSelections}>Reset Selections</Button>
-        <Button style={{ backgroundColor:categories[currentCategory], color:'white'}} onClick={assignCategoryToSelectedSeats}>Assign Category</Button>
       </div>
       <Modal title="Add Category" visible={isModalVisible} onCancel={closeModal} footer={null}>
         <Form onFinish={addCategory}>
@@ -209,3 +231,4 @@ export default function SeatMatrixCreate({ venue }) {
   );
   
 }
+

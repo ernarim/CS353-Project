@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, DatePicker, Select, Switch, InputNumber, Card, Divider, Upload } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import ImgCrop from 'antd-img-crop';
+import { CloseOutlined } from '@ant-design/icons';
 import Axios from '../Axios';
-import SeatMatrix from '../components/SeatMatrix';
 import SeatMatrixCreate from '../components/SeatMatrixCreate';
 
 const baseURL = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/`;
