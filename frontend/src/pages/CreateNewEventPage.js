@@ -3,6 +3,8 @@ import { Form, Input, Button, DatePicker, Select, Switch, InputNumber, Card, Div
 import { UploadOutlined } from '@ant-design/icons';
 import ImgCrop from 'antd-img-crop';
 import Axios from '../Axios';
+import SeatMatrix from '../components/SeatMatrix';
+import SeatMatrixCreate from '../components/SeatMatrixCreate';
 
 const baseURL = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/`;
 
@@ -12,6 +14,7 @@ export function CreateNewEventPage ()  {
   const [uploading, setUploading] = useState(false);
   const [venues, setVenues] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [selectedVenue, setSelectedVenue] = useState(null);
 
   const fetchEventCategories = async () => {
     try {
@@ -114,6 +117,10 @@ export function CreateNewEventPage ()  {
 
 };
 
+useEffect(() => {
+  let venue = venues.find(venue => venue.venue_id === selectedVenue)
+  console.log("venue", venue);
+}, [selectedVenue]);
   
 
 
@@ -136,7 +143,7 @@ export function CreateNewEventPage ()  {
           </Select>
         </Form.Item>
         <Form.Item label="Venue" name="venue_id" rules={[{ required: false }]}>
-          <Select placeholder="Select a venue">
+        <Select placeholder="Select a venue" onChange={setSelectedVenue}>
             {venues.map((venue) => (
               <Select.Option key={venue.venue_id} value={venue.venue_id}>{venue.name}</Select.Option>
             ))}
@@ -179,6 +186,12 @@ export function CreateNewEventPage ()  {
         </Form.Item>
       </Form>
       </Card>
+      {selectedVenue && (
+        <Card  title={"Seating plan for " + venues.find(venue => venue.venue_id === selectedVenue)?.name} style={{ width: 900, margin: 20 }}>
+          <SeatMatrixCreate venue={venues.find(venue => venue.venue_id === selectedVenue)} />
+        </Card>
+      )}
+
     </div>
 
   );

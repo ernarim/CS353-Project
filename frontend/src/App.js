@@ -20,6 +20,7 @@ import { NewLocationRequestPage } from "./pages/NewLocationRequestPage";
 import { EventInsightPage } from "./pages/EventInsightPage";
 import { BuyerProfilePage } from "./pages/BuyerProfilePage";
 import { UpdateEventPage } from "./pages/UpdateEventPage";
+import { CreateSeatPlanPage } from "./pages/CreateSeatPlanPage";
 
 function App() {
 
@@ -40,6 +41,7 @@ function App() {
         { path: "/event_insight/:event_id", element:  <EventInsightPage/>,},
         { path: "/buyer_profile", element:  <BuyerProfilePage/>,},
         { path: "/update_event/:event_id", element:  <UpdateEventPage/>,},
+        { path: "/create_seat_plan/:venue_id", element:  <CreateSeatPlanPage/>,},
 
       ],
       errorElement:  <></>
