@@ -121,7 +121,7 @@ async def read_event(event_id: UUID):
     return event_data
 
 
-@router.post("/")
+@router.post("")
 async def create_event(event: EventCreate):
     event_id = uuid4()
     if not check_foreign_key("event_category", "category_id", str(event.category_id)):
@@ -134,14 +134,14 @@ async def create_event(event: EventCreate):
         raise HTTPException(status_code=404, detail=f"Venue ID {event.venue_id} not found")
 
     query = """
-    INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id, photo)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     RETURNING *;
     """
     try:
         cursor.execute(query, (str(event_id), event.name, event.date, event.description, event.is_done,
                                event.remaining_seat_no, event.return_expire_date, str(event.organizer_id),
-                                str(event.venue_id), str(event.category_id)))
+                                str(event.venue_id), str(event.category_id), event.photo))
         new_event = cursor.fetchone()
   
         new_event_data = {
