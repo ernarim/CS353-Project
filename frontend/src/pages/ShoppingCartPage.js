@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Axios from "../Axios";
-import { Card, List, Input, Button, Typography, Row, Col } from 'antd';
-import { formToJSON } from 'axios';
+import { Card, List, Input, Button, Typography, Row, Col, message } from 'antd';
 
 const { Text } = Typography;
 
@@ -9,26 +8,40 @@ export function ShoppingCartPage() {
   const [tickets, setTickets] = useState([]);
   const [balance, setBalance] = useState(0);
   const [email, setEmail] = useState('');
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
-    fetchTickets();
-    fetchBalance();
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserId(user.user_id);
+      setBalance(user.balance);
+      fetchTickets(user.user_id);
+    }
   }, []);
 
-  const fetchTickets = async () => {
-    const res = await Axios.get('/buy/get_tickets');
-    setTickets(res.data);
+
+  const fetchTickets = async (userId) => {
+    try {
+      const response = await Axios.get(`/buy/get_tickets?user_id=${userId}`);
+      if (response.status === 204) {
+        setTickets([]);
+      } else {
+        setTickets(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tickets:', error.response ? error.response.data : error.message);
+    }
   };
 
   const fetchBalance = async () => {
-  try {
-    localStorage.getItem('user');
-    let res = JSON.parse(localStorage.getItem('user'));
-    console.log(res);
-  } catch (error) {
-    console.error('Failed to fetch balance:', error.response ? error.response.data : 'No response');
-  }
-};
+    try {
+      const user = JSON.parse(localStorage.getItem('user'));
+      setBalance(user.balance);
+    } catch (error) {
+      console.error('Failed to fetch balance:', error.response ? error.response.data : 'No response');
+    }
+  };
 
   const calculateTotal = (items) => {
     return items.reduce((acc, item) => acc + item.price, 0);
@@ -36,18 +49,39 @@ export function ShoppingCartPage() {
 
   const handlePurchase = async () => {
     try {
-      const total = calculateTotal(tickets);
-      await Axios.post('/buy/transaction', {
-        amount: total,
-        buyer_id: 1, // Get ticket buyer id from session
-        organizer_id: 1, //Get organizer id from event
-        transaction_date: new Date(),
-        transaction_id: 'unique_transaction_id' // New UUID
-      });
-      fetchBalance(); // Bakiye güncellemesi
-      alert('Purchase successful');
-    } catch (error) {
-      alert('Purchase failed: ' + error.response.data.detail);
+      if (tickets.length === 0) {
+        message.error("Your cart is empty. Please add tickets before purchasing.");
+        return;
+      }
+      const totalCost = calculateTotal(tickets);
+      if (totalCost > balance) {
+          message.error("You have insufficient balance for this purchase.");
+          return;
+      }
+      for (const ticket of tickets) {
+          console.log("\ntickett", ticket);
+          const event_id = ticket.event_id;
+          const eventResponse = await Axios.get(`/events/${event_id}`);
+          const organizer_id = eventResponse.data.organizer.organizer_id;
+
+          const response = await Axios.post('/buy/transaction', {
+              amount: ticket.price,
+              buyer_id: userId,
+              organizer_id: organizer_id,
+          });
+          if (response.status !== 200) {
+              throw new Error('Failed to complete the transaction');
+          }
+      }
+      message.success('Purchase successful');
+      fetchBalance();
+    } 
+    catch (error) {
+      if (error.response && error.response.status === 400) {
+          message.error("You have insufficient balance for this purchase.");
+      } else {
+          message.error('Purchase failed: ' + (error.response ? error.response.data.detail : error.message));
+      }
     }
   };
 

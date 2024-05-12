@@ -35,6 +35,7 @@ export  function LoginPage()  {
             console.log(result.data);
             let user = JSON.parse(localStorage.getItem("user"));
             localStorage.setItem("userId", userId);
+            localStorage.setItem("user", JSON.stringify(result.data));
             navigate('/');
           }
           catch (error) {

@@ -23,6 +23,23 @@ BEGIN
         SELECT 1
         FROM information_schema.tables
         WHERE table_schema = 'public'
+        AND table_name = 'Added' OR table_name = 'added'
+    ) THEN
+        CREATE TABLE Added (
+            cart_id UUID,
+            ticket_id UUID,
+            PRIMARY KEY(cart_id, ticket_id),
+            FOREIGN KEY(cart_id) REFERENCES Cart(cart_id),
+            FOREIGN KEY(ticket_id) REFERENCES Ticket(ticket_id)
+        );
+
+        RAISE NOTICE 'Table ''Added'' created successfully.';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
         AND table_name = 'Users' OR table_name = 'users'
     ) THEN
         CREATE TABLE Users (
@@ -221,7 +238,8 @@ BEGIN
             ticket_id UUID,
             is_sold BOOLEAN DEFAULT FALSE,
             event_id UUID NOT NULL,
-            PRIMARY KEY (ticket_id)
+            PRIMARY KEY (ticket_id),
+            FOREIGN KEY (event_id) REFERENCES Event(event_id)
         );
         RAISE NOTICE 'Table ''Ticket'' created successfully.';
     END IF;
@@ -290,7 +308,6 @@ BEGIN
         AND table_name = 'Seating_Plan' OR table_name = 'seating_plan'
     ) THEN
         CREATE TABLE Seating_Plan(
-            event_id UUID,
             ticket_id UUID,
             category_name VARCHAR(255),
             row_number INT NOT NULL,
@@ -322,22 +339,6 @@ BEGIN
         RAISE NOTICE 'Table ''Seats'' created successfully.';
     END IF;
 
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-        AND table_name = 'Added' OR table_name = 'added'
-    ) THEN
-        CREATE TABLE Added (
-            cart_id UUID,
-            ticket_id UUID,
-            PRIMARY KEY(cart_id, ticket_id),
-            FOREIGN KEY(cart_id) REFERENCES Cart(cart_id),
-            FOREIGN KEY(ticket_id) REFERENCES Ticket(ticket_id)
-        );
-
-        RAISE NOTICE 'Table ''Added'' created successfully.';
-    END IF;
 
     IF NOT EXISTS (
         SELECT 1

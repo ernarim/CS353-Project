@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query, Response, status
 from app.database.session import cursor, conn
 from app.models.ticket import Ticket, TicketInfo
 from app.models.cart import Cart
@@ -7,6 +7,7 @@ from app.models.gift import Gift
 from app.models.transaction import Transaction
 from app.utils.deps import get_current_user
 from fastapi import HTTPException
+from psycopg2.extras import RealDictCursor
 from uuid import UUID, uuid4
 from datetime import datetime
 import asyncpg
@@ -73,47 +74,47 @@ async def make_cart_a_gift(cart_id: UUID, gift_data: Gift):
         raise HTTPException(status_code=500, detail=f"Failed to process cart as gift: {str(e)}")
 
 
-async def get_db():
-    return await asyncpg.connect(user='postgres', password='Ekim2005', database='cs353', host='127.0.0.1')
-
 @router.post('/transaction')
-async def transaction(transaction_data: Transaction, db=Depends(get_db)):
-    async with db.transaction():
-        buyer = await db.fetchrow("SELECT balance FROM ticket_buyer WHERE user_id = $1", transaction_data.buyer_id)
+async def transaction(transaction_data: Transaction):
+    try:
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute("SELECT balance FROM ticket_buyer WHERE user_id = %s", (transaction_data.buyer_id,))
+        buyer = cursor.fetchone()
         if buyer is None:
             raise HTTPException(status_code=404, detail="Buyer not found")
         if buyer['balance'] < transaction_data.amount:
-            raise HTTPException(status_code=400, detail="Insufficient funds")
+            return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Insufficient balance");
 
-        # Deduct amount from buyer's balance
-        await db.execute("UPDATE ticket_buyer SET balance = balance - $1 WHERE user_id = $2", transaction_data.amount, transaction_data.buyer_id)
-
-        # Add amount to organizer's balance
-        await db.execute("UPDATE event_organizer SET balance = balance + $1 WHERE user_id = $2", transaction_data.amount, transaction_data.organizer_id)
-
-        # Record the transaction
-        await db.execute("""
+        cursor.execute("UPDATE ticket_buyer SET balance = balance - %s WHERE user_id = %s", (transaction_data.amount, transaction_data.buyer_id))
+        cursor.execute("UPDATE event_organizer SET balance = balance + %s WHERE user_id = %s", (transaction_data.amount, transaction_data.organizer_id))
+        transaction_id = str(uuid4())
+        transaction_date = datetime.now()
+        cursor.execute("""
             INSERT INTO transaction (transaction_id, organizer_id, buyer_id, transaction_date, amount)
-            VALUES ($1, $2, $3, $4, $5)
-        """, transaction_data.transaction_id, transaction_data.organizer_id, transaction_data.buyer_id, transaction_data.transaction_date, transaction_data.amount)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (transaction_id, transaction_data.organizer_id, transaction_data.buyer_id, transaction_date, transaction_data.amount))
+        conn.commit()
 
         return {"message": "Transaction completed successfully"}
+    except Exception as e:
+        conn.rollback() 
+        raise HTTPException(status_code=500, detail=str(e))
     
-
 @router.get("/get_tickets", response_model=List[TicketInfo])
-async def get_tickets(user_id: UUID, db=Depends(get_db)):
+async def get_tickets(user_id: str = Query(...)):
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
     try:
-        async with db.transaction():
-            user_id = get_current_user()
-            tickets = await db.fetch("""
-                SELECT t.ticket_id, t.event_id, t.seat_number, tc.price, tc.category_name
-                FROM Ticket AS t
-                INNER JOIN Ticket_Category AS tc ON t.event_id = tc.event_id AND t.category_name = tc.category_name
-                INNER JOIN Ticket_List AS tl ON t.ticket_id = tl.ticket_id
-                WHERE tl.user_id = $1
-            """, user_id)
-            if not tickets:
-                raise HTTPException(status_code=404, detail="No tickets found for this user.")
-            return tickets
+        cursor.execute("""
+            SELECT t.ticket_id, tc.event_id, t.seat_number, tc.category_name, tc.price
+            FROM Ticket AS t JOIN Added ON t.ticket_id = Added.ticket_id 
+            JOIN Cart ON Added.cart_id = Cart.cart_id JOIN Ticket_Buyer AS tb ON Cart.cart_id = tb.current_cart
+            JOIN Ticket_Category AS tc ON t.event_id = tc.event_id AND t.category_name = tc.category_name
+            WHERE tb.user_id = %s
+                       """, (user_id,))
+        tickets = cursor.fetchall()
+        if not tickets:
+            return Response(status_code=status.HTTP_204_NO_CONTENT)
+        return tickets
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
