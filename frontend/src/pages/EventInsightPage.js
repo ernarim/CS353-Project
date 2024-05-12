@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, Table, Statistic, Row, Col, Divider } from 'antd';
 import { useParams } from 'react-router-dom';
 import Axios from "../Axios";
+const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
 
 export function EventInsightPage() {
   const { event_id } = useParams();
@@ -67,21 +68,15 @@ export function EventInsightPage() {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-around', padding: '20px' }}>
       {/* Event Image and Details */}
-      <div style={{ flex: 3, margin: '20px' }}>
-        <Card
-          cover={<div style={{ height: '200px', background: 'rgba(0,0,0,0.05)' }}></div>}
-        >
-          <Card.Meta
-            title={eventDetails.name}
-            description={
-              <>
-                <p style={{ fontWeight: 'bold' }}>Details</p> 
-                <p>{eventDetails.description}</p>
-              </>
-            }
-          />
-        </Card>
-      </div>
+      <Card style={{ width: '60%', margin: '0 20px',boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display:'flex', flexDirection:'column', justifyContent:'space-around' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <img src={`${baseURLEvents}${eventDetails.photo}`} alt="event" style={{ width: '500px', height: '100%', objectFit: 'contain', borderRadius: '8px 8px 0 0' }} />
+        </div>
+        <div style={{ marginTop: '20px' }}>
+          <h2>{eventDetails.name}</h2>
+          <p>{eventDetails.description}</p>
+        </div>
+      </Card>
 
       {/* Event Insights */}
         <div style={{ flex: 2, margin: '20px', padding: '20px', borderRadius: '8px', backgroundColor: 'white' }}>
