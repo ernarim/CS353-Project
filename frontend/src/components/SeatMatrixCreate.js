@@ -5,7 +5,7 @@ import SeatCreate from "./SeatCreate";
 
 
 
-export default function SeatMatrixCreate({ venue }) {
+export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}) {
 
 
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -14,20 +14,27 @@ export default function SeatMatrixCreate({ venue }) {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
 
-  const [categories, setCategories] = useState({ A: 'blue' }); // Default category 'A' with a color
-  const [currentCategory, setCurrentCategory] = useState('A');
-  const [seatCategories, setSeatCategories] = useState({});
+  const [categories, setCategories] = useState({
+  });
+  const [currentCategory, setCurrentCategory] = useState();
+  const [seatCategories, setSeatCategories] = useState([]);
   const [cannotSellSeats, setCannotSellSeats] = useState(new Set());
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const addCategory = (values) => {
-    const { name, color } = values;
-    setCategories(prev => ({ ...prev, [name]: color }));
+    const { name, color, price } = values;
+    setCategories(prev => ({
+      ...prev,
+      [name]: { color, price }
+    }));
     setIsModalVisible(false);
   };
-  
+
   const openModal = () => setIsModalVisible(true);
   const closeModal = () => setIsModalVisible(false);
+
+
+
 
   const assignCategoryToSelectedSeats = () => {
     const updatedCategories = { ...seatCategories };
@@ -41,8 +48,8 @@ export default function SeatMatrixCreate({ venue }) {
       }
     });
     setCannotSellSeats(newCannotSellSeats);
-
     setSeatCategories(updatedCategories);
+
     resetSelections();
   };
   
@@ -72,8 +79,21 @@ export default function SeatMatrixCreate({ venue }) {
       setRows(venue.row_count);
       setColumns(venue.column_count);
     }
-
+    const initialCannotSellSeats = new Set();
+    for (let r = 1; r <= venue.row_count; r++) {
+      for (let c = 1; c <= venue.column_count; c++) {
+        initialCannotSellSeats.add(`${r}-${c}`);
+      }
+    }
+    setCannotSellSeats(initialCannotSellSeats);
   }, [venue]);
+
+  useEffect(() => {
+    getSeats(seatCategories);
+    getTicketCategories(categories);
+    console.log("seatCategories", seatCategories);
+    console.log("cannotSellSeats", cannotSellSeats);
+  }, [cannotSellSeats, seatCategories]);
 
   const toggleSeatSelection = (seatNumber) => {
     const [row, col] = seatNumber.split('-').map(Number);
@@ -145,24 +165,27 @@ export default function SeatMatrixCreate({ venue }) {
     return (
         <Select 
             defaultValue={currentCategory}
-            style={{ width: 120 }}
+            style={{ width: 200 }}
             onSelect={ onSelectChange}
             
             
         >
             {Object.keys(categories).map(cat => (
                 <Select.Option key={cat} value={cat} >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{
                             display: 'inline-block',
                             width: '12px',
                             height: '12px',
-                            backgroundColor: categories[cat],
+                            backgroundColor: categories[cat].color,
                             marginRight: '8px',
                             borderRadius: '50%'
                         }}></span>
+                        <div style={{marginRight:'8px'}}>{categories[cat].price + " TL"}</div>
+
                         {cat}
                     </div>
+                    
                 </Select.Option>
             ))}
         </Select>
@@ -192,7 +215,7 @@ export default function SeatMatrixCreate({ venue }) {
             const seatKey = `${row}-${column}`;
             const isSelected = selectedSeats.some(([r, c]) => r === row && c === column);
             const isCannotSell = cannotSellSeats.has(seatKey);
-            let seatColor = isCannotSell ? '#cccccc' : categories[seatCategories[seatKey]] || '#cccccc';
+            let seatColor = isCannotSell ? '#cccccc' : categories[seatCategories[seatKey]]?.color || '#cccccc';
             if(isSelected) seatColor = 'rgba(69,69,69,1)';
             return (
               <Col key={colIndex}
@@ -217,6 +240,9 @@ export default function SeatMatrixCreate({ venue }) {
       <Modal title="Add Category" visible={isModalVisible} onCancel={closeModal} footer={null}>
         <Form onFinish={addCategory}>
           <Form.Item name="name" label="Category Name" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="price" label="Price" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
           <Form.Item name="color" label="Color" rules={[{ required: true }]}>

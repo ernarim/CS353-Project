@@ -10,6 +10,7 @@ from psycopg2.extras import DictCursor, RealDictCursor
 from fastapi import APIRouter, HTTPException, UploadFile, File
 import os
 import shutil
+import psycopg2
 
 
 
@@ -133,17 +134,49 @@ async def create_event(event: EventCreate):
     if not check_foreign_key("venue", "venue_id", str(event.venue_id)):
         raise HTTPException(status_code=404, detail=f"Venue ID {event.venue_id} not found")
 
-    query = """
-    INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id, photo)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    RETURNING *;
+    event_query = """
+        INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id, photo)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING *;
+    """
+
+
+    ticket_category_query = """
+        INSERT INTO Ticket_Category (event_id, category_name, price, color)
+        VALUES (%s, %s, %s, %s)
+        RETURNING *;  
+    """
+
+
+    seating_plan_query = """
+        INSERT INTO Seating_Plan (event_id, ticket_id, category_name, row_number, column_number, is_available, is_reserved)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        RETURNING *;
+    """
+    ticket_creation_query = """
+        INSERT INTO Ticket (ticket_id, event_id, is_sold)
+        VALUES (%s, %s, FALSE)
+        RETURNING *;
     """
     try:
-        cursor.execute(query, (str(event_id), event.name, event.date, event.description, event.is_done,
+        
+        cursor.execute(event_query, (str(event_id), event.name, event.date, event.description, event.is_done,
                                event.remaining_seat_no, event.return_expire_date, str(event.organizer_id),
                                 str(event.venue_id), str(event.category_id), event.photo))
         new_event = cursor.fetchone()
+    
+        for category in event.ticket_categories:
+            cursor.execute(ticket_category_query, (str(event_id), category.category_name, category.price, category.color))
   
+        for plan in event.seating_plans:
+            ticket_id = uuid4()
+            cursor.execute(ticket_creation_query, (str(ticket_id), str(event_id)))
+            new_ticket = cursor.fetchone()
+            if not new_ticket:
+                raise HTTPException(status_code=404, detail="Failed to create ticket")
+            
+            cursor.execute(seating_plan_query, (str(event_id), str(ticket_id), plan.category_name, plan.row_number, plan.column_number, True, False))
+
         new_event_data = {
             "event_id": new_event[0],
             "name": new_event[1],
@@ -225,14 +258,28 @@ async def update_event(event_id: UUID, update_data: EventCreate):
 @router.delete("/{event_id}", status_code=204)
 async def delete_event(event_id: UUID):
 
-    deleleted_restriction = await delete_restriction_by_event_id(str(event_id))
+    try:
+        deleleted_restriction = await delete_restriction_by_event_id(str(event_id))
 
-    cursor.execute("DELETE FROM Event WHERE event_id = %s RETURNING *;", (str(event_id),))
-    deleted_event = cursor.fetchone()
-    conn.commit()
-    if deleted_event is None:
-        raise HTTPException(status_code=404, detail="Event not found")
-    return {"detail": "Event deleted successfully"}
+        cursor.execute("DELETE FROM Seating_Plan WHERE event_id = %s;", (str(event_id),))
+        print(f"Deleted seating plans for event {event_id}")
+
+        cursor.execute("DELETE FROM Ticket_Category WHERE event_id = %s;", (str(event_id),))
+        print(f"Deleted ticket categories for event {event_id}")
+
+        cursor.execute("DELETE FROM Event WHERE event_id = %s RETURNING *;", (str(event_id),))
+        deleted_event = cursor.fetchone()
+        if deleted_event is None:
+            raise HTTPException(status_code=404, detail="Event not found")
+
+        conn.commit()
+        return {"detail": "Event deleted successfully"}
+
+    except psycopg2.DatabaseError as e:
+        # If any of the deletions fail, roll back the transaction
+        conn.rollback()
+        logger.error(f"Failed to delete event: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete event: {e}")
 
 @router.post("/upload_photo")
 async def upload_photo(photo: UploadFile = File(...)):

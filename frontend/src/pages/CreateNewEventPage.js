@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, DatePicker, Select, Switch, InputNumber, Card, Divider, Upload } from 'antd';
 import { CloseOutlined } from '@ant-design/icons';
 import Axios from '../Axios';
 import SeatMatrixCreate from '../components/SeatMatrixCreate';
+import { message } from 'antd';
 
 const baseURL = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/`;
 
@@ -13,6 +15,10 @@ export function CreateNewEventPage ()  {
   const [venues, setVenues] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState(null);
+  const [allSeats, setAllSeats] = useState([]); 
+  const [allCategories, setAllCategories] = useState([]);
+
+  const navigate = useNavigate();
 
   const fetchEventCategories = async () => {
     try {
@@ -40,7 +46,49 @@ export function CreateNewEventPage ()  {
   }, []);
 
 
+  const getSeats = (seats) => {
+    console.log('getSeats', seats);
+  
+    // Map over the object entries
+    const structuredSeats = Object.entries(seats).map(([key, category]) => {
+      const [row, column] = key.split('-').map(Number);
+  
+      return {
+        row_number: row,
+        column_number: column,
+        category_name: category
+      };
+    });
+  
+    console.log('Structured Seats:', structuredSeats);
+    setAllSeats(structuredSeats);
+  };
+
+  const getTicketCategories = (categories) => { 
+    console.log('getTicketCategories', categories);
+
+    const structuredCategories = Object.entries(categories).map(([key, values]) => {
+  
+      return {
+        category_name: key,
+        color: values.color,
+        price: values.price,
+      };
+    });
+    console.log("Structured Categories", structuredCategories);
+    setAllCategories(structuredCategories);
+  };
+
+
   const handleSubmit = async (values) => {
+    if (allSeats.length === 0) {
+      message.error('No seats structured. Please check your seat configuration before submitting.');
+      return; 
+    }
+
+    values.seating_plans = allSeats;
+    values.ticket_categories = allCategories;
+
     values.organizer_id = localStorage.getItem('userId');
     if (values.date) {
       values.date = values.date.format('YYYY-MM-DD HH:mm:ss');
@@ -62,6 +110,8 @@ export function CreateNewEventPage ()  {
     
     try{
       Axios.post('/event', values);
+      message.success('Event created successfully');
+      navigate('/');
     }
     catch(error){
       console.log(error);
@@ -178,7 +228,7 @@ useEffect(() => {
           <InputNumber min={1} />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit">
+          <Button type="primary" htmlType="submit" style={{width:'100%', position:'absolute'}}>
             Publish Event
           </Button>
         </Form.Item>
@@ -186,7 +236,7 @@ useEffect(() => {
       </Card>
       {selectedVenue && (
         <Card  title={"Seating plan for " + venues.find(venue => venue.venue_id === selectedVenue)?.name} style={{ width: 900, margin: 20 }}>
-          <SeatMatrixCreate venue={venues.find(venue => venue.venue_id === selectedVenue)} />
+          <SeatMatrixCreate venue={venues.find(venue => venue.venue_id === selectedVenue)} getTicketCategories={getTicketCategories} getSeats={getSeats}/>
         </Card>
       )}
 

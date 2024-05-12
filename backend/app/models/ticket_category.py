@@ -11,3 +11,7 @@ class TicketCategory(BaseModel):
     start_column: Optional[int] = None
     end_column: Optional[int] = None
     
+class TicketCategoryCreate(BaseModel):
+    category_name: str
+    price: float
+    color: str

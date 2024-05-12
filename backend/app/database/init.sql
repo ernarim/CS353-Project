@@ -19,22 +19,7 @@ BEGIN
     END IF;
 
 
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-        AND table_name = 'Added' OR table_name = 'added'
-    ) THEN
-        CREATE TABLE Added (
-            cart_id UUID,
-            ticket_id UUID,
-            PRIMARY KEY(cart_id, ticket_id),
-            FOREIGN KEY(cart_id) REFERENCES Cart(cart_id),
-            FOREIGN KEY(ticket_id) REFERENCES Ticket(ticket_id)
-        );
 
-        RAISE NOTICE 'Table ''Added'' created successfully.';
-    END IF;
 
     IF NOT EXISTS (
         SELECT 1
@@ -185,6 +170,38 @@ BEGIN
     END IF;
 
 
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'Ticket' OR table_name = 'ticket'
+    ) THEN
+        CREATE TABLE Ticket (
+            ticket_id UUID,
+            is_sold BOOLEAN DEFAULT FALSE,
+            event_id UUID NOT NULL,
+            PRIMARY KEY (ticket_id),
+            FOREIGN KEY (event_id) REFERENCES Event(event_id)
+        );
+        RAISE NOTICE 'Table ''Ticket'' created successfully.';
+    END IF;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name = 'Added' OR table_name = 'added'
+    ) THEN
+        CREATE TABLE Added (
+            cart_id UUID,
+            ticket_id UUID,
+            PRIMARY KEY(cart_id, ticket_id),
+            FOREIGN KEY(cart_id) REFERENCES Cart(cart_id),
+            FOREIGN KEY(ticket_id) REFERENCES Ticket(ticket_id)
+        );
+
+        RAISE NOTICE 'Table ''Added'' created successfully.';
+    END IF;
 
     IF NOT EXISTS (
         SELECT 1
@@ -214,13 +231,10 @@ BEGIN
         AND table_name = 'Ticket_Category' OR table_name = 'ticket_category'
     ) THEN
         CREATE TABLE Ticket_Category (
-            event_id UUID,
+            event_id UUID NOT NULL,
             category_name VARCHAR(255)NOT NULL,
-            price DECIMAL(10, 2),
-            start_column INT,
-            end_column INT,
-            start_row INT,
-            end_row INT,
+            price DECIMAL(10, 2) NOT NULL,
+            color VARCHAR(255),
             PRIMARY KEY (event_id, category_name),
             FOREIGN KEY(event_id) REFERENCES Event(event_id)
         );
@@ -228,21 +242,7 @@ BEGIN
     END IF;
 
 
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.tables
-        WHERE table_schema = 'public'
-        AND table_name = 'Ticket' OR table_name = 'ticket'
-    ) THEN
-        CREATE TABLE Ticket (
-            ticket_id UUID,
-            is_sold BOOLEAN DEFAULT FALSE,
-            event_id UUID NOT NULL,
-            PRIMARY KEY (ticket_id),
-            FOREIGN KEY (event_id) REFERENCES Event(event_id)
-        );
-        RAISE NOTICE 'Table ''Ticket'' created successfully.';
-    END IF;
+
 
     IF NOT EXISTS (
         SELECT 1
@@ -308,13 +308,13 @@ BEGIN
         AND table_name = 'Seating_Plan' OR table_name = 'seating_plan'
     ) THEN
         CREATE TABLE Seating_Plan(
+            event_id UUID,
             ticket_id UUID,
             category_name VARCHAR(255),
             row_number INT NOT NULL,
             column_number INT NOT NULL,
             is_available BOOLEAN DEFAULT TRUE,
             is_reserved BOOLEAN DEFAULT FALSE,
-            category_id UUID,
             PRIMARY KEY (event_id, row_number, column_number),
             FOREIGN KEY(event_id) REFERENCES Event(event_id),
             FOREIGN KEY(event_id, category_name) REFERENCES Ticket_Category(event_id, category_name),

@@ -7,7 +7,9 @@ from .restriction import Restriction, RestrictionCreate
 from .user import EventOrganizer
 from .venue import Venue
 from .event_category import EventCategory
-
+from .ticket_category import TicketCategoryCreate
+from .seating_plan import SeatingPlanCreate
+from typing import List
 class Event(BaseModel):
     event_id: UUID
     name: str
@@ -32,7 +34,10 @@ class EventCreate(BaseModel):
     venue_id: UUID
     category_id: UUID
     restriction : Optional[RestrictionCreate] = None
-    photo: Optional[str]
+    photo: Optional[str] = None
+    ticket_categories: Optional[List[TicketCategoryCreate]] = None
+    seating_plans: Optional[List[SeatingPlanCreate]] = None
+    
     
 
 class EventRead(BaseModel):

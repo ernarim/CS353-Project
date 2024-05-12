@@ -12,6 +12,11 @@ class SeatingPlan(BaseModel):
     is_reserved: bool
     category_id: UUID
 
+class SeatingPlanCreate(BaseModel):
+    category_name: str
+    row_number: int
+    column_number: int
+   
 class ReserverSeating(BaseModel):
     event_id: UUID
     row_number: int

@@ -98,10 +98,6 @@ async def register_event_organizer(organizer: EventOrganizerCreate):
 
 @router.get('/me', summary='Get details of currently logged in user')
 async def get_me(user: User = Depends(get_current_user)):
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute("SELECT * FROM users INNER JOIN ticket_buyer ON users.user_id = ticket_buyer.user_id WHERE users.user_id = %s", (user['user_id'],))
-    joined_user = cursor.fetchone()
-    conn.commit()
-    print(joined_user)
-    return joined_user
+
+    return user
 

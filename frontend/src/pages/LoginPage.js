@@ -25,17 +25,18 @@ export  function LoginPage()  {
           localStorage.setItem("token", accessToken);
           Axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
 
-          message.success('Login successful');
 
           try {
             let result = await Axios.get('/auth/me');
+            console.log(result.data);
             let userId = result.data.user_id;
             localStorage.setItem("user", JSON.stringify(result.data));
-            //get user as jso
             console.log(result.data);
             let user = JSON.parse(localStorage.getItem("user"));
             localStorage.setItem("userId", userId);
             localStorage.setItem("user", JSON.stringify(result.data));
+            message.success('Login successful');
+
             navigate('/');
           }
           catch (error) {
