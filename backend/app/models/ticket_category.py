@@ -6,11 +6,8 @@ class TicketCategory(BaseModel):
     event_id: UUID
     category_name: str
     price: float
-    start_row: Optional[int] = None
-    end_row: Optional[int] = None
-    start_column: Optional[int] = None
-    end_column: Optional[int] = None
-    
+    color: str
+
 class TicketCategoryCreate(BaseModel):
     category_name: str
     price: float
