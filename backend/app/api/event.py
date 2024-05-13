@@ -74,7 +74,7 @@ async def read_event(event_id: UUID):
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name, e.photo
+        e.category_id, c.name AS category_name, e.photo, e.is_cancelled
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -117,7 +117,8 @@ async def read_event(event_id: UUID):
             "category_name": event[19]
         },
         "restriction": await read_restriction(str(event[0])),
-        "photo": event[20]
+        "photo": event[20],
+        "is_cancelled" : event[21]
     }
    
     return event_data

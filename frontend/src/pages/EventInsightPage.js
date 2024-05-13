@@ -99,6 +99,8 @@ export function EventInsightPage() {
     { title: 'Sold', dataIndex: 'sold', key: 'sold' },
   ];
 
+  console.log("is_cancelled:", eventDetails.is_cancelled); // Log is_cancelled for debugging
+
   return (
     <div style={{ display: 'flex', justifyContent: 'space-around', padding: '20px' }}>
       {/* Event Image and Details */}
@@ -130,12 +132,12 @@ export function EventInsightPage() {
 
         <Row gutter={16} style={{ marginTop: '20px' }}>
         <Col span={12}>
-          <Button block onClick={handleUpdateEvent} disabled={eventCancelled}>
+          <Button block onClick={handleUpdateEvent} disabled={eventDetails.is_cancelled || eventCancelled}>
             Update Event
           </Button>
         </Col>
         <Col span={12}>
-          <Button block onClick={handleCancelEvent} danger disabled={eventCancelled}>
+          <Button block onClick={handleCancelEvent} danger disabled={eventDetails.is_cancelled || eventCancelled}>
             Cancel Event
           </Button>
         </Col>
