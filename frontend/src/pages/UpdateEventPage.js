@@ -110,9 +110,7 @@ export function UpdateEventPage ()  {
       message.error('Failed to update ticket categories');
     }
     message.success('Event updated successfully');
-    //navigate(`/event_detail/${event_id}`);
-
-
+    navigate(`/event_insight/${event_id}`);
   };
 
 
@@ -260,9 +258,13 @@ return (
           <Table dataSource={ticketCategories} columns={columns} pagination={false}  />
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" style={{position:'absolute', width:'100%'}}>
+            <Button block onClick={() => navigate(`/event_insight/${event_id}`)} style={{marginRight:10, position:'absolute', width:'49%'}}>
+              Cancel
+            </Button>
+            <Button type="primary" htmlType="submit" style={{position:'absolute', right:'0', width:'49%'}}>
               Update Event
             </Button>
+
           </Form.Item>
         </Form>
       </Card>

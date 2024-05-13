@@ -163,6 +163,7 @@ BEGIN
             venue_id UUID NOT NULL,
             category_id UUID NOT NULL,
             photo VARCHAR(255),
+            photo_plan VARCHAR(255),
             PRIMARY KEY(event_id),
             FOREIGN KEY(category_id) REFERENCES Event_Category(category_id),
             FOREIGN KEY(venue_id) REFERENCES Venue(venue_id),
@@ -320,7 +321,7 @@ BEGIN
             column_number INT NOT NULL,
             is_available BOOLEAN DEFAULT TRUE,
             is_reserved BOOLEAN DEFAULT FALSE,
-            PRIMARY KEY (event_id, row_number, column_number),
+            PRIMARY KEY (ticket_id),
             FOREIGN KEY(event_id) REFERENCES Event(event_id),
             FOREIGN KEY(event_id, category_name) REFERENCES Ticket_Category(event_id, category_name),
             FOREIGN KEY(ticket_id) REFERENCES Ticket(ticket_id)

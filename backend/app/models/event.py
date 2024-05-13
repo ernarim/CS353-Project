@@ -35,6 +35,7 @@ class EventCreate(BaseModel):
     category_id: UUID
     restriction : Optional[RestrictionCreate] = None
     photo: Optional[str] = None
+    photo_plan: Optional[str] = None
     ticket_categories: Optional[List[TicketCategoryCreate]] = None
     seating_plans: Optional[List[SeatingPlanCreate]] = None
     

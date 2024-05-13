@@ -1,22 +1,60 @@
 import React, { useEffect, useState, useContext, useMemo } from 'react';
-import { Modal, Button, Form, Input, Table, message, InputNumber } from 'antd';
-import { HolderOutlined } from '@ant-design/icons';
+import { Modal, Button, Form, Input, Table, message, InputNumber, Upload } from 'antd';
+import { HolderOutlined, UploadOutlined } from '@ant-design/icons';
 import { DndContext, DragEndEvent } from '@dnd-kit/core';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import Axios from '../Axios';
+import '../style/SeatingPlanCreate.css';
 
-export default function SeatPlanCreate({ venue, getTicketCategories, getSeats }) {
+export default function SeatPlanCreate({ venue, getTicketCategories, getSeats, getFileList }) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [categories, setCategories] = useState({});
   const [editingCategory, setEditingCategory] = useState(null);
   const [totalCapacity, setTotalCapacity] = useState(0);
   const [categoryOrder, setCategoryOrder] = useState([]);
+  const [seatCategories, setSeatCategories] = useState([]);
+  const [fileListPlan, setFileListPlan] = useState([]);
+
+  const onChange = ({ fileList }) => {
+    setFileListPlan(fileList);
+    getFileList(fileList);
+  };
+
+  const onPreview = async (file) => {
+    let src = file.url;
+    if (!src) {
+      src = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file.originFileObj);
+        reader.onload = () => resolve(reader.result);
+      });
+    }
+    const image = new Image();
+    image.src = src;
+    const imgWindow = window.open(src);
+    imgWindow?.document.write(image.outerHTML);
+  };
 
   useEffect(() => {
     getTicketCategories(categories);
     setCategoryOrder(Object.keys(categories));
+
+    console.log(categories);
+
+    //create seat for each category
+    let seatCategories = [];
+    Object.keys(categories).forEach((category) => {
+      for (let i = 0; i < categories[category].capacity; i++) {
+        seatCategories.push(category);
+      }
+    }
+    );
+    setSeatCategories(seatCategories);
+    getSeats(seatCategories);
+
+
   }, [categories]);
 
   const addCategory = (values) => {
@@ -96,7 +134,7 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats })
       key: 'actions',
       render: (text, record) => (
         <>
-          <Button onClick={() => openModal(record)}>Edit</Button>
+          <Button style={{marginRight:'10px'}} onClick={() => openModal(record)}>Edit</Button>
           <Button onClick={() => deleteCategory(record.name)} danger>Delete</Button>
         </>
       )
@@ -150,7 +188,12 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats })
   };
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
-    if (active.id !== over?.id) {
+    if (!over) {
+      // If over is null, do nothing
+      return;
+    }
+  
+    if (active.id !== over.id) {
       setCategoryOrder((prevOrder) => {
         const activeIndex = prevOrder.indexOf(active.id);
         const overIndex = prevOrder.indexOf(over.id);
@@ -161,6 +204,7 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats })
 
   return (
     <div style={{ userSelect: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <h3>No seating plan is available for this venue</h3>
       <Button onClick={() => openModal()} style={{ marginBottom: '16px' }}>Add Category</Button>
 
       <DndContext modifiers={[restrictToVerticalAxis]} onDragEnd={onDragEnd}>
@@ -170,6 +214,7 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats })
             components={{ body: { row: Row } }}
             columns={columns}
             dataSource={data}
+            style={{zIndex: 1, width:'100%'}}
           />
         </SortableContext>
       </DndContext>
@@ -210,6 +255,18 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats })
           </Form.Item>
         </Form>
       </Modal>
+      <div className='custom-upload'>
+        <Upload
+          listType="picture"
+          fileList={fileListPlan}
+          beforeUpload={() => false} // Allow cropping but prevent actual upload
+          onChange={onChange}
+          onPreview={onPreview}
+        >
+          {fileListPlan.length < 1 && <Button style={{marginTop:'15px'}} icon={<UploadOutlined />}>Upload Photo for Seating</Button>}
+        </Upload>
+      </div>
+      
     </div>
   );
 }
