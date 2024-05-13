@@ -4,9 +4,7 @@ import SeatCreate from "./SeatCreate";
 import Axios from '../Axios';
 
 
-
 export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}) {
-
 
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [rows, setRows] = useState(0);
@@ -223,29 +221,33 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
       </div>
 
       <Divider style={{margin:'15px 0px'}} />
-      {Array.from({ length: rows }, (_, rowIndex) => (
-        <Row key={rowIndex} style={{ marginBottom: 5 }} gutter={[8, 8]}>
-          {Array.from({ length: columns }, (_, colIndex) => {
-            const row = rowIndex + 1;
-            const column = colIndex + 1;
-            const seatKey = `${row}-${column}`;
-            const isSelected = selectedSeats.some(([r, c]) => r === row && c === column);
-            const isCannotSell = cannotSellSeats.has(seatKey);
-            let seatColor = isCannotSell ? '#cccccc' : categories[seatCategories[seatKey]]?.color || '#cccccc';
-            const isInVenueSeats = allVenueSeats.some(seat => seat.row_number === row && seat.column_number === column);
-            if(isSelected) seatColor = 'rgba(69,69,69,1)';
-            return (
-              <Col key={colIndex}
-                   onMouseDown={() => handleMouseDown(row, column)}
-                   onMouseOver={() => handleMouseOver(row, column)}>
-                { !isInVenueSeats && <SeatCreate number={seatKey} color={'#ffffff'} />}
-                { isInVenueSeats && <SeatCreate number={seatKey} color={seatColor} onSeatClick={toggleSeatSelection} />}
-               
-              </Col>
-            );
-          })}
-        </Row>
-      ))}
+      <div style={{ overflowX: 'auto', overflowY: 'auto', maxWidth: '100%', maxHeight: '65vh' }}>
+        <div style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+          {Array.from({ length: rows }, (_, rowIndex) => (
+            <div key={rowIndex} style={{ display: 'flex', marginBottom: 5 }}>
+              {Array.from({ length: columns }, (_, colIndex) => {
+                const row = rowIndex + 1;
+                const column = colIndex + 1;
+                const seatKey = `${row}-${column}`;
+                const isSelected = selectedSeats.some(([r, c]) => r === row && c === column);
+                const isCannotSell = cannotSellSeats.has(seatKey);
+                let seatColor = isCannotSell ? '#cccccc' : categories[seatCategories[seatKey]]?.color || '#cccccc';
+                const isInVenueSeats = allVenueSeats.some(seat => seat.row_number === row && seat.column_number === column);
+                if (isSelected) seatColor = 'rgba(69,69,69,1)';
+                return (
+                  <div key={colIndex} style={{ marginRight: 8 }}
+                    onMouseDown={() => handleMouseDown(row, column)}
+                    onMouseOver={() => handleMouseOver(row, column)}>
+                    {!isInVenueSeats && <SeatCreate number={seatKey} color={'#ffffff'} />}
+                    {isInVenueSeats && <SeatCreate number={seatKey} color={seatColor} onSeatClick={toggleSeatSelection} />}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+      
       <Divider style={{margin:'15px 0px'}} />
 
       <div>
