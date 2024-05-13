@@ -1,0 +1,10 @@
+.loc-row{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    position: relative;
+}
+
+.loc-row .loc-col{
+    height: inherit;
+}
