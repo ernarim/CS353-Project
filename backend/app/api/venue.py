@@ -36,7 +36,7 @@ async def get_all_venues():
 
 @router.get("/{venue_id}", response_model=Venue)
 async def read_venue(venue_id: UUID):
-    cursor.execute("SELECT * FROM Venue WHERE venue_id = %s", (str(venue_id),))
+    dictCursor.execute("SELECT * FROM Venue WHERE venue_id = %s", (str(venue_id),))
     venue = dictCursor.fetchone()
 
     venue_data = {

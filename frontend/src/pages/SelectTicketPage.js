@@ -1,15 +1,66 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Table, Button, InputNumber, message, Card } from "antd";
+import { Form, message, Select, Card, Row, Col } from "antd";
 import SeatMatrix from "../components/SeatMatrix";
 import Axios from "../Axios";
+import "../style/SelectedTicketPage.css";
 
 export function SelectTicketPage() {
   const { event_id } = useParams();
+  const [form] = Form.useForm();
   const [selectedSeats, setSelectedSeats] = useState([]);
+
+  const [categorySeats, setCategorySeats] = useState([]);
+  const [eventSeats, setEventSeats] = useState([]);
+
   const [venueSeats, setVenueSeats] = useState([]);
   const [venueRows, setVenueRows] = useState(0);
   const [venueColumns, setVenueColumns] = useState(0);
+
+  const [categories, setCategories] = useState([]);
+  // const [activeCategory, setActiveCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+
+  useEffect(() => {
+    fetchTicketCategories();
+    fetchEventSeats();
+    getVenue();
+  }, []);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      message.info(`Selected category: ${selectedCategory}`);
+      fetchCategorySeats();
+    }
+  }, [selectedCategory]);
+
+  const fetchTicketCategories = async () => {
+    const response = await Axios.get(`/ticket_category/${event_id}`);
+    // console.log("Eventres:", response.data); //TEST
+    setCategories(response.data);
+  };
+
+  const fetchCategorySeats = async () => {
+    const response = await Axios.get(
+      `/event/${event_id}/seating_plan/${selectedCategory}`
+    );
+    console.log("S SSats:", response.data);
+  };
+
+  const fetchEventSeats = async () => {
+    const response = await Axios.get(`/event/${event_id}/seating_plan`);
+    console.log("SEL seats:", response.data);
+
+    let seats = [];
+    for (let i = 0; i < response.data.length; i++) {
+      let seat = [];
+      seat[0] = response.data[i].row_number;
+      seat[1] = response.data[i].column_number;
+      seats.push(seat);
+    }
+    setCategorySeats(seats);
+    console.log("S seats:", categorySeats);
+  };
 
   const getSeats = (seats) => {
     setSelectedSeats(seats);
@@ -22,42 +73,11 @@ export function SelectTicketPage() {
       setVenueSeats(venue.data.seats);
       setVenueRows(venue.data.row_count);
       setVenueColumns(venue.data.column_count);
-      console.log(venueSeats);
-      console.log(venueRows);
-      console.log(venueColumns);
+      console.log(event.data);
     } catch (error) {
       console.log(error.detail);
     }
   };
-
-  useEffect(() => {
-    getVenue();
-  }, []);
-
-  const [ticketData, setTicketData] = useState([
-    {
-      key: "1",
-      category: "category A",
-      available: 32,
-      occupied: 78,
-      select: 0,
-    },
-    {
-      key: "2",
-      category: "category B",
-      available: 0,
-      occupied: 110,
-      select: 0,
-    },
-    {
-      key: "3",
-      category: "category C",
-      available: 15,
-      occupied: 75,
-      select: 0,
-    },
-    // ... other categories
-  ]);
 
   const handleAddToCart = (record) => {
     if (record.select > 0 && record.select <= record.available) {
@@ -86,104 +106,49 @@ export function SelectTicketPage() {
     console.log(row, column);
   };
 
-  const columns = [
-    {
-      title: "Ticket Type",
-      dataIndex: "category",
-      key: "category",
-    },
-    {
-      title: "Available",
-      dataIndex: "available",
-      key: "available",
-    },
-    {
-      title: "Occupied",
-      dataIndex: "occupied",
-      key: "occupied",
-    },
-    {
-      title: "Select",
-      key: "select",
-      render: (_, record) => (
-        <InputNumber
-          min={0}
-          max={record.available}
-          value={record.select}
-          onChange={(value) => {
-            const newTicketData = [...ticketData];
-            const index = newTicketData.findIndex(
-              (item) => item.key === record.key
-            );
-            newTicketData[index].select = value;
-            setTicketData(newTicketData);
-          }}
-        />
-      ),
-    },
-    {
-      title: "Action",
-      key: "action",
-      render: (_, record) => (
-        <Button
-          type="primary"
-          onClick={() => handleAddToCart(record)}
-          disabled={record.available === 0}
-        >
-          Add to Cart
-        </Button>
-      ),
-    },
-  ];
-
-  // fill 2d arrsy with available seats from [1,1] to [10,10]
-
-  const available_seats = [];
-  for (let i = 1; i <= 10; i++) {
-    for (let j = 1; j <= 10; j++) {
-      available_seats.push([i, j]);
-    }
-  }
-
-  // discard some seats in RANDOM
-  for (let i = 0; i < 30; i++) {
-    available_seats.splice(
-      Math.floor(Math.random() * available_seats.length),
-      1
-    );
-    //console.log(available_seats);
-  }
-
   return (
     <>
-      <Button onClick={() => test()}>TEST</Button>
-      <Card style={{ display: "flex" }}>
-        <SeatMatrix
-          rows={venueRows}
-          columns={venueColumns}
-          available_seats={venueSeats}
-          onSeatClick={handleReserve}
-          getSeats={getSeats}
-          header={[false, false, true, true]}
-        />
-      </Card>
-      <br />
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
-      >
-        <h2>Select Tickets</h2>
-        <Table dataSource={ticketData} columns={columns} pagination={false} />
-        <div style={{ marginTop: "20px", textAlign: "center" }}>
-          <Button type="default" style={{ marginRight: "10px" }}>
-            Cancel
-          </Button>
-          <Button type="primary">Add to Cart</Button>
-        </div>
-      </div>
+      <Row className="loc-row" justify={"center"}>
+        <Col span={8} className="loc-col">
+          <Card>
+            <Form form={form} layout="vertical">
+              <Form.Item
+                label="Select Ticket Category"
+                name="category"
+                rules={[
+                  { required: true, message: "Please select a category" },
+                ]}
+              >
+                <Select
+                  placeholder="Ticket Category"
+                  onChange={setSelectedCategory}
+                >
+                  {categories.map((category) => (
+                    <Select.Option
+                      key={category.category_name}
+                      value={category.category_name}
+                    >
+                      {category.category_name}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Form>
+          </Card>
+        </Col>
+        <Col span={16} className="loc-col">
+          <Card title="Select Seat">
+            <SeatMatrix
+              rows={venueRows}
+              columns={venueColumns}
+              available_seats={categorySeats}
+              onSeatClick={handleReserve}
+              getSeats={getSeats}
+              header={[true, true, true, true]}
+            />
+          </Card>
+        </Col>
+      </Row>
     </>
   );
 }

@@ -38,7 +38,7 @@ async def read_ticket_category(event_id: UUID, category_name: str):
     print(ticket_category)
     if not ticket_category:
         raise HTTPException(status_code=404, detail="Ticket category not found")
-        
+
     ticket_category = {
         "event_id": ticket_category[0],
         "category_name": ticket_category[1],
@@ -61,11 +61,11 @@ async def create_ticket_category(ticket_category: TicketCategory):
         # Create the ticket category
         cursor.execute(ticket_category_query, (str(ticket_category.event_id), ticket_category.category_name, ticket_category.price))
         new_ticket_category = cursor.fetchone()
-        
-       
-        
+
+
+
         conn.commit()  # Commit all changes
-        
+
         return TicketCategory.parse_obj({
             "event_id": new_ticket_category[0],
             "category_name": new_ticket_category[1],
@@ -79,9 +79,9 @@ async def create_ticket_category(ticket_category: TicketCategory):
 @router.patch("/{event_id}/{category_name}", response_model=TicketCategory)
 async def update_ticket_category(event_id: UUID, category_name: str, ticket_category: TicketCategoryUpdate):
     query = """
-    UPDATE Ticket_Category 
-    SET price = %s, color = %s 
-    WHERE event_id = %s AND category_name = %s 
+    UPDATE Ticket_Category
+    SET price = %s, color = %s
+    WHERE event_id = %s AND category_name = %s
     RETURNING *;
     """
 
@@ -106,9 +106,9 @@ async def update_ticket_categories(event_id: UUID, ticket_categories: List[Ticke
     updated_ticket_categories = []
     for ticket_category in ticket_categories:
         query = """
-        UPDATE Ticket_Category 
-        SET price = %s, color = %s 
-        WHERE event_id = %s AND category_name = %s 
+        UPDATE Ticket_Category
+        SET price = %s, color = %s
+        WHERE event_id = %s AND category_name = %s
         RETURNING *;
         """
         try:

@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Query
-from app.database.session import cursor, conn
+from app.database.session import cursor, conn, dictCursor
 from app.models.event import Event, EventRead, EventCreate, EventUpdate
 from app.models.restriction import Restriction
 from app.api.restriction import create_restriction, read_restriction, delete_restriction_by_event_id, update_restriction
@@ -49,9 +49,9 @@ async def read_restriction(event_id: str):
 @router.get("")
 async def get_all_events():
     query = """
-    SELECT 
+    SELECT
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
-        e.organizer_id, o.organizer_name AS organizer_name, 
+        e.organizer_id, o.organizer_name AS organizer_name,
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
         e.category_id, c.name AS category_name, e.photo
     FROM Event e
@@ -70,9 +70,9 @@ async def get_all_events():
 @router.get("/{event_id}")
 async def read_event(event_id: UUID):
     query = """
-    SELECT 
+    SELECT
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
-        e.organizer_id, o.organizer_name AS organizer_name, 
+        e.organizer_id, o.organizer_name AS organizer_name,
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
         e.category_id, c.name AS category_name, e.photo, e.is_cancelled
     FROM Event e
@@ -88,7 +88,7 @@ async def read_event(event_id: UUID):
 
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")
-    
+
     event_data = {
         "event_id": event[0],
         "name": event[1],
@@ -120,7 +120,7 @@ async def read_event(event_id: UUID):
         "photo": event[20],
         "is_cancelled" : event[21]
     }
-   
+
     return event_data
 
 
@@ -146,7 +146,7 @@ async def create_event(event: EventCreate):
     ticket_category_query = """
         INSERT INTO Ticket_Category (event_id, category_name, price, color)
         VALUES (%s, %s, %s, %s)
-        RETURNING *;  
+        RETURNING *;
     """
 
 
@@ -161,22 +161,22 @@ async def create_event(event: EventCreate):
         RETURNING *;
     """
     try:
-        
+
         cursor.execute(event_query, (str(event_id), event.name, event.date, event.description, event.is_done,
                                event.remaining_seat_no, event.return_expire_date, str(event.organizer_id),
                                 str(event.venue_id), str(event.category_id), event.photo))
         new_event = cursor.fetchone()
-    
+
         for category in event.ticket_categories:
             cursor.execute(ticket_category_query, (str(event_id), category.category_name, category.price, category.color))
-  
+
         for plan in event.seating_plans:
             ticket_id = uuid4()
             cursor.execute(ticket_creation_query, (str(ticket_id), str(event_id)))
             new_ticket = cursor.fetchone()
             if not new_ticket:
                 raise HTTPException(status_code=404, detail="Failed to create ticket")
-            
+
             cursor.execute(seating_plan_query, (str(event_id), str(ticket_id), plan.category_name, plan.row_number, plan.column_number, True, False))
 
         new_event_data = {
@@ -198,7 +198,7 @@ async def create_event(event: EventCreate):
 
         #return both new event and restriction
         return new_event_data, restriction
-        
+
     except ForeignKeyViolation as e:
         conn.rollback()
         logger.error(f"ForeignKeyViolation: {e}")
@@ -212,17 +212,17 @@ async def create_event(event: EventCreate):
 @router.patch("/{event_id}")
 async def update_event(event_id: UUID, update_data: EventUpdate):
     query = """
-    UPDATE Event SET 
-        name = %s, 
-        description = %s, 
+    UPDATE Event SET
+        name = %s,
+        description = %s,
         photo = %s
-    WHERE event_id = %s 
+    WHERE event_id = %s
     RETURNING *;
     """
     # Convert any UUIDs to strings before executing the query
 
     params = (
-        update_data.name, 
+        update_data.name,
         update_data.description,
         update_data.photo,
         str(event_id)
@@ -236,7 +236,7 @@ async def update_event(event_id: UUID, update_data: EventUpdate):
 
     if updated_event is None:
         raise HTTPException(status_code=404, detail="Event not found")
-    
+
     return updated_event
 
 
@@ -270,7 +270,7 @@ async def delete_event(event_id: UUID):
 @router.post("/cancel/{event_id}")
 async def cancel_event(event_id: UUID):
     print("I am cancelling the event")
-    
+
     cursor = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
@@ -288,7 +288,7 @@ async def cancel_event(event_id: UUID):
             cursor.execute("UPDATE Event SET is_cancelled = TRUE WHERE event_id = %s", (str(event_id),))
             conn.commit()
             return JSONResponse(status_code=200, content={"message": "No transactions available for this event, event successfully canceled"})
-    
+
         # Refund each buyer and adjust the organizer's balance
         for transaction in transactions:
             # Refund the buyer
@@ -312,7 +312,7 @@ async def cancel_event(event_id: UUID):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    
+
     finally:
         cursor.close()
 
@@ -329,14 +329,14 @@ async def upload_photo(photo: UploadFile = File(...)):
     except Exception as e:
         logging.error(f"Failed to upload: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @router.get("/search_events", response_model=List[Event])
 async def search_events(name: Optional[str] = Query(None, description="Search by event name")):
     query = """
-    SELECT 
+    SELECT
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
-        e.organizer_id, o.organizer_name AS organizer_name, 
+        e.organizer_id, o.organizer_name AS organizer_name,
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
         e.category_id, c.name AS category_name
     FROM Event e
@@ -393,3 +393,30 @@ async def prepare_event_data(event):
     # Fetch restriction asynchronously
     event_dict["restriction"] = await read_restriction(str(event[0]))
     return event_dict
+
+@router.get("/{event_id}/seating_plan")
+async def get_seating_plan(event_id: UUID):
+    query = """
+    SELECT * FROM seating_plan WHERE event_id = %(event_id)s;
+    """
+    dictCursor.execute(query, {
+        'event_id': str(event_id)
+    })
+    seating_plan = dictCursor.fetchall()
+    if not seating_plan:
+        raise HTTPException(status_code=404, detail="No seating plan found for this event")
+    return seating_plan
+
+@router.get("/{event_id}/seating_plan/{category_name}")
+async def get_seating_plan_by_category(event_id: UUID, category_name: str):
+    query = """
+    SELECT * FROM seating_plan WHERE event_id = %(event_id)s AND category_name = %(category_name)s;
+    """
+    dictCursor.execute(query, {
+        'event_id': str(event_id),
+        'category_name': category_name
+    })
+    seating_plan = dictCursor.fetchall()
+    if not seating_plan:
+        raise HTTPException(status_code=404, detail="No seating plan found for this category")
+    return seating_plan
