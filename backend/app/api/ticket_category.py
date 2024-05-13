@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.database.session import cursor, conn
-from app.models.ticket_category import TicketCategory
+from app.models.ticket_category import TicketCategory, TicketCategoryUpdate, TicketCategoryUpdateMultiple
 from fastapi import HTTPException
 from uuid import UUID
 from typing import List
@@ -77,20 +77,56 @@ async def create_ticket_category(ticket_category: TicketCategory):
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.patch("/{event_id}/{category_name}", response_model=TicketCategory)
-async def update_ticket_category(event_id: UUID, category_name: str, ticket_category: TicketCategory):
+async def update_ticket_category(event_id: UUID, category_name: str, ticket_category: TicketCategoryUpdate):
     query = """
-    UPDATE Ticket_Category SET price = %s WHERE event_id = %s AND category_name = %s RETURNING *;
+    UPDATE Ticket_Category 
+    SET price = %s, color = %s 
+    WHERE event_id = %s AND category_name = %s 
+    RETURNING *;
     """
+
     try:
-        cursor.execute(query, (ticket_category.price, str(event_id), category_name))
+        cursor.execute(query, (ticket_category.price, ticket_category.color, str(event_id), category_name))
         updated_ticket_category = cursor.fetchone()
         conn.commit()
         if not updated_ticket_category:
             raise HTTPException(status_code=404, detail="Ticket category not found")
-        return TicketCategory(**updated_ticket_category)
+        return TicketCategory.parse_obj({
+            "event_id": updated_ticket_category[0],
+            "category_name": updated_ticket_category[1],
+            "price": updated_ticket_category[2],
+            "color": updated_ticket_category[3]
+        })
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.patch("/{event_id}", response_model=List[TicketCategory])
+async def update_ticket_categories(event_id: UUID, ticket_categories: List[TicketCategoryUpdateMultiple]):
+    updated_ticket_categories = []
+    for ticket_category in ticket_categories:
+        query = """
+        UPDATE Ticket_Category 
+        SET price = %s, color = %s 
+        WHERE event_id = %s AND category_name = %s 
+        RETURNING *;
+        """
+        try:
+            cursor.execute(query, (ticket_category.price, ticket_category.color, str(event_id), ticket_category.category_name))
+            updated_ticket_category = cursor.fetchone()
+            if not updated_ticket_category:
+                raise HTTPException(status_code=404, detail="Ticket category not found")
+            updated_ticket_categories.append(TicketCategory.parse_obj({
+                "event_id": updated_ticket_category[0],
+                "category_name": updated_ticket_category[1],
+                "price": updated_ticket_category[2],
+                "color": updated_ticket_category[3]
+            }))
+        except Exception as e:
+            conn.rollback()
+            raise HTTPException(status_code=400, detail=str(e))
+    conn.commit()
+    return updated_ticket_categories
 
 @router.delete("/{event_id}/{category_name}", status_code=204)
 async def delete_ticket_category(event_id: UUID, category_name: str):

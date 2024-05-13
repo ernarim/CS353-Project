@@ -38,7 +38,11 @@ class EventCreate(BaseModel):
     ticket_categories: Optional[List[TicketCategoryCreate]] = None
     seating_plans: Optional[List[SeatingPlanCreate]] = None
     
-    
+class EventUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    photo: Optional[str] = None
+
 
 class EventRead(BaseModel):
     event_id: UUID

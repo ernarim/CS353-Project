@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 from app.database.session import cursor, conn
-from app.models.event import Event, EventRead, EventCreate
+from app.models.event import Event, EventRead, EventCreate, EventUpdate
 from app.models.restriction import Restriction
 from app.api.restriction import create_restriction, read_restriction, delete_restriction_by_event_id, update_restriction
 from fastapi import HTTPException
@@ -208,18 +208,11 @@ async def create_event(event: EventCreate):
 
 
 @router.patch("/{event_id}")
-async def update_event(event_id: UUID, update_data: EventCreate):
+async def update_event(event_id: UUID, update_data: EventUpdate):
     query = """
     UPDATE Event SET 
         name = %s, 
-        date = %s, 
         description = %s, 
-        is_done = %s, 
-        remaining_seat_no = %s, 
-        return_expire_date = %s, 
-        organizer_id = %s, 
-        venue_id = %s, 
-        category_id = %s,
         photo = %s
     WHERE event_id = %s 
     RETURNING *;
@@ -228,14 +221,7 @@ async def update_event(event_id: UUID, update_data: EventCreate):
 
     params = (
         update_data.name, 
-        update_data.date, 
-        update_data.description, 
-        update_data.is_done,
-        update_data.remaining_seat_no, 
-        update_data.return_expire_date, 
-        str(update_data.organizer_id) if isinstance(update_data.organizer_id, UUID) else update_data.organizer_id,
-        str(update_data.venue_id) if isinstance(update_data.venue_id, UUID) else update_data.venue_id,
-        str(update_data.category_id) if isinstance(update_data.category_id, UUID) else update_data.category_id,
+        update_data.description,
         update_data.photo,
         str(event_id)
     )
@@ -245,8 +231,6 @@ async def update_event(event_id: UUID, update_data: EventCreate):
         updated_event = cursor.fetchone()
         conn.commit()
 
-    restriction =  await read_restriction(str(event_id))
-    await update_restriction(restriction["restriction_id"], update_data.restriction)
 
     if updated_event is None:
         raise HTTPException(status_code=404, detail="Event not found")
