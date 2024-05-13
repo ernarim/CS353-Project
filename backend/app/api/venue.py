@@ -212,7 +212,7 @@ async def delete_venue(venue_id: UUID):
 @router.get("/{venue_id}/seats", response_model=List[Seats])
 async def get_venue_seats(venue_id: UUID):
     query = """
-    SELECT row_number, column_number
+    SELECT row_number, column_number, venue_id
     FROM Seats
     WHERE venue_id = %(venue_id)s;
     """
@@ -224,6 +224,6 @@ async def get_venue_seats(venue_id: UUID):
 
         if not seats:
             return []
-        return [Seats(row_number=seat[0], column_number=seat[1], ) for seat in seats]
+        return [Seats(row_number=seat[0], column_number=seat[1], venue_id=seat[2] ) for seat in seats]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

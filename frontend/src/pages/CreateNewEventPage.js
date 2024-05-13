@@ -6,6 +6,7 @@ import Axios from '../Axios';
 import SeatMatrixCreate from '../components/SeatMatrixCreate';
 import { message } from 'antd';
 import moment from 'moment';
+import SeatPlanCreate from '../components/SeatingPlanCreate';
 
 const baseURL = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/`;
 
@@ -16,6 +17,7 @@ export function CreateNewEventPage ()  {
   const [venues, setVenues] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedVenue, setSelectedVenue] = useState(null);
+  const [selectedVenueObject, setSelectedVenueObject] = useState(null);
   const [allSeats, setAllSeats] = useState([]); 
   const [allCategories, setAllCategories] = useState([]);
 
@@ -168,7 +170,7 @@ export function CreateNewEventPage ()  {
 
 useEffect(() => {
   let venue = venues.find(venue => venue.venue_id === selectedVenue)
-  console.log("venue", venue);
+  setSelectedVenueObject(venue);
 }, [selectedVenue]);
   
 const disabledDate = (current) => {
@@ -239,8 +241,15 @@ const disabledDate = (current) => {
       </Form>
       </Card>
       {selectedVenue && (
-        <Card  title={"Seating plan for " + venues.find(venue => venue.venue_id === selectedVenue)?.name} style={{ width: 900, margin: 20 }}>
-          <SeatMatrixCreate venue={venues.find(venue => venue.venue_id === selectedVenue)} getTicketCategories={getTicketCategories} getSeats={getSeats}/>
+        <Card  title={"Seating plan for " + venues.find(venue => venue.venue_id === selectedVenue)?.name} style={{ width: 900, margin: 20 }}
+          extra={"Capacity: " + selectedVenueObject?.capacity}>
+          {selectedVenueObject && selectedVenueObject?.row_count != 0 && selectedVenueObject?.column_count != 0 && 
+            <SeatMatrixCreate venue={selectedVenueObject} getTicketCategories={getTicketCategories} getSeats={getSeats}/>
+          }
+          {selectedVenueObject && selectedVenueObject?.row_count == 0 && selectedVenueObject?.column_count == 0 && 
+            <SeatPlanCreate venue={selectedVenueObject} getTicketCategories={getTicketCategories} getSeats={getSeats}/>
+            
+          }
         </Card>
       )}
 

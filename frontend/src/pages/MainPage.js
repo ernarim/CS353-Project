@@ -57,40 +57,6 @@ export function MainPage (){
 
 
 
-    const categories = [
-        { name: 'Category 1' },
-        { name: 'Category 2' },
-        { name: 'Category 3' },
-        { name: 'Category 4' },
-        { name: 'Category 5' },
-        { name: 'Category 6' },
-    ];
-
-    const eventss = [
-        {
-            id: 1,
-            title: 'Wonder Girls 2010 Wonder Girls World Tour San Francisco',
-            description: 'Get your directly seated and inside for you to enjoy the show.',
-            image: '',
-            date: '2024-08-14'
-        },
-        {
-            id: 2,
-            title: 'JYJ 2011 JYJ Worldwide Concert Barcelona',
-            description: 'Directly seated and inside for you to enjoy the show.',
-            image: '',
-            date: '2024-08-20'
-        },
-        {
-            id: 3,
-            title: 'Super Junior SM Town Live \'10 World Tour New York City',
-            description: 'Directly seated and inside for you to enjoy the show.',
-            image: '',
-            date: '2024-09-18'
-        },
-        // Add more events as needed
-    ];
-
 
     const fetchEvents = async () => {
         // Fetch events from the backend
@@ -196,7 +162,7 @@ export function MainPage (){
 
 
                 {/* Event List */}
-                <Row gutter={[20,30]} style={{margin:'0px 5%'}}>
+                <Row gutter={[20,30]} style={{margin:'0px 4%'}}>
                     {events.map(event => (
                         <Col span={6} key={event.event_id}>
                             <Card
@@ -204,6 +170,7 @@ export function MainPage (){
                                 hoverable
                                 style={{
                                     minHeight: '280px', // Ensures all cards have at least this height
+                                    minWidth: '280px',  // Ensures all cards have at least this width
                                 }}
                                 cover={
                                     <>

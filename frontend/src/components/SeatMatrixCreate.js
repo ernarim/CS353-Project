@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Modal, Button, Form, Input, Select, Col, Row, Checkbox, Divider } from 'antd';
-import SeatHeader from "./SeatHeader";
 import SeatCreate from "./SeatCreate";
+import Axios from '../Axios';
 
 
 
@@ -11,6 +11,7 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [rows, setRows] = useState(0);
   const [columns, setColumns] = useState(0);
+  const [allVenueSeats, setAllVenueSeats] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
 
@@ -72,12 +73,25 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
     resetSelections();
   };
   
-  
+  const fetchVenueSeats = async () => {
+    try {
+      const response = await Axios.get(`/venue/${venue.venue_id}/seats`);
+      setAllVenueSeats(response.data);
+
+    } catch (error) {
+      console.error('Failed to fetch venue seats', error);
+    }
+  };
+
   useEffect(() => {
     if (venue) {
       setRows(venue.row_count);
       setColumns(venue.column_count);
+      fetchVenueSeats();
+
     }
+
+
     const initialCannotSellSeats = new Set();
     for (let r = 1; r <= venue.row_count; r++) {
       for (let c = 1; c <= venue.column_count; c++) {
@@ -85,13 +99,16 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
       }
     }
     setCannotSellSeats(initialCannotSellSeats);
+
+
+
   }, [venue]);
 
   useEffect(() => {
     getSeats(seatCategories);
     getTicketCategories(categories);
-    console.log("seatCategories", seatCategories);
-    console.log("cannotSellSeats", cannotSellSeats);
+    console.log('Seat Categories:', seatCategories);
+
   }, [cannotSellSeats, seatCategories]);
 
   const toggleSeatSelection = (seatNumber) => {
@@ -119,7 +136,8 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
       for (let r = rowStart; r <= rowEnd; r++) {
         for (let c = columnStart; c <= columnEnd; c++) {
           const seatNumber = `${r}-${c}`;
-          if (!selectedSeats.some(seat => seat[0] === r && seat[1] === c)) {
+          const isInVenueSeats = allVenueSeats.some(seat => seat.row_number === r && seat.column_number === c);
+          if (isInVenueSeats && !selectedSeats.some(seat => seat[0] === r && seat[1] === c)) {
             setSelectedSeats(current => [...current, [r, c]]);
           }
         }
@@ -144,7 +162,6 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
   }, []);
   
   const onSelectChange =  async (value) => {
-    console.log(`selected ${value}`);
     setCurrentCategory(value);
     if(value == currentCategory){
       assignCategoryToSelectedSeats();
@@ -215,16 +232,15 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
             const isSelected = selectedSeats.some(([r, c]) => r === row && c === column);
             const isCannotSell = cannotSellSeats.has(seatKey);
             let seatColor = isCannotSell ? '#cccccc' : categories[seatCategories[seatKey]]?.color || '#cccccc';
+            const isInVenueSeats = allVenueSeats.some(seat => seat.row_number === row && seat.column_number === column);
             if(isSelected) seatColor = 'rgba(69,69,69,1)';
             return (
               <Col key={colIndex}
                    onMouseDown={() => handleMouseDown(row, column)}
                    onMouseOver={() => handleMouseOver(row, column)}>
-                <SeatCreate
-                  number={seatKey}
-                  color={seatColor}
-                  onSeatClick={toggleSeatSelection}
-                />
+                { !isInVenueSeats && <SeatCreate number={seatKey} color={'#ffffff'} />}
+                { isInVenueSeats && <SeatCreate number={seatKey} color={seatColor} onSeatClick={toggleSeatSelection} />}
+               
               </Col>
             );
           })}
