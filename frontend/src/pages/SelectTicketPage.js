@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Table, Button, InputNumber, message } from "antd";
+import { Table, Button, InputNumber, message, Card } from "antd";
 import SeatMatrix from "../components/SeatMatrix";
 import Axios from "../Axios";
 
@@ -157,13 +157,16 @@ export function SelectTicketPage() {
   return (
     <>
       <Button onClick={() => test()}>TEST</Button>
-      <SeatMatrix
-        rows={venueRows}
-        columns={venueColumns}
-        available_seats={venueSeats}
-        onSeatClick={handleReserve}
-        getSeats={getSeats}
-      />
+      <Card style={{ display: "flex" }}>
+        <SeatMatrix
+          rows={venueRows}
+          columns={venueColumns}
+          available_seats={venueSeats}
+          onSeatClick={handleReserve}
+          getSeats={getSeats}
+          header={[false, false, true, true]}
+        />
+      </Card>
       <br />
       <div
         style={{

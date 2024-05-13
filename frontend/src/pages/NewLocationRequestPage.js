@@ -3,13 +3,12 @@ import { Form, Input, InputNumber, Button, Switch, Card, Row, Col } from "antd";
 import "../style/NewLocationRequestPage.css";
 import SeatMatrix from "../components/SeatMatrix";
 import Axios from "../Axios";
+import { message } from "antd";
 
 export const NewLocationRequestPage = () => {
   const [formMeta] = Form.useForm();
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [venueMetaProvided, setVenueMetaProvided] = useState(false); //MAKE IT FALSE
-  //const [rows, setRows] = useState(0);
-  //const [columns, setColumns] = useState(0);
+
   const rows = Form.useWatch("row", formMeta);
   const columns = Form.useWatch("column", formMeta);
   const rowColSwitch = Form.useWatch(
@@ -48,22 +47,21 @@ export const NewLocationRequestPage = () => {
     console.log("Data: ", data);
     try {
       const response = await Axios.post("/venue", data);
-      console.log("Response: ", response);
+      console.log("Response: ", response); //TEST
+      if (response.status === 201) {
+        message.success("Venue request created successfully!");
+        formMeta.resetFields();
+      }
     } catch (err) {
+      message.error("Failed to create venue request!");
       console.log(err);
     }
   };
 
-  const onVenueMetaProvided = (values) => {
-    //setRows(values.row);
-    //setColumns(values.column);
-    setVenueMetaProvided(true);
-  };
-
   return (
     <>
-      <Row className="loc-row">
-        <Col span={4} className="loc-col">
+      <Row className="loc-row" justify={"center"}>
+        <Col span={6} className="loc-col">
           <Card
             title="Submit New Venue Name And Location"
             className="loc-col-card"
@@ -188,10 +186,9 @@ export const NewLocationRequestPage = () => {
             </Form>
           </Card>
         </Col>
-
         <Col
-          span={20}
           className={`${rowColSwitch ? "loc-col" : "loc-col-transition"}`}
+          flex={`${rowColSwitch ? 18 : 0}`}
         >
           <Card title="Selected Seats" className="loc-col-card">
             <SeatMatrix
@@ -199,6 +196,7 @@ export const NewLocationRequestPage = () => {
               columns={columns}
               available_seats={[]}
               getSeats={getSeats}
+              header={[false, false, true, true]}
             />
           </Card>
         </Col>

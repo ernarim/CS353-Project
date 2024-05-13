@@ -9,6 +9,7 @@ export default function SeatMatrix({
   available_seats,
   onSeatClick,
   getSeats = {},
+  header,
 }) {
   if (onSeatClick === undefined) {
     onSeatClick = () => {};
@@ -54,24 +55,26 @@ export default function SeatMatrix({
         seatMatrix[i].push(seat);
       }
     }
-    seatMatrix.forEach((row) => {
-      row.forEach((seat) => {
-        seat[2] = true;
+    if (available_seats.length > 0) {
+      seatMatrix.forEach((row) => {
+        row.forEach((seat) => {
+          seat[2] = true;
+        });
       });
-    });
-    seatMatrix.forEach((row) => {
-      row.forEach((seat) => {
-        for (let i = 0; i < available_seats.length; i++) {
-          if (
-            available_seats[i][0] == seat[0] &&
-            available_seats[i][1] == seat[1]
-          ) {
-            seat[2] = false;
-            break;
+      seatMatrix.forEach((row) => {
+        row.forEach((seat) => {
+          for (let i = 0; i < available_seats.length; i++) {
+            if (
+              available_seats[i][0] == seat[0] &&
+              available_seats[i][1] == seat[1]
+            ) {
+              seat[2] = false;
+              break;
+            }
           }
-        }
+        });
       });
-    });
+    }
 
     setSeatMatrix(seatMatrix);
     console.log("Seat Matrix: ", seatMatrix.length);
@@ -79,30 +82,59 @@ export default function SeatMatrix({
 
   return (
     <>
-      <SeatHeader />
-      {seatMatrix.map((row, i) => (
-        <Row key={i} style={{ marginBottom: 5 }} gutter={[8, 8]}>
-          {row.map((seat, j) => {
-            if (!seat[2]) {
-              return (
-                <Col key={j}>
-                  <Seat
-                    number={seat[0] + "-" + seat[1]}
-                    isActive={true}
-                    onSeatClick={() => handleSeatClick(seat[0], seat[1])}
-                  />
-                </Col>
-              );
-            } else {
-              return (
-                <Col key={j}>
-                  <Seat isActive={false} />
-                </Col>
-              );
-            }
-          })}
-        </Row>
-      ))}
+      <SeatHeader
+        full={header[0]}
+        empty={header[1]}
+        disabled={header[2]}
+        selected={header[3]}
+      />
+      <div
+        style={{
+          overflow: "auto",
+          maxHeight: "90vh",
+          maxWidth: "90vh",
+          padding: "30px",
+          border: "1px solid #000",
+        }}
+      >
+        {seatMatrix.map((row, i) => (
+          <div
+            style={{
+              marginBottom: 10,
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            {row.map((seat, j) => {
+              if (!seat[2]) {
+                return (
+                  <div
+                    style={{
+                      marginRight: 5,
+                    }}
+                  >
+                    <Seat
+                      number={seat[0] + "-" + seat[1]}
+                      isActive={true}
+                      onSeatClick={() => handleSeatClick(seat[0], seat[1])}
+                    />
+                  </div>
+                );
+              } else {
+                return (
+                  <div
+                    style={{
+                      marginRight: 5,
+                    }}
+                  >
+                    <Seat isActive={false} />
+                  </div>
+                );
+              }
+            })}
+          </div>
+        ))}
+      </div>
     </>
   );
 }
