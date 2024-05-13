@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Table, Statistic, Row, Col, Divider } from 'antd';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+
 import { Modal, notification } from 'antd';
 import Axios from "../Axios";
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
@@ -11,6 +12,8 @@ export function EventInsightPage() {
   const [ticketCategories, setTicketCategories] = useState([]);
   const [totalSoldTickets, setTotalSoldTickets] = useState(null);
   const [eventCancelled, setEventCancelled] = useState(false);
+
+  const navigate = useNavigate();
   
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -52,6 +55,7 @@ export function EventInsightPage() {
   // Function to handle event update - stubbed out for now.
   const handleUpdateEvent = () => {
     console.log('Update Event Clicked!');
+    navigate(`/update_event/${event_id}`);
   };
   
   const handleCancelEvent = () => {

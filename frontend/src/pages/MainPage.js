@@ -164,7 +164,7 @@ export function MainPage (){
                 {/* Event List */}
                 <Row gutter={[20,30]} style={{margin:'0px 4%'}}>
                     {events.map(event => (
-                        <Col span={6} key={event.event_id}>
+                        <Col span={8} key={event.event_id}>
                             <Card
                                 onClick={()=> navigate(`/event_detail/${event.event_id}`)}
                                 hoverable

@@ -20,6 +20,7 @@ export function CreateNewEventPage ()  {
   const [selectedVenueObject, setSelectedVenueObject] = useState(null);
   const [allSeats, setAllSeats] = useState([]); 
   const [allCategories, setAllCategories] = useState([]);
+  const [fileListPlan, setFileListPlan] = useState([]);
 
   const navigate = useNavigate();
 
@@ -51,37 +52,51 @@ export function CreateNewEventPage ()  {
 
   const getSeats = (seats) => {
     console.log('getSeats', seats);
-  
-    // Map over the object entries
-    const structuredSeats = Object.entries(seats).map(([key, category]) => {
-      const [row, column] = key.split('-').map(Number);
-  
-      return {
-        row_number: row,
-        column_number: column,
-        category_name: category
-      };
-    });
+    let structuredSeats = [];
+
+    if ( selectedVenueObject?.row_count == 0 || selectedVenueObject?.column_count == 0) {
+      structuredSeats = Object.entries(seats).map(([key, category]) => {
+        return {
+          row_number: 0,
+          column_number: 0,
+          category_name: category
+        };
+      });
+    }
+    else {
+      structuredSeats = Object.entries(seats).map(([key, category]) => {
+        const [row, column] = key.split('-').map(Number);
+
+        return {
+          row_number: row,
+          column_number: column,
+          category_name: category
+        };
+      });
+    }
+
   
     console.log('Structured Seats:', structuredSeats);
     setAllSeats(structuredSeats);
   };
 
   const getTicketCategories = (categories) => { 
-    console.log('getTicketCategories', categories);
 
     const structuredCategories = Object.entries(categories).map(([key, values]) => {
-  
       return {
         category_name: key,
         color: values.color,
         price: values.price,
       };
     });
-    console.log("Structured Categories", structuredCategories);
+    console.log('Structured Categories:', structuredCategories);
     setAllCategories(structuredCategories);
   };
 
+  const getFileList = (fileList) => {
+    console.log('getFileList', fileList);
+    setFileListPlan(fileList);
+  };
 
   const handleSubmit = async (values) => {
     if (allSeats.length === 0) {
@@ -97,6 +112,14 @@ export function CreateNewEventPage ()  {
       values.date = values.date.format('YYYY-MM-DD HH:mm:ss');
     }
     let filename = await handlePhotoUpload();
+    let filenamePlan;
+    if (fileListPlan.length > 0 && selectedVenueObject.row_count == 0 && selectedVenueObject.column_count == 0){
+      console.log('fileListPlan', fileListPlan)
+      console.log('Uploading plan photo');
+      filenamePlan = await handlePhotoPlanUpload();
+      values.photo_plan = filenamePlan;
+    }
+    
     values.photo = filename;
     values.restriction = {};
     values.restriction.alcohol = values.alcohol;
@@ -110,7 +133,6 @@ export function CreateNewEventPage ()  {
     delete values.max_ticket;
   
     console.log('Received values of form: ', values);
-    
     try{
       Axios.post('/event', values);
       message.success('Event created successfully');
@@ -165,6 +187,29 @@ export function CreateNewEventPage ()  {
     catch(error){
       console.log(error);
     }
+};
+
+const handlePhotoPlanUpload = async () => {
+  const formData = new FormData();
+  if (fileListPlan.length === 0) {
+      console.log("No file selected for upload.");
+      return;
+  }
+  // Appending the file to formData
+  formData.append('photo', fileListPlan[0].originFileObj, fileListPlan[0].name);
+
+  try{
+    let result = await Axios.post('/event/upload_photo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+    let filename = result.data.filename;
+    return filename;
+  }
+  catch(error){
+    console.log(error);
+  }
 
 };
 
@@ -247,7 +292,7 @@ const disabledDate = (current) => {
             <SeatMatrixCreate venue={selectedVenueObject} getTicketCategories={getTicketCategories} getSeats={getSeats}/>
           }
           {selectedVenueObject && selectedVenueObject?.row_count == 0 && selectedVenueObject?.column_count == 0 && 
-            <SeatPlanCreate venue={selectedVenueObject} getTicketCategories={getTicketCategories} getSeats={getSeats}/>
+            <SeatPlanCreate venue={selectedVenueObject} getTicketCategories={getTicketCategories} getSeats={getSeats} getFileList={getFileList}/>
             
           }
         </Card>

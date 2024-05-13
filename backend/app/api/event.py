@@ -53,7 +53,7 @@ async def get_all_events():
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name,
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name, e.photo
+        e.category_id, c.name AS category_name, e.photo, e.is_cancelled, e.photo_plan
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -74,7 +74,7 @@ async def read_event(event_id: UUID):
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name,
         e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name, e.photo, e.is_cancelled
+        e.category_id, c.name AS category_name, e.photo, e.is_cancelled, e.photo_plan
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
     JOIN Venue v ON e.venue_id = v.venue_id
@@ -118,7 +118,8 @@ async def read_event(event_id: UUID):
         },
         "restriction": await read_restriction(str(event[0])),
         "photo": event[20],
-        "is_cancelled" : event[21]
+        "is_cancelled" : event[21],
+        "photo_plan" : event[22]
     }
 
     return event_data
@@ -137,8 +138,8 @@ async def create_event(event: EventCreate):
         raise HTTPException(status_code=404, detail=f"Venue ID {event.venue_id} not found")
 
     event_query = """
-        INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id, photo)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO Event (event_id, name, date, description, is_done, remaining_seat_no, return_expire_date, organizer_id, venue_id, category_id, photo, photo_plan)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *;
     """
 
@@ -164,7 +165,7 @@ async def create_event(event: EventCreate):
 
         cursor.execute(event_query, (str(event_id), event.name, event.date, event.description, event.is_done,
                                event.remaining_seat_no, event.return_expire_date, str(event.organizer_id),
-                                str(event.venue_id), str(event.category_id), event.photo))
+                                str(event.venue_id), str(event.category_id), event.photo, event.photo_plan))
         new_event = cursor.fetchone()
 
         for category in event.ticket_categories:
@@ -247,9 +248,14 @@ async def delete_event(event_id: UUID):
     try:
         deleleted_restriction = await delete_restriction_by_event_id(str(event_id))
 
+
         cursor.execute("DELETE FROM Seating_Plan WHERE event_id = %s;", (str(event_id),))
         print(f"Deleted seating plans for event {event_id}")
 
+        
+        cursor.execute("DELETE FROM Ticket WHERE event_id = %s;", (str(event_id),))
+        print(f"Deleted tickets for event {event_id}")
+        
         cursor.execute("DELETE FROM Ticket_Category WHERE event_id = %s;", (str(event_id),))
         print(f"Deleted ticket categories for event {event_id}")
 
@@ -388,7 +394,9 @@ async def prepare_event_data(event):
             "category_id": event[18],
             "category_name": event[19]
         },
-        "photo": event[20]
+        "photo": event[20],
+        "is_cancelled": event[21],
+        "photo_plan": event[22]
     }
     # Fetch restriction asynchronously
     event_dict["restriction"] = await read_restriction(str(event[0]))
