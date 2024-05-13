@@ -33,6 +33,7 @@ export const NewLocationRequestPage = () => {
     data.city = values.city;
     data.state = values.state;
     data.street = values.street;
+    data.requester_id = localStorage.getItem("userId");
     if (values.is_seating_arrangement_provided) {
       data.row_count = values.row;
       data.column_count = values.column;
