@@ -21,15 +21,16 @@ async def get_all_venues():
             'city': record[2],
             'state': record[3],
             'street': record[4],
-            'is_verified': record[5],
+            'status': record[5],
             'capacity': record[6],
             'row_count': record[7],
-            'column_count': record[8]
+            'column_count': record[8],
+            'requester_id': record[9]
         }) for record in venue_records]
         return venues
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @router.get("/{venue_id}", response_model=Venue)
 async def read_venue(venue_id: UUID):
     cursor.execute("SELECT * FROM Venue WHERE venue_id = %s", (str(venue_id),))
@@ -41,14 +42,21 @@ async def read_venue(venue_id: UUID):
         "city": venue[2],
         "state": venue[3],
         "street": venue[4],
-        "is_verified": venue[5],
+        "status": venue[5],
         "capacity": venue[6],
         "row_count": venue[7],
-        "column_count": venue[8]
+        "column_count": venue[8],
+        "requester_id" : venue[9]
     }
-
     if venue is None:
         raise HTTPException(status_code=404, detail="Venue not found")
+    if venue_data['row_count'] > 0:
+        print("Getting seats")
+        cursor.execute("SELECT row_number, column_number FROM Seats WHERE venue_id = %s", (str(venue_id),))
+        seats = cursor.fetchall()
+        venue_data['seats'] = seats
+    else:
+        venue_data['seats'] = []
     return venue_data
 
 
@@ -56,68 +64,82 @@ async def read_venue(venue_id: UUID):
 async def create_venue(venue: VenueCreate):
     venue_id = uuid4()
     venue_query = """
-    INSERT INTO Venue (venue_id, name, city, state, street, capacity, row_count, column_count)
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+    INSERT INTO Venue (venue_id, requester_id, name, city, state, street, capacity, row_count, column_count, status)
+    VALUES (%(venue_id)s, %(requester_id)s, %(name)s, %(city)s, %(state)s, %(street)s, %(capacity)s, %(row_count)s, %(column_count)s, 'pending')
     RETURNING *;
     """
     seats_query = """
     INSERT INTO Seats (venue_id, row_number, column_number)
-    VALUES (%s, %s, %s);
+    VALUES (%(venue_id)s, %(row_number)s, %(column_number)s);
     """
     try:
-        cursor.execute(venue_query, (str(venue_id), venue.name, venue.city, venue.state, venue.street, 
-                                venue.capacity, venue.row_count, venue.column_count))
+        print(venue)
+        cursor.execute(venue_query, {
+            'venue_id': str(venue_id),
+            'requester_id' : str(venue_id),
+            'name': venue.name,
+            'city': venue.city,
+            'state': venue.state,
+            'street': venue.street,
+            'capacity': venue.capacity,
+            'row_count': venue.row_count,
+            'column_count': venue.column_count
+        })
         new_venue = cursor.fetchone()
+        print(new_venue)
+        if new_venue is None:
+            conn.rollback()
+            raise HTTPException(status_code=400, detail="Failed to create venue")
 
-        # Commit early if there are no seats to create
-        if venue.row_count is None or venue.column_count is None or venue.row_count * venue.column_count == 0:
-            conn.commit()
-            return {
-                "venue_id": new_venue[0],
-                "name": new_venue[1],
-                "city": new_venue[2],
-                "state": new_venue[3],
-                "street": new_venue[4],
-                "is_verified": new_venue[5],
-                "capacity": new_venue[6],
-                "row_count": new_venue[7],
-                "column_count": new_venue[8]
-            }
+        if (venue.row_count == 0) != (venue.column_count == 0):
+            conn.rollback()
+            raise HTTPException(status_code=400, detail="Both row_count and column_count must be provided")
+        else:
+            if venue.row_count != 0 and venue.row_count * venue.column_count < venue.capacity:
+                conn.rollback()
+                raise HTTPException(status_code=400, detail="Invalid capacity or seat count")
 
-        # Generate seats based on row_count and column_count
-        for row in range(1, venue.row_count + 1):
-            for column in range(1, venue.column_count + 1):
-                cursor.execute(seats_query, (str(venue_id), row, column))
+        if venue.capacity <= 0:
+            conn.rollback()
+            raise HTTPException(status_code=400, detail="Invalid capacity or seat count")
+
+        if venue.row_count > 0:
+            for seat in venue.seats:
+                cursor.execute(seats_query, {
+                    'venue_id': str(venue_id),
+                    'row_number': seat[0],
+                    'column_number': seat[1]
+                })
 
         conn.commit()
-        
         return {
             "venue_id": new_venue[0],
-            "name": new_venue[1],
-            "city": new_venue[2],
-            "state": new_venue[3],
-            "street": new_venue[4],
-            "is_verified": new_venue[5],
-            "capacity": new_venue[6],
-            "row_count": new_venue[7],
-            "column_count": new_venue[8]
+            "requester_id" :new_venue[1],
+            "name": new_venue[2],
+            "city": new_venue[3],
+            "state": new_venue[4],
+            "street": new_venue[5],
+            "status": new_venue[6],
+            "capacity": new_venue[7],
+            "row_count": new_venue[8],
+            "column_count": new_venue[9],
         }
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=400, detail=str(e))
-    
+
 @router.patch("/{venue_id}", response_model=Venue)
 async def update_venue(venue_id: UUID, venue: Venue):
     update_venue_query = """
     UPDATE Venue
-    SET name = %s, city = %s, state = %s, street = %s, is_verified = %s,
+    SET name = %s, city = %s, state = %s, street = %s, status = %s,
         capacity = %s, row_count = %s, column_count = %s
     WHERE venue_id = %s RETURNING *;
     """
     try:
         cursor.execute(update_venue_query, (
-            venue.name, venue.city, venue.state, venue.street, 
-            venue.is_verified, venue.capacity, venue.row_count, venue.column_count, str(venue_id)
+            venue.name, venue.city, venue.state, venue.street,
+            venue.status, venue.capacity, venue.row_count, venue.column_count, str(venue_id)
         ))
         updated_venue = cursor.fetchone()
 
@@ -135,7 +157,7 @@ async def update_venue(venue_id: UUID, venue: Venue):
             "city": updated_venue[2],
             "state": updated_venue[3],
             "street": updated_venue[4],
-            "is_verified": updated_venue[5],
+            "status": updated_venue[5],
             "capacity": updated_venue[6],
             "row_count": updated_venue[7],
             "column_count": updated_venue[8]
@@ -162,12 +184,12 @@ def manage_seats(venue_id: UUID, row_count: int, column_count: int):
             VALUES (%s, %s, %s) ON CONFLICT DO NOTHING;
             """
             cursor.execute(insert_seat_query, (str(venue_id), row, column))
-    
+
 
 @router.delete("/{venue_id}", status_code=204)
 async def delete_venue(venue_id: UUID):
     try:
-        
+
         cursor.execute("DELETE FROM Seats WHERE venue_id = %s;", (str(venue_id),))
         cursor.execute("DELETE FROM Venue WHERE venue_id = %s RETURNING *;", (str(venue_id),))
         deleted_venue = cursor.fetchone()
@@ -175,7 +197,7 @@ async def delete_venue(venue_id: UUID):
         if not deleted_venue:
             conn.rollback()
             raise HTTPException(status_code=404, detail="Venue not found")
-        
+
         conn.commit()
         return {"detail": "Venue deleted successfully"}
     except Exception as e:
@@ -188,16 +210,16 @@ async def get_venue_seats(venue_id: UUID):
     query = """
     SELECT row_number, column_number
     FROM Seats
-    WHERE venue_id = %s;
+    WHERE venue_id = %(venue_id)s;
     """
     try:
-        cursor.execute(query, (str(venue_id),))
+        cursor.execute(query, {
+            'venue_id': str(venue_id)
+        })
         seats = cursor.fetchall()
-        
-        if not seats:
-            raise HTTPException(status_code=404, detail="No seats found for this venue or venue does not exist")
 
-        # Convert fetched seats into Pydantic models
+        if not seats:
+            return []
         return [Seats(row_number=seat[0], column_number=seat[1], ) for seat in seats]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Button, Table, Statistic, Row, Col, Divider } from 'antd';
 import { useParams } from 'react-router-dom';
+import { Modal, notification } from 'antd';
 import Axios from "../Axios";
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
 
@@ -9,6 +10,7 @@ export function EventInsightPage() {
   const [eventDetails, setEventDetails] = useState(null);
   const [ticketCategories, setTicketCategories] = useState([]);
   const [totalSoldTickets, setTotalSoldTickets] = useState(null);
+  const [eventCancelled, setEventCancelled] = useState(false);
   
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -36,7 +38,7 @@ export function EventInsightPage() {
       } catch (error) {
         console.error('Failed to fetch total sold tickets', error);
       }
-    };
+    }; 
 
     fetchEventDetails();
     fetchTicketCategories();
@@ -51,12 +53,44 @@ export function EventInsightPage() {
   const handleUpdateEvent = () => {
     console.log('Update Event Clicked!');
   };
-
-  // Function to handle event cancellation - stubbed out for now.
+  
   const handleCancelEvent = () => {
-    console.log('Cancel Event Clicked!');
+    Modal.confirm({
+      title: `Are you sure you want to cancel the "${eventDetails.name}" event?`,
+      content: 'This action cannot be undone.',
+      okText: 'Yes',
+      okType: 'danger',
+      cancelText: 'No',
+      onOk() {
+        cancelEvent();
+      },
+      onCancel() {
+        console.log('Cancel operation was aborted.');
+      },
+    });
   };
 
+  const cancelEvent = async () => {
+    try {
+      const response = await Axios.post(`/event/cancel/${event_id}`);
+      console.log('Event cancelled successfully:', response.data);
+      // Display success notification
+      notification.success({
+        message: 'Event Cancelled',
+        description: response.data.message,
+        duration: 5
+      });
+      setEventCancelled(true);
+    } catch (error) {
+      console.error('Failed to cancel the event:', error);
+      // Display error notification
+      notification.error({
+        message: 'Error',
+        description: 'Failed to cancel the event. Please try again later.',
+        duration: 5
+      });
+    }
+  };
   // Columns for ticket categories table
   const columns = [
     { title: 'Category', dataIndex: 'category_name', key: 'category_name' },
@@ -64,6 +98,8 @@ export function EventInsightPage() {
     { title: 'Available', dataIndex: 'available', key: 'available' },
     { title: 'Sold', dataIndex: 'sold', key: 'sold' },
   ];
+
+  console.log("is_cancelled:", eventDetails.is_cancelled); // Log is_cancelled for debugging
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-around', padding: '20px' }}>
@@ -95,12 +131,16 @@ export function EventInsightPage() {
           />
 
         <Row gutter={16} style={{ marginTop: '20px' }}>
-          <Col span={12}>
-            <Button block onClick={handleUpdateEvent}>Update Event</Button>
-          </Col>
-          <Col span={12}>
-            <Button block onClick={handleCancelEvent} danger>Cancel Event</Button>
-          </Col>
+        <Col span={12}>
+          <Button block onClick={handleUpdateEvent} disabled={eventDetails.is_cancelled || eventCancelled}>
+            Update Event
+          </Button>
+        </Col>
+        <Col span={12}>
+          <Button block onClick={handleCancelEvent} danger disabled={eventDetails.is_cancelled || eventCancelled}>
+            Cancel Event
+          </Button>
+        </Col>
         </Row>
       </div>
     </div>

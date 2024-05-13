@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Card, List, Button } from 'antd';
 import { useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Axios from "../Axios";
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
 
 export function EventDetailPage() {
+  const navigate = useNavigate();
   const { event_id } = useParams();
   const [eventDetails, setEventDetails] = useState(null);
   const [ticketCategories, setTicketCategories] = useState([]);
@@ -49,9 +51,9 @@ export function EventDetailPage() {
   }
 
   return (
-    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between', }}>
+    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between' }}>
       {/* Event Image and Details */}
-      <Card style={{ width: '60%', margin: '0 20px',boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display:'flex', flexDirection:'column', justifyContent:'space-around' }}>
+      <Card style={{ width: '60%', margin: '0 20px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <img src={`${baseURLEvents}${eventDetails.photo}`} alt="event" style={{ width: '500px', height: '100%', objectFit: 'contain', borderRadius: '8px 8px 0 0' }} />
         </div>
@@ -62,9 +64,7 @@ export function EventDetailPage() {
       </Card>
 
       {/* Organizer, Venue, and Tickets */}
-      <div style={{ width: '35%', margin: '0 20px', padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)'
-          , position:'relative'
-       }}>
+      <div style={{ width: '35%', margin: '0 20px', padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)' }}>
         <h3>Organizer</h3>
         <p>{eventDetails.organizer.organizer_name}</p>
         <h3>Venue</h3>
@@ -72,7 +72,7 @@ export function EventDetailPage() {
        
         {/* Restrictions */}
         <div>
-        <h3 style={{ marginBottom: '5px' }}>Restrictions</h3>
+          <h3 style={{ marginBottom: '5px' }}>Restrictions</h3>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <div style={{ marginRight: '50px' }}>
               <p style={{ marginBottom: '5px' }}>•Alcohol: {eventDetails.restriction.alcohol ? 'Allowed' : 'Not Allowed'}</p>
@@ -98,9 +98,10 @@ export function EventDetailPage() {
             </List.Item>
           )}
         />
-        <Button type="primary" style={{ width: '97%', marginTop: '10px', position:'absolute', bottom:10, left:10 }}>
+        <Button type="primary" style={{ width: '97%', marginTop: '10px' }} onClick={() => navigate(`/select_ticket/${event_id}`)}>
           Choose Ticket
         </Button>
+
       </div>
     </div>
   );

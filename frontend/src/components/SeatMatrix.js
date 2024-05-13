@@ -8,27 +8,25 @@ export default function SeatMatrix({
   columns,
   available_seats,
   onSeatClick,
+  getSeats = {},
+  header,
 }) {
-  if (onSeatClick == null) {
+  if (onSeatClick === undefined) {
     onSeatClick = () => {};
   }
 
-  const [selectedSeats, setSelectedSeats] = useState([]); // [row, column]
+  const [selectedSeats, setSelectedSeats] = useState([1]); // [row, column]
   useEffect(() => {
-    console.log(selectedSeats);
+    getSeats(selectedSeats);
   }, [selectedSeats]);
 
   useEffect(() => {
-    console.log("Rows changed: ", rows);
-    // Handle selected but now disabled seats, if any seat with row higher than rows then remove it from selectedSeats
     const newSelectedSeats = selectedSeats.filter((seat) => seat[0] <= rows);
     setSelectedSeats(newSelectedSeats);
     onSeatClick(newSelectedSeats); // NOT SURE
   }, [rows]);
 
   useEffect(() => {
-    console.log("Columns changed: ", columns);
-    // Handle selected but now disabled seats, if any seat with column higher than rows then remove it from selectedSeats
     const newSelectedSeats = selectedSeats.filter((seat) => seat[1] <= columns);
     setSelectedSeats(newSelectedSeats); // NOT SURE
   }, [columns]);
@@ -47,59 +45,96 @@ export default function SeatMatrix({
     onSeatClick(newSelectedSeats);
   };
 
-  const seatMatrix = [];
-  for (let i = 0; i < rows; i++) {
-    seatMatrix.push([]);
-    for (let j = 0; j < columns; j++) {
-      const seat = [i + 1, j + 1, true];
-      seatMatrix[i].push(seat);
+  const [seatMatrix, setSeatMatrix] = useState([]);
+  useEffect(() => {
+    let seatMatrix = [];
+    for (let i = 0; i < rows; i++) {
+      seatMatrix.push([]);
+      for (let j = 0; j < columns; j++) {
+        const seat = [i + 1, j + 1, false];
+        seatMatrix[i].push(seat);
+      }
     }
-  }
-
-  const disableSeats = (arr) => {
-    let curr_available = 0;
-    seatMatrix.forEach((row) => {
-      row.forEach((seat) => {
-        if (
-          curr_available < arr.length &&
-          arr[curr_available][0] == seat[0] &&
-          arr[curr_available][1] == seat[1]
-        ) {
-          curr_available++;
-        } else {
-          seat[2] = false;
-        }
+    if (available_seats.length > 0) {
+      seatMatrix.forEach((row) => {
+        row.forEach((seat) => {
+          seat[2] = true;
+        });
       });
-    });
-  };
-  disableSeats(available_seats);
+      seatMatrix.forEach((row) => {
+        row.forEach((seat) => {
+          for (let i = 0; i < available_seats.length; i++) {
+            if (
+              available_seats[i][0] == seat[0] &&
+              available_seats[i][1] == seat[1]
+            ) {
+              seat[2] = false;
+              break;
+            }
+          }
+        });
+      });
+    }
+
+    setSeatMatrix(seatMatrix);
+    console.log("Seat Matrix: ", seatMatrix.length);
+  }, [rows, columns]);
 
   return (
     <>
-      <SeatHeader />
-      {seatMatrix.map((row, i) => (
-        <Row key={i} style={{ marginBottom: 5 }} gutter={[8, 8]}>
-          {row.map((seat, j) => {
-            if (!seat[2]) {
-              return (
-                <Col key={j}>
-                  <Seat
-                    number={seat[0] + "-" + seat[1]}
-                    isActive={true}
-                    onSeatClick={() => handleSeatClick(seat[0], seat[1])}
-                  />
-                </Col>
-              );
-            } else {
-              return (
-                <Col key={j}>
-                  <Seat isActive={false} />
-                </Col>
-              );
-            }
-          })}
-        </Row>
-      ))}
+      <SeatHeader
+        full={header[0]}
+        empty={header[1]}
+        disabled={header[2]}
+        selected={header[3]}
+      />
+      <div
+        style={{
+          overflow: "auto",
+          maxHeight: "90vh",
+          maxWidth: "90vh",
+          padding: "30px",
+          border: "1px solid #000",
+        }}
+      >
+        {seatMatrix.map((row, i) => (
+          <div
+            style={{
+              marginBottom: 10,
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
+            {row.map((seat, j) => {
+              if (!seat[2]) {
+                return (
+                  <div
+                    style={{
+                      marginRight: 5,
+                    }}
+                  >
+                    <Seat
+                      number={seat[0] + "-" + seat[1]}
+                      isActive={true}
+                      onSeatClick={() => handleSeatClick(seat[0], seat[1])}
+                    />
+                  </div>
+                );
+              } else {
+                return (
+                  <div
+                    style={{
+                      marginRight: 5,
+                    }}
+                  >
+                    <Seat isActive={false} />
+                  </div>
+                );
+              }
+            })}
+          </div>
+        ))}
+      </div>
     </>
   );
 }

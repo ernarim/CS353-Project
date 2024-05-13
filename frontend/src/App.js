@@ -1,14 +1,14 @@
 import React, { useEffect } from "react";
-import 'react-toastify/dist/ReactToastify.css';
-import './App.css';
+import "react-toastify/dist/ReactToastify.css";
+import "./App.css";
 
 import { AppLayout } from "./layout";
-import {createBrowserRouter, RouterProvider} from "react-router-dom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-import { ConfigProvider, theme } from 'antd';
-import {MainPage} from "./pages/MainPage";
+import { ConfigProvider, theme } from "antd";
+import { MainPage } from "./pages/MainPage";
 import { Theme } from "./style/theme";
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer } from "react-toastify";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { EventDetailPage } from "./pages/EventDetailPage";
@@ -22,37 +22,35 @@ import { BuyerProfilePage } from "./pages/BuyerProfilePage";
 import { UpdateEventPage } from "./pages/UpdateEventPage";
 
 function App() {
-
   const routesConfig = [
-    
-    { path: "/login", element: <LoginPage />, },
-    { path: "/register/:type", element: <RegisterPage/>, },
+    { path: "/login", element: <LoginPage /> },
+    { path: "/register/:type", element: <RegisterPage /> },
     {
       element: <AppLayout />,
       children: [
-        { path: "/", element:  <MainPage/>, },
-        { path: "/select_ticket/:eventId?", element:  <SelectTicketPage/>, },
-        { path: "/event_detail/:event_id", element:  <EventDetailPage/>,},
-        { path: "/shopping_cart", element:  <ShoppingCartPage/>,},
-        { path: "/create_event", element:  <CreateNewEventPage/>,},
-        { path: "/ticket_category_and_seating", element:  <TicketCategoryAndSeatingPage/>,},
-        { path: "/location_request", element:  <NewLocationRequestPage/>,},
-        { path: "/event_insight/:event_id", element:  <EventInsightPage/>,},
-        { path: "/buyer_profile", element:  <BuyerProfilePage/>,},
-        { path: "/update_event/:event_id", element:  <UpdateEventPage/>,},
-
+        { path: "/", element: <MainPage /> },
+        { path: "/select_ticket/:event_id", element: <SelectTicketPage /> },
+        { path: "/event_detail/:event_id", element: <EventDetailPage /> },
+        { path: "/shopping_cart", element: <ShoppingCartPage /> },
+        { path: "/create_event", element: <CreateNewEventPage /> },
+        {
+          path: "/ticket_category_and_seating",
+          element: <TicketCategoryAndSeatingPage />,
+        },
+        { path: "/location_request", element: <NewLocationRequestPage /> },
+        { path: "/event_insight/:event_id", element: <EventInsightPage /> },
+        { path: "/buyer_profile", element: <BuyerProfilePage /> },
+        { path: "/update_event/:event_id", element: <UpdateEventPage /> },
       ],
-      errorElement:  <></>
+      errorElement: <></>,
     },
-
-    
   ];
 
   return (
-      <React.Fragment>
-          <RouterProvider router={createBrowserRouter(routesConfig)} />
-          <ToastContainer position="bottom-right"/>
-      </React.Fragment>
+    <React.Fragment>
+      <RouterProvider router={createBrowserRouter(routesConfig)} />
+      <ToastContainer position="bottom-right" />
+    </React.Fragment>
   );
 }
 

@@ -5,21 +5,21 @@
   gap: 10px 15px;
   padding: 22px 15px;
   overflow: auto;
-  border-bottom: 3px solid gray;
+  justify-content: center;
 }
 
 .seat-area-header span.full::before {
   background: #c05d5d;
 }
 
-.seat-area-header span.empty::before {
+.seat-area-header span.disabled::before {
   background: #aaaaaa;
 }
 .seat-area-header span.selected::before {
-  background: greenyellow;
+  background: rgb(48, 147, 15);
 }
 
-.seat-area-header span.disabled::before {
+.seat-area-header span.empty::before {
   background: gray;
 }
 .seat-area-header span::before {
