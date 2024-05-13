@@ -39,4 +39,11 @@
   grid-gap: 0 10px;
   gap: 0 10px;
   min-width: 75px;
+  cursor: pointer;
+}
+
+.seat-area-header span.active {
+  border: 2px solid black;
+  padding: 2px 6px;
+  border-radius: 5px;
 }

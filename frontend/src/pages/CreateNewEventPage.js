@@ -5,6 +5,7 @@ import { CloseOutlined } from '@ant-design/icons';
 import Axios from '../Axios';
 import SeatMatrixCreate from '../components/SeatMatrixCreate';
 import { message } from 'antd';
+import moment from 'moment';
 
 const baseURL = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/`;
 
@@ -170,6 +171,9 @@ useEffect(() => {
   console.log("venue", venue);
 }, [selectedVenue]);
   
+const disabledDate = (current) => {
+  return current && current < moment().startOf('day');
+};
 
 
   return (
@@ -181,7 +185,7 @@ useEffect(() => {
           <Input placeholder="Enter event title" />
         </Form.Item>
         <Form.Item label="Date / Time" name="date" rules={[{ required: true, message: 'Please input event date!' }]}>
-          <DatePicker showTime placeholder="Select time" />
+          <DatePicker showTime placeholder="Select time" disabledDate={disabledDate}/>
         </Form.Item>
         <Form.Item label="Category" name="category_id" rules={[{ required: false, message: 'Please input event category!' }]}>
           <Select placeholder="Select a category">

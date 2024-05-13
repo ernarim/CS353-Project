@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../style/Seat.css";
-export default function Seat({ number, isActive, onSeatClick }) {
-  const [isClicked, setIsClicked] = useState(false);
+export default function Seat({ number, isActive, isClicked, onSeatClick }) {
+  const [isClicked_, setIsClicked_] = useState(false);
 
   const activeStatus = isActive ? "seat active" : "seat inactive";
   const clickedStyle = isClicked ? "selected" : "";
@@ -11,7 +11,7 @@ export default function Seat({ number, isActive, onSeatClick }) {
       onSeatClick(number); // Call onSeatClick function
     }
     if (isActive) {
-      setIsClicked(!isClicked);
+      setIsClicked_(!isClicked_);
     }
   };
 

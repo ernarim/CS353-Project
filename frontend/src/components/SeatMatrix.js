@@ -16,6 +16,10 @@ export default function SeatMatrix({
   }
 
   const [selectedSeats, setSelectedSeats] = useState([1]); // [row, column]
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState(null);
+  const [mode, setMode] = useState("selected"); // Mode can be "selected" or "disabled"
+
   useEffect(() => {
     getSeats(selectedSeats);
   }, [selectedSeats]);
@@ -34,9 +38,9 @@ export default function SeatMatrix({
   const handleSeatClick = (row, column) => {
     const newSelectedSeats = selectedSeats.slice();
     const index = newSelectedSeats.findIndex(
-      (seat) => seat[0] == row && seat[1] == column
+      (seat) => seat[0] === row && seat[1] === column
     );
-    if (index == -1) {
+    if (index === -1) {
       newSelectedSeats.push([row, column]);
     } else {
       newSelectedSeats.splice(index, 1);
@@ -44,6 +48,58 @@ export default function SeatMatrix({
     setSelectedSeats(newSelectedSeats);
     onSeatClick(newSelectedSeats);
   };
+
+  const handleMouseDown = (row, column) => {
+    setIsDragging(true);
+    setDragStart({ row, column });
+    const seatNumber = `${row}-${column}`;
+  };
+
+  const handleMouseOver = (row, column) => {
+    if (isDragging && dragStart) {
+      const rowStart = Math.min(dragStart.row, row);
+      const rowEnd = Math.max(dragStart.row, row);
+      const columnStart = Math.min(dragStart.column, column);
+      const columnEnd = Math.max(dragStart.column, column);
+
+      const newSelectedSeats = [];
+      for (let r = rowStart; r <= rowEnd; r++) {
+        for (let c = columnStart; c <= columnEnd; c++) {
+          newSelectedSeats.push([r, c]);
+        }
+      }
+
+      if(mode === "selected") {
+        const updatedSeats = [...selectedSeats];
+        newSelectedSeats.forEach((seat) => {
+          if (!updatedSeats.some((s) => s[0] === seat[0] && s[1] === seat[1])) {
+            updatedSeats.push(seat);
+          }
+        });
+        setSelectedSeats(updatedSeats);
+      } else if(mode === "disabled") {
+        const updatedSeats = selectedSeats.filter((seat) => {
+          return !newSelectedSeats.some((s) => s[0] === seat[0] && s[1] === seat[1]);
+        });
+        setSelectedSeats(updatedSeats);
+      }
+
+
+      onSeatClick(selectedSeats);
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    setDragStart(null);
+  };
+
+  useEffect(() => {
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   const [seatMatrix, setSeatMatrix] = useState([]);
   useEffect(() => {
@@ -65,8 +121,8 @@ export default function SeatMatrix({
         row.forEach((seat) => {
           for (let i = 0; i < available_seats.length; i++) {
             if (
-              available_seats[i][0] == seat[0] &&
-              available_seats[i][1] == seat[1]
+              available_seats[i][0] === seat[0] &&
+              available_seats[i][1] === seat[1]
             ) {
               seat[2] = false;
               break;
@@ -77,8 +133,7 @@ export default function SeatMatrix({
     }
 
     setSeatMatrix(seatMatrix);
-    console.log("Seat Matrix: ", seatMatrix.length);
-  }, [rows, columns]);
+  }, [rows, columns, available_seats]);
 
   return (
     <>
@@ -87,6 +142,8 @@ export default function SeatMatrix({
         empty={header[1]}
         disabled={header[2]}
         selected={header[3]}
+        onModeChange={setMode}
+
       />
       <div
         style={{
@@ -95,10 +152,13 @@ export default function SeatMatrix({
           maxWidth: "90vh",
           padding: "30px",
           border: "1px solid #000",
+          userSelect: "none", // Disable text selection
         }}
+        onMouseUp={handleMouseUp}
       >
         {seatMatrix.map((row, i) => (
           <div
+            key={i}
             style={{
               marginBottom: 10,
               display: "flex",
@@ -106,16 +166,26 @@ export default function SeatMatrix({
             }}
           >
             {row.map((seat, j) => {
+              const isSelected = selectedSeats.some(
+                (selectedSeat) =>
+                  selectedSeat[0] === seat[0] && selectedSeat[1] === seat[1]
+              );
+
               if (!seat[2]) {
                 return (
                   <div
+                    key={j}
                     style={{
                       marginRight: 5,
+                      userSelect: "none", // Disable text selection
                     }}
+                    onMouseDown={() => handleMouseDown(seat[0], seat[1])}
+                    onMouseOver={() => handleMouseOver(seat[0], seat[1])}
                   >
                     <Seat
                       number={seat[0] + "-" + seat[1]}
                       isActive={true}
+                      isClicked={isSelected}
                       onSeatClick={() => handleSeatClick(seat[0], seat[1])}
                     />
                   </div>
@@ -123,8 +193,10 @@ export default function SeatMatrix({
               } else {
                 return (
                   <div
+                    key={j}
                     style={{
                       marginRight: 5,
+                      userSelect: "none", // Disable text selection
                     }}
                   >
                     <Seat isActive={false} />

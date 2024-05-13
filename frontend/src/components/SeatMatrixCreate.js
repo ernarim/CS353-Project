@@ -14,8 +14,7 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
 
-  const [categories, setCategories] = useState({
-  });
+  const [categories, setCategories] = useState({});
   const [currentCategory, setCurrentCategory] = useState();
   const [seatCategories, setSeatCategories] = useState([]);
   const [cannotSellSeats, setCannotSellSeats] = useState(new Set());
