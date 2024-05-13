@@ -52,7 +52,7 @@ async def get_all_events():
     SELECT 
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
-        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
+        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
         e.category_id, c.name AS category_name, e.photo
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
@@ -73,7 +73,7 @@ async def read_event(event_id: UUID):
     SELECT 
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
-        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
+        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
         e.category_id, c.name AS category_name, e.photo, e.is_cancelled
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
@@ -107,7 +107,7 @@ async def read_event(event_id: UUID):
             "city": event[11],
             "state": event[12],
             "street": event[13],
-            "is_verified": event[14],
+            "status": event[14],
             "capacity": event[15],
             "row_count": event[16],
             "column_count": event[17]
@@ -353,7 +353,7 @@ async def search_events(name: Optional[str] = Query(None, description="Search by
     SELECT 
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
         e.organizer_id, o.organizer_name AS organizer_name, 
-        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.is_verified, v.capacity, v.row_count, v.column_count,
+        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
         e.category_id, c.name AS category_name
     FROM Event e
     JOIN Event_Organizer o ON e.organizer_id = o.user_id
@@ -395,7 +395,7 @@ async def prepare_event_data(event):
             "city": event[11],
             "state": event[12],
             "street": event[13],
-            "is_verified": event[14],
+            "rejected": event[14],
             "capacity": event[15],
             "row_count": event[16],
             "column_count": event[17]

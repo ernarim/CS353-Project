@@ -110,11 +110,12 @@ BEGIN
     ) THEN
         CREATE TABLE Venue (
             venue_id UUID,
+            requester_id UUID NOT NULL,
             name VARCHAR(255) NOT NULL,
             city VARCHAR(255) NOT NULL,
             state VARCHAR(255) NOT NULL,
             street VARCHAR(255),
-            is_verified BOOLEAN  DEFAULT FALSE,
+            status VARCHAR(255) DEFAULT 'pending',
             capacity INT,
             row_count INT,
             column_count INT,

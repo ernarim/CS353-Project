@@ -21,10 +21,11 @@ async def get_all_venues():
             'city': record[2],
             'state': record[3],
             'street': record[4],
-            'is_verified': record[5],
+            'status': record[5],
             'capacity': record[6],
             'row_count': record[7],
-            'column_count': record[8]
+            'column_count': record[8],
+            'requester_id': record[9]
         }) for record in venue_records]
         return venues
     except Exception as e:
@@ -41,10 +42,11 @@ async def read_venue(venue_id: UUID):
         "city": venue[2],
         "state": venue[3],
         "street": venue[4],
-        "is_verified": venue[5],
+        "status": venue[5],
         "capacity": venue[6],
         "row_count": venue[7],
-        "column_count": venue[8]
+        "column_count": venue[8],
+        "requester_id" : venue[9]
     }
     if venue is None:
         raise HTTPException(status_code=404, detail="Venue not found")
@@ -62,8 +64,8 @@ async def read_venue(venue_id: UUID):
 async def create_venue(venue: VenueCreate):
     venue_id = uuid4()
     venue_query = """
-    INSERT INTO Venue (venue_id, name, city, state, street, capacity, row_count, column_count, is_verified)
-    VALUES (%(venue_id)s, %(name)s, %(city)s, %(state)s, %(street)s, %(capacity)s, %(row_count)s, %(column_count)s, FALSE)
+    INSERT INTO Venue (venue_id, requester_id, name, city, state, street, capacity, row_count, column_count, status)
+    VALUES (%(venue_id)s, %(requester_id)s, %(name)s, %(city)s, %(state)s, %(street)s, %(capacity)s, %(row_count)s, %(column_count)s, 'pending')
     RETURNING *;
     """
     seats_query = """
@@ -74,6 +76,7 @@ async def create_venue(venue: VenueCreate):
         print(venue)
         cursor.execute(venue_query, {
             'venue_id': str(venue_id),
+            'requester_id' : str(venue_id),
             'name': venue.name,
             'city': venue.city,
             'state': venue.state,
@@ -111,14 +114,15 @@ async def create_venue(venue: VenueCreate):
         conn.commit()
         return {
             "venue_id": new_venue[0],
-            "name": new_venue[1],
-            "city": new_venue[2],
-            "state": new_venue[3],
-            "street": new_venue[4],
-            "is_verified": new_venue[5],
-            "capacity": new_venue[6],
-            "row_count": new_venue[7],
-            "column_count": new_venue[8]
+            "requester_id" :new_venue[1],
+            "name": new_venue[2],
+            "city": new_venue[3],
+            "state": new_venue[4],
+            "street": new_venue[5],
+            "status": new_venue[6],
+            "capacity": new_venue[7],
+            "row_count": new_venue[8],
+            "column_count": new_venue[9],
         }
     except Exception as e:
         conn.rollback()
@@ -128,14 +132,14 @@ async def create_venue(venue: VenueCreate):
 async def update_venue(venue_id: UUID, venue: Venue):
     update_venue_query = """
     UPDATE Venue
-    SET name = %s, city = %s, state = %s, street = %s, is_verified = %s,
+    SET name = %s, city = %s, state = %s, street = %s, status = %s,
         capacity = %s, row_count = %s, column_count = %s
     WHERE venue_id = %s RETURNING *;
     """
     try:
         cursor.execute(update_venue_query, (
             venue.name, venue.city, venue.state, venue.street,
-            venue.is_verified, venue.capacity, venue.row_count, venue.column_count, str(venue_id)
+            venue.status, venue.capacity, venue.row_count, venue.column_count, str(venue_id)
         ))
         updated_venue = cursor.fetchone()
 
@@ -153,7 +157,7 @@ async def update_venue(venue_id: UUID, venue: Venue):
             "city": updated_venue[2],
             "state": updated_venue[3],
             "street": updated_venue[4],
-            "is_verified": updated_venue[5],
+            "status": updated_venue[5],
             "capacity": updated_venue[6],
             "row_count": updated_venue[7],
             "column_count": updated_venue[8]
