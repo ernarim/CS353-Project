@@ -10,4 +10,4 @@ DATABASE_URL = backend_env.get("DATABASE_URL")
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
 
-
+dictCursor = conn.cursor(cursor_factory=RealDictCursor)

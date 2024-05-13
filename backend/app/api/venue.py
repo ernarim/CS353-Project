@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.database.session import cursor, conn
+from app.database.session import cursor, conn, dictCursor
 from app.models.venue import Venue, VenueCreate
 from app.models.seats import Seats
 from fastapi import HTTPException
@@ -13,20 +13,23 @@ router = APIRouter()
 @router.get("", response_model=List[Venue])
 async def get_all_venues():
     try:
-        cursor.execute("SELECT * FROM Venue;")
-        venue_records = cursor.fetchall()
+        dictCursor.execute("SELECT * FROM Venue;")
+        venue_records = dictCursor.fetchall()
+        print(type(venue_records))
+        print(venue_records)
         venues = [Venue(**{
-            'venue_id': record[0],
-            'name': record[1],
-            'city': record[2],
-            'state': record[3],
-            'street': record[4],
-            'status': record[5],
-            'capacity': record[6],
-            'row_count': record[7],
-            'column_count': record[8],
-            'requester_id': record[9]
+            'venue_id': record['venue_id'],
+            'name': record['name'],
+            'city': record['city'],
+            'state': record['state'],
+            'street': record['street'],
+            'status': record['status'],
+            'capacity': record['capacity'],
+            'row_count': record['row_count'],
+            'column_count': record['column_count'],
+            'requester_id': record['requester_id']
         }) for record in venue_records]
+        print(venues)
         return venues
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -34,19 +37,19 @@ async def get_all_venues():
 @router.get("/{venue_id}", response_model=Venue)
 async def read_venue(venue_id: UUID):
     cursor.execute("SELECT * FROM Venue WHERE venue_id = %s", (str(venue_id),))
-    venue = cursor.fetchone()
+    venue = dictCursor.fetchone()
 
     venue_data = {
-        "venue_id": venue[0],
-        "name": venue[1],
-        "city": venue[2],
-        "state": venue[3],
-        "street": venue[4],
-        "status": venue[5],
-        "capacity": venue[6],
-        "row_count": venue[7],
-        "column_count": venue[8],
-        "requester_id" : venue[9]
+        "venue_id": venue['venue_id'],
+        "name": venue['name'],
+        "city": venue['city'],
+        "state": venue['state'],
+        "street": venue['street'],
+        "capacity": venue['capacity'],
+        "row_count": venue['row_count'],
+        "column_count": venue['column_count'],
+        "status": venue['status'],
+        "requester_id": venue['requester_id'],
     }
     if venue is None:
         raise HTTPException(status_code=404, detail="Venue not found")
@@ -74,9 +77,9 @@ async def create_venue(venue: VenueCreate):
     """
     try:
         print(venue)
-        cursor.execute(venue_query, {
+        dictCursor.execute(venue_query, {
             'venue_id': str(venue_id),
-            'requester_id' : str(venue_id),
+            'requester_id' : str(venue.requester_id),
             'name': venue.name,
             'city': venue.city,
             'state': venue.state,
@@ -85,7 +88,8 @@ async def create_venue(venue: VenueCreate):
             'row_count': venue.row_count,
             'column_count': venue.column_count
         })
-        new_venue = cursor.fetchone()
+        new_venue = dictCursor.fetchone()
+        print(dictCursor.fetchone())
         print(new_venue)
         if new_venue is None:
             conn.rollback()
@@ -113,16 +117,16 @@ async def create_venue(venue: VenueCreate):
 
         conn.commit()
         return {
-            "venue_id": new_venue[0],
-            "requester_id" :new_venue[1],
-            "name": new_venue[2],
-            "city": new_venue[3],
-            "state": new_venue[4],
-            "street": new_venue[5],
-            "status": new_venue[6],
-            "capacity": new_venue[7],
-            "row_count": new_venue[8],
-            "column_count": new_venue[9],
+            "venue_id": new_venue['venue_id'],
+            "name": new_venue['name'],
+            "city": new_venue['city'],
+            "state": new_venue['state'],
+            "street": new_venue['street'],
+            "capacity": new_venue['capacity'],
+            "row_count": new_venue['row_count'],
+            "column_count": new_venue['column_count'],
+            "status": new_venue['status'],
+            "requester_id": new_venue['requester_id'],
         }
     except Exception as e:
         conn.rollback()
