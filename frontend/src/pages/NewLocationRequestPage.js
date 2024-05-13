@@ -46,6 +46,11 @@ export const NewLocationRequestPage = () => {
       data.seats = [];
     }
     console.log("Data: ", data);
+
+    if(data.capacity === 0) {
+      message.error("Please select a valid capacity!");
+      return;
+    }
     try {
       const response = await Axios.post("/venue", data);
       console.log("Response: ", response); //TEST
