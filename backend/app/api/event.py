@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 import os
 import shutil
 import psycopg2
+from starlette.responses import JSONResponse
 
 
 
@@ -280,6 +281,56 @@ async def delete_event(event_id: UUID):
         conn.rollback()
         logger.error(f"Failed to delete event: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to delete event: {e}")
+
+@router.post("/cancel/{event_id}")
+async def cancel_event(event_id: UUID):
+    print("I am cancelling the event")
+    
+    cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+    try:
+        # Fetch all transactions for the event
+        transaction_query = """
+        SELECT transaction_id, buyer_id, amount, organizer_id
+        FROM Transaction
+        WHERE event_id = %s;
+        """
+        cursor.execute(transaction_query, (str(event_id),))
+        transactions = cursor.fetchall()
+
+        if not transactions:
+            print("I am cancelling the event 4")
+            cursor.execute("UPDATE Event SET is_cancelled = TRUE WHERE event_id = %s", (str(event_id),))
+            conn.commit()
+            return JSONResponse(status_code=200, content={"message": "No transactions available for this event, event successfully canceled"})
+    
+        # Refund each buyer and adjust the organizer's balance
+        for transaction in transactions:
+            # Refund the buyer
+            cursor.execute("""
+            UPDATE Ticket_Buyer
+            SET balance = balance + %s
+            WHERE user_id = %s;
+            """, (transaction['amount'], str(transaction['buyer_id'])))
+
+            # Deduct the amount from the organizer's balance
+            cursor.execute("""
+            UPDATE Event_Organizer
+            SET balance = balance - %s
+            WHERE user_id = %s;
+            """, (transaction['amount'], str(transaction['organizer_id'])))
+
+        cursor.execute("UPDATE Event SET is_cancelled = TRUE WHERE event_id = %s", (str(event_id),))
+        conn.commit()
+        return JSONResponse(status_code=200, content={"message": "All tickets are refunded, event is cancelled"})
+
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    finally:
+        cursor.close()
+
 
 @router.post("/upload_photo")
 async def upload_photo(photo: UploadFile = File(...)):

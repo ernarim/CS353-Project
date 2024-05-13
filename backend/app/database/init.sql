@@ -134,6 +134,7 @@ BEGIN
         CREATE TABLE Event_Organizer(
             user_id UUID,
             organizer_name VARCHAR(255)NOT NULL UNIQUE,
+            balance DECIMAL(15, 2) DEFAULT 0.0 CHECK(balance >= 0),
             PRIMARY KEY (user_id),
             FOREIGN KEY (user_id) REFERENCES Users(user_id)
         );
@@ -154,6 +155,7 @@ BEGIN
             date TIMESTAMP NOT NULL,
             description TEXT NOT NULL,
             is_done BOOLEAN NOT NULL DEFAULT FALSE,
+            is_cancelled BOOLEAN NOT NULL DEFAULT FALSE,
             remaining_seat_no INT,
             return_expire_date DATE,
             organizer_id UUID NOT NULL,
@@ -215,9 +217,11 @@ BEGIN
             buyer_id UUID,
             transaction_date TIMESTAMP,
             amount DECIMAL(10, 2),
+            event_id UUID,
             PRIMARY KEY (transaction_id),
             FOREIGN KEY (organizer_id) REFERENCES Event_Organizer(user_id),
-            FOREIGN KEY (buyer_id) REFERENCES Ticket_Buyer(user_id)
+            FOREIGN KEY (buyer_id) REFERENCES Ticket_Buyer(user_id),
+            FOREIGN KEY (event_id) REFERENCES Event(event_id)
         );
 
         RAISE NOTICE 'Table ''Transaction'' created successfully.';
