@@ -37,6 +37,7 @@ class TicketBuyerCreate(UserCreate):
 
 class EventOrganizer(User):
     user_id: UUID
+    balance: float = 0.0
     organizer_name: str
 
 class EventOrganizerCreate(UserCreate):

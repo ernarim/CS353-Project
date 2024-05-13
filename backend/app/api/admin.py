@@ -1,6 +1,7 @@
 from fastapi import FastAPI, status, HTTPException, Depends, APIRouter, Path
 from app.database.session import cursor, conn
 from app.models.venue import Venue
+from app.models.user import EventOrganizer, TicketBuyer
 from uuid import UUID
 from typing import List
 router = APIRouter()
@@ -114,5 +115,27 @@ async def reject_venue(venue_id: UUID):
             'row_count': updated_venue['row_count'],
             'column_count': updated_venue['column_count']
         })
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/event_organizers", response_model=List[EventOrganizer])
+async def list_all_event_organizers():
+    query = "SELECT user_id, organizer_name, balance FROM Event_Organizer;"
+    try:
+        cursor.execute(query)
+        records = cursor.fetchall()
+        return [EventOrganizer(**record) for record in records]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/ticket_buyers", response_model=List[TicketBuyer])
+async def list_all_ticket_buyers():
+    query = "SELECT user_id, balance, birth_date, current_cart FROM Ticket_Buyer;"
+    try:
+        cursor.execute(query)
+        records = cursor.fetchall()
+        return [TicketBuyer(**record) for record in records]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
