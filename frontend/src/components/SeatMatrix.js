@@ -8,27 +8,24 @@ export default function SeatMatrix({
   columns,
   available_seats,
   onSeatClick,
+  getSeats = {},
 }) {
-  if (onSeatClick == null) {
+  if (onSeatClick === undefined) {
     onSeatClick = () => {};
   }
 
-  const [selectedSeats, setSelectedSeats] = useState([]); // [row, column]
+  const [selectedSeats, setSelectedSeats] = useState([1]); // [row, column]
   useEffect(() => {
-    console.log(selectedSeats);
+    getSeats(selectedSeats);
   }, [selectedSeats]);
 
   useEffect(() => {
-    console.log("Rows changed: ", rows);
-    // Handle selected but now disabled seats, if any seat with row higher than rows then remove it from selectedSeats
     const newSelectedSeats = selectedSeats.filter((seat) => seat[0] <= rows);
     setSelectedSeats(newSelectedSeats);
     onSeatClick(newSelectedSeats); // NOT SURE
   }, [rows]);
 
   useEffect(() => {
-    console.log("Columns changed: ", columns);
-    // Handle selected but now disabled seats, if any seat with column higher than rows then remove it from selectedSeats
     const newSelectedSeats = selectedSeats.filter((seat) => seat[1] <= columns);
     setSelectedSeats(newSelectedSeats); // NOT SURE
   }, [columns]);
@@ -47,32 +44,38 @@ export default function SeatMatrix({
     onSeatClick(newSelectedSeats);
   };
 
-  const seatMatrix = [];
-  for (let i = 0; i < rows; i++) {
-    seatMatrix.push([]);
-    for (let j = 0; j < columns; j++) {
-      const seat = [i + 1, j + 1, true];
-      seatMatrix[i].push(seat);
+  const [seatMatrix, setSeatMatrix] = useState([]);
+  useEffect(() => {
+    let seatMatrix = [];
+    for (let i = 0; i < rows; i++) {
+      seatMatrix.push([]);
+      for (let j = 0; j < columns; j++) {
+        const seat = [i + 1, j + 1, false];
+        seatMatrix[i].push(seat);
+      }
     }
-  }
-
-  const disableSeats = (arr) => {
-    let curr_available = 0;
     seatMatrix.forEach((row) => {
       row.forEach((seat) => {
-        if (
-          curr_available < arr.length &&
-          arr[curr_available][0] == seat[0] &&
-          arr[curr_available][1] == seat[1]
-        ) {
-          curr_available++;
-        } else {
-          seat[2] = false;
+        seat[2] = true;
+      });
+    });
+    seatMatrix.forEach((row) => {
+      row.forEach((seat) => {
+        for (let i = 0; i < available_seats.length; i++) {
+          if (
+            available_seats[i][0] == seat[0] &&
+            available_seats[i][1] == seat[1]
+          ) {
+            seat[2] = false;
+            break;
+          }
         }
       });
     });
-  };
-  disableSeats(available_seats);
+
+    setSeatMatrix(seatMatrix);
+    console.log("Seat Matrix: ", seatMatrix.length);
+  }, [rows, columns]);
 
   return (
     <>

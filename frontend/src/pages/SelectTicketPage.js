@@ -1,9 +1,39 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import { Table, Button, InputNumber, message } from "antd";
 import SeatMatrix from "../components/SeatMatrix";
 import Axios from "../Axios";
 
 export function SelectTicketPage() {
+  const { event_id } = useParams();
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [venueSeats, setVenueSeats] = useState([]);
+  const [venueRows, setVenueRows] = useState(0);
+  const [venueColumns, setVenueColumns] = useState(0);
+
+  const getSeats = (seats) => {
+    setSelectedSeats(seats);
+  };
+
+  const getVenue = async () => {
+    try {
+      const event = await Axios.get(`/event/${event_id}`);
+      const venue = await Axios.get(`/venue/${event.data.venue.venue_id}`);
+      setVenueSeats(venue.data.seats);
+      setVenueRows(venue.data.row_count);
+      setVenueColumns(venue.data.column_count);
+      console.log(venueSeats);
+      console.log(venueRows);
+      console.log(venueColumns);
+    } catch (error) {
+      console.log(error.detail);
+    }
+  };
+
+  useEffect(() => {
+    getVenue();
+  }, []);
+
   const [ticketData, setTicketData] = useState([
     {
       key: "1",
@@ -128,10 +158,11 @@ export function SelectTicketPage() {
     <>
       <Button onClick={() => test()}>TEST</Button>
       <SeatMatrix
-        rows={10}
-        columns={10}
-        available_seats={available_seats}
+        rows={venueRows}
+        columns={venueColumns}
+        available_seats={venueSeats}
         onSeatClick={handleReserve}
+        getSeats={getSeats}
       />
       <br />
       <div
