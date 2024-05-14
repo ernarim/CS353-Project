@@ -9,11 +9,10 @@ from psycopg2.errors import ForeignKeyViolation
 
 router = APIRouter()
 
-
 @router.get("", response_model=List[Venue])
 async def get_all_venues():
     try:
-        dictCursor.execute("SELECT * FROM Venue;")
+        dictCursor.execute("SELECT * FROM Venue WHERE status = 'verified';")
         venue_records = dictCursor.fetchall()
         print(type(venue_records))
         print(venue_records)

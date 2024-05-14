@@ -67,8 +67,8 @@ async def list_verified_locations():
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@router.patch("/verify/{venue_id}", response_model=Venue)
-async def verify_venue(venue_id: UUID):
+@router.patch("/verify/{venue_id}")
+async def verify_venue(venue_id: str):
     query = """
     UPDATE Venue
     SET status = 'verified'
@@ -80,24 +80,13 @@ async def verify_venue(venue_id: UUID):
         updated_venue = cursor.fetchone()
         if not updated_venue:
             raise HTTPException(status_code=404, detail="Venue not found")
-        return Venue(**{
-            'venue_id': updated_venue['venue_id'],
-            'requester_id' : updated_venue['requester_id'],
-            'name': updated_venue['name'],
-            'city': updated_venue['city'],
-            'state': updated_venue['state'],
-            'street': updated_venue['street'],
-            'status': updated_venue['status'],
-            'capacity': updated_venue['capacity'],
-            'row_count': updated_venue['row_count'],
-            'column_count': updated_venue['column_count']
-        })
+        return updated_venue
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@router.patch("/reject/{venue_id}", response_model=Venue)
+@router.patch("/reject/{venue_id}")
 async def reject_venue(venue_id: UUID):
     query = """
     UPDATE Venue
@@ -110,18 +99,7 @@ async def reject_venue(venue_id: UUID):
         updated_venue = cursor.fetchone()
         if not updated_venue:
             raise HTTPException(status_code=404, detail="Venue not found")
-        return Venue(**{
-            'venue_id': updated_venue['venue_id'],
-            'requester_id' : updated_venue['requester_id'],
-            'name': updated_venue['name'],
-            'city': updated_venue['city'],
-            'state': updated_venue['state'],
-            'street': updated_venue['street'],
-            'status': updated_venue['status'],
-            'capacity': updated_venue['capacity'],
-            'row_count': updated_venue['row_count'],
-            'column_count': updated_venue['column_count']
-        })
+        return updated_venue
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
@@ -188,7 +166,7 @@ async def list_all_ticket_buyers():
 async def get_organizer_info(user_id: UUID):
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            # Fetch total revenue, organizer name, and balance
+            
             revenue_query = """
             SELECT eo.organizer_name, eo.balance AS current_balance, COALESCE(SUM(t.amount), 0) AS total_revenue
             FROM Event_Organizer eo
@@ -202,7 +180,6 @@ async def get_organizer_info(user_id: UUID):
             if not organizer_info:
                 raise HTTPException(status_code=404, detail="Organizer not found")
 
-            # Fetch number of sold and unsold tickets
             ticket_query = """
             SELECT 
                 COUNT(CASE WHEN is_sold = TRUE THEN 1 END) AS sold_tickets,
@@ -216,15 +193,30 @@ async def get_organizer_info(user_id: UUID):
             if not ticket_info:
                 ticket_info = {"sold_tickets": 0, "unsold_tickets": 0}
 
+            event_count_query = """
+            SELECT COUNT(*) AS total_events
+            FROM Event
+            WHERE organizer_id = %s
+            """
+            cursor.execute(event_count_query, (str(user_id),))
+            event_count_info = cursor.fetchone()
+
+            if not event_count_info:
+                event_count_info = {"total_events": 0}
+
             result = {
                 "organizer_id": user_id,
                 "organizer_name": organizer_info["organizer_name"],
                 "current_balance": organizer_info["current_balance"],
                 "total_revenue": organizer_info["total_revenue"],
                 "sold_tickets": ticket_info["sold_tickets"],
-                "unsold_tickets": ticket_info["unsold_tickets"]
+                "unsold_tickets": ticket_info["unsold_tickets"],
+                "total_events": event_count_info["total_events"]
             }
             return result
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
     except Exception as e:
         conn.rollback()

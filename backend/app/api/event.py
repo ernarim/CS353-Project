@@ -62,7 +62,7 @@ async def get_all_events():
     cursor.execute(query)
     events = cursor.fetchall()
     if not events:
-        raise HTTPException(status_code=404, detail="No events found")
+        return []
     # Asynchronously prepare event data for all events
     prepared_events = await asyncio.gather(*[prepare_event_data(event) for event in events])
     return prepared_events
