@@ -1,18 +1,30 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { Form, message, Select, Card, Row, Col, Spin } from "antd";
+import { useNavigate, useParams } from "react-router-dom";
+import {
+  Form,
+  message,
+  Select,
+  Card,
+  Row,
+  Col,
+  Spin,
+  Button,
+  Divider,
+  Modal,
+} from "antd";
 import SeatMatrix from "../components/SeatMatrix";
 import Axios from "../Axios";
 import "../style/SelectedTicketPage.css";
 
 export function SelectTicketPage() {
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [isSeatLoading, setIsSeatLoading] = useState(false);
   const { event_id } = useParams();
-  const [form] = Form.useForm();
-  const [selectedSeats, setSelectedSeats] = useState([]);
-  const [addedSeats, setAddedSeats] = useState([]);
+  const [form, buyForm] = Form.useForm();
 
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  // const [addedSeats, setAddedSeats] = useState([]);
   const [categorySeats, setCategorySeats] = useState([]);
   const [eventSeats, setEventSeats] = useState([]);
 
@@ -31,45 +43,43 @@ export function SelectTicketPage() {
 
   useEffect(() => {
     if (selectedCategory) {
-      message.info(`Selected category: ${selectedCategory}`);
       fetchCategorySeats();
     }
     setSelectedSeats([]);
-    setAddedSeats([]);
+    // setAddedSeats([]);
     flushSeatMatrix ? setFlushSeatMatrix(false) : setFlushSeatMatrix(true);
   }, [selectedCategory]);
 
-  useEffect(() => {
-    console.log("Selected seats: ", selectedSeats);
-    matchAddedSeats();
-  }, [selectedSeats]);
+  // useEffect(() => {
+  //   console.log("Selected seats: ", selectedSeats);
+  //   matchAddedSeats();
+  // }, [selectedSeats]);
 
-  const matchAddedSeats = () => {
-    let added = [];
-    for (let i = 0; i < selectedSeats.length; i++) {
-      let seat = selectedSeats[i];
-      let match = false;
-      for (let j = 0; j < categorySeats.length; j++) {
-        if (
-          seat[0] === categorySeats[j].row_number &&
-          seat[1] === categorySeats[j].column_number
-        ) {
-          match = true;
-          break;
-        }
-      }
-      if (match) {
-        added.push(seat);
-      }
-    }
-    setAddedSeats(added);
-  };
+  // const matchAddedSeats = () => {
+  //   let added = [];
+  //   for (let i = 0; i < selectedSeats.length; i++) {
+  //     let seat = selectedSeats[i];
+  //     let match = false;
+  //     for (let j = 0; j < categorySeats.length; j++) {
+  //       if (
+  //         seat[0] === categorySeats[j].row_number &&
+  //         seat[1] === categorySeats[j].column_number
+  //       ) {
+  //         match = true;
+  //         break;
+  //       }
+  //     }
+  //     if (match) {
+  //       added.push(seat);
+  //     }
+  //   }
+  //   setAddedSeats(added);
+  // };
 
   const fetchTicketCategories = async () => {
     setIsLoading(true);
     const response = await Axios.get(`/ticket_category/${event_id}`);
     setIsLoading(false);
-    // console.log("Eventres:", response.data); //TEST
     setCategories(response.data);
     setSelectedCategory(response.data[0].category_name);
     form.setFieldsValue({ category: response.data[0].category_name });
@@ -79,13 +89,11 @@ export function SelectTicketPage() {
     const response = await Axios.get(
       `/event/${event_id}/seating_plan/${selectedCategory}`
     );
-    // console.log("S SSats:", response.data);
     setCategorySeats(response.data);
   };
 
   const fetchEventSeats = async () => {
     const response = await Axios.get(`/event/${event_id}/seating_plan`);
-    // console.log("SEL seats:", response.data);
 
     let seats = [];
     for (let i = 0; i < response.data.length; i++) {
@@ -95,7 +103,6 @@ export function SelectTicketPage() {
       seats.push(seat);
     }
     setEventSeats(seats);
-    // console.log("S seats:", categorySeats);
   };
 
   const getSeats = (seats) => {
@@ -108,34 +115,70 @@ export function SelectTicketPage() {
       const venue = await Axios.get(`/venue/${event.data.venue.venue_id}`);
       setVenueRows(venue.data.row_count);
       setVenueColumns(venue.data.column_count);
-      // console.log(event.data);
     } catch (error) {
       console.log(error.detail);
     }
   };
 
-  const handleAddToCart = (record) => {
-    if (record.select > 0 && record.select <= record.available) {
-      // Process the ticket selection, e.g., add to cart
-      message.success(`${record.select} tickets added to the cart`);
-    } else {
-      message.error("Invalid number of tickets selected");
+  const handleAddToCart = () => {
+    // if (record.select > 0 && record.select <= record.available) {
+    //   // Process the ticket selection, e.g., add to cart
+    //   message.success(`${record.select} tickets added to the cart`);
+    // } else {
+    //   message.error("Invalid number of tickets selected");
+    // }
+    // console.log("Added to cart:", addedSeats);
+    // console.log("Selected Seats:", selectedSeats);
+
+    if (selectedSeats.length === 0) {
+      message.warning("Please select a seat!");
+      return;
     }
+    Modal.confirm({
+      title: "Are you sure you want to add these seats to the cart?",
+      content: selectedSeats.map((seat, index) => (
+        <p key={index}>
+          Row: {seat[0]}, Column: {seat[1]}
+        </p>
+      )),
+      okText: "Yes",
+      okType: "primary",
+      cancelText: "No",
+      onOk() {
+        console.log("OK:", selectedSeats);
+        navigate("/");
+      },
+      onCancel() {
+        console.log("Cancel operation was aborted.");
+      },
+    });
   };
 
-  const handleReserve = async (seat) => {
-    // try {
-    //   console.log("Seat:", seat);
-    //   let data = {
-    //     event_id: event_id,
-    //     row_number: seat[0][0],
-    //     column_number: seat[0][1],
-    //   };
-    //   const response = await Axios.post("/selection/reserve", data);
-    //   message.success("Seat reserved successfully!");
-    // } catch (error) {
-    //   console.log(error);
-    // }
+  const handleReserve = async (row, column) => {
+    try {
+      console.log("Seat:", row, column); //TEST
+      let data = {
+        event_id: event_id,
+        row_number: row,
+        column_number: column,
+      };
+      setIsSeatLoading(true);
+      const response = await Axios.post("/selection/reserve", data);
+      const status = response.data.status;
+      console.log("Reserve:", response.data);
+      setIsSeatLoading(false);
+
+      if (status === "reserved") {
+        message.success("Seat reserved successfully!");
+      }
+      if (status === "unreserved") {
+        message.info("Seat unreserved successfully!");
+      }
+    } catch (error) {
+      setIsSeatLoading(false);
+      message.error("Failed to reserve seat!");
+      console.log(error);
+    }
   };
 
   return !isLoading ? (
@@ -167,7 +210,7 @@ export function SelectTicketPage() {
               </Form.Item>
             </Form>
             <Card title="Selected Seats">
-              {addedSeats.map((seat, index) => (
+              {selectedSeats.map((seat, index) => (
                 <p key={index}>
                   Row: {seat[0]}, Column: {seat[1]}
                 </p>
@@ -187,7 +230,26 @@ export function SelectTicketPage() {
               is_draggable={false}
               header={[true, true, true, true]}
               flush={flushSeatMatrix}
+              isLoading={isSeatLoading}
             />
+
+            <Divider />
+            <Form form={buyForm} layout="horizontal" onFinish={handleAddToCart}>
+              <Form.Item
+                name="buy"
+                style={{
+                  justifyContent: "center",
+                  alignContent: "center",
+                  alignItems: "center",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <Button type="primary" htmlType="submit">
+                  ADD TO CART
+                </Button>
+              </Form.Item>
+            </Form>
           </Card>
         </Col>
       </Row>

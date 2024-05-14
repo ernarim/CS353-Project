@@ -7,7 +7,6 @@ router = APIRouter()
 
 @router.post("/reserve")
 async def reserve_seat(reserved_seat:ReserverSeating):
-    print("Reserve Seat", reserved_seat)
     availablity_query = '''
         SELECT
             CASE
@@ -32,13 +31,13 @@ async def reserve_seat(reserved_seat:ReserverSeating):
                 AND column_number = %(col)s
         )
         UPDATE seating_plan
-        SET is_reserved = TRUE
+        SET is_reserved = NOT current_status.reservation_status
         FROM current_status
         WHERE seating_plan.event_id = %(event_id)s
             AND seating_plan.row_number = %(row)s
             AND seating_plan.column_number = %(col)s
-            AND current_status.reservation_status = FALSE
-        RETURNING current_status.reservation_status AS result
+            AND current_status.reservation_status = current_status.reservation_status
+        RETURNING seating_plan.is_reserved AS result
     '''
     try:
         cursor.execute(
@@ -50,13 +49,15 @@ async def reserve_seat(reserved_seat:ReserverSeating):
             }
         )
         availability_status = cursor.fetchone()[0]
-        print(availability_status)
 
-        if not availability_status :
+        if availability_status is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Seat is already sold."
+                detail="Status error."
             )
+
+        if not availability_status:
+            return {"status": "unavailable"}
 
         cursor.execute(
             seating_plan_query,
@@ -69,22 +70,13 @@ async def reserve_seat(reserved_seat:ReserverSeating):
         reservation_status = cursor.fetchone()
         conn.commit()
 
-        # cursor.execute("SELECT * FROM seating_plan WHERE event_id = %s AND row_number = %s AND column_number = %s", (str(reserved_seat.event_id), reserved_seat.row_number, reserved_seat.column_number))
-        # reserved_seat = cursor.fetchone()
-        # conn.commit()
-        # return {"reservation_status": reserved_seat}
-
         if reservation_status is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No seat available for reservation."
             )
         else:
-            return {
-                "event_id": reserved_seat.event_id,
-                "row_number": reserved_seat.row_number,
-                "column_number": reserved_seat.column_number
-            }
+            return {"status": "reserved"} if reservation_status[0] else {"status": "unreserved"}
     except Exception as e:
         conn.rollback()
         raise Exception(str(e))
