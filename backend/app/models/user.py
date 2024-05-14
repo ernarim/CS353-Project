@@ -1,8 +1,7 @@
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import date, datetime
 from typing import List, Optional
 from uuid import UUID
-
 
 class User(BaseModel):
     user_id: UUID
@@ -49,3 +48,20 @@ class Admin(User):
 
 class AdminCreate(UserCreate):
     group_privilige: str
+
+
+class GetUserBase(BaseModel):
+    user_id: UUID
+    email: str
+    password: str
+    phone: Optional[str]
+    last_login: Optional[datetime]
+
+class GetTicketBuyer(GetUserBase):
+    balance: float
+    birth_date: date
+    current_cart: Optional[UUID]
+
+class GetEventOrganizer(GetUserBase):
+    organizer_name: str
+    balance: float

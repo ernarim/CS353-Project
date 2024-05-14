@@ -1,10 +1,10 @@
 from typing import List
 from fastapi import APIRouter, Depends, Query, Response, status
 from app.database.session import cursor, conn
-from app.models.ticket import Ticket, TicketInfo
+from app.models.ticket import Ticket
 from app.models.cart import Cart
 from app.models.gift import Gift
-from app.models.transaction import Transaction
+from app.models.transaction import TransactionList
 from app.utils.deps import get_current_user
 from fastapi import HTTPException
 from psycopg2.extras import RealDictCursor
@@ -75,46 +75,87 @@ async def make_cart_a_gift(cart_id: UUID, gift_data: Gift):
 
 
 @router.post('/transaction')
-async def transaction(transaction_data: Transaction):
+async def transaction(transaction_data: TransactionList):
     try:
         cursor = conn.cursor(cursor_factory=RealDictCursor)
 
-        cursor.execute("SELECT balance FROM ticket_buyer WHERE user_id = %s", (transaction_data.buyer_id,))
+        cursor.execute("SELECT balance FROM ticket_buyer WHERE user_id = %s", (str(transaction_data.transactions[0].buyer_id),))
         buyer = cursor.fetchone()
         if buyer is None:
             raise HTTPException(status_code=404, detail="Buyer not found")
-        if buyer['balance'] < transaction_data.amount:
-            return Response(status_code=status.HTTP_400_BAD_REQUEST, content="Insufficient balance");
 
-        cursor.execute("UPDATE ticket_buyer SET balance = balance - %s WHERE user_id = %s", (transaction_data.amount, transaction_data.buyer_id))
-        cursor.execute("UPDATE event_organizer SET balance = balance + %s WHERE user_id = %s", (transaction_data.amount, transaction_data.organizer_id))
-        transaction_id = str(uuid4())
-        transaction_date = datetime.now()
-        cursor.execute("""
-            INSERT INTO transaction (transaction_id, organizer_id, buyer_id, transaction_date, amount)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (transaction_id, transaction_data.organizer_id, transaction_data.buyer_id, transaction_date, transaction_data.amount))
+        total_amount = sum(item.amount for item in transaction_data.transactions)
+        if buyer['balance'] < total_amount:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Insufficient balance")
+
+        # Deduct balance from buyer
+        cursor.execute("UPDATE ticket_buyer SET balance = balance - %s WHERE user_id = %s", (total_amount, str(transaction_data.transactions[0].buyer_id)))
+
+        for item in transaction_data.transactions:
+            transaction_id = str(uuid4())
+            transaction_date = datetime.now()
+
+            cursor.execute("""
+                INSERT INTO transaction (transaction_id, organizer_id, buyer_id, transaction_date, amount, event_id)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (transaction_id, str(item.organizer_id), str(item.buyer_id), transaction_date, item.amount, str(item.event_id)))
+
+            # Update ticket as sold
+            cursor.execute("UPDATE ticket SET is_sold = TRUE WHERE ticket_id = %s", (str(item.ticket_id),))
+
+            # Remove ticket from user's cart (Added table)
+            cursor.execute("DELETE FROM added WHERE cart_id = (SELECT current_cart FROM ticket_buyer WHERE user_id = %s) AND ticket_id = %s", (str(item.buyer_id), str(item.ticket_id)))
+
+            # Update remaining seats in Event table
+            cursor.execute("UPDATE event SET remaining_seat_no = remaining_seat_no - 1 WHERE event_id = %s", (str(item.event_id),))
+
+            cursor.execute("UPDATE seating_plan SET is_available = FALSE WHERE ticket_id = %s", (str(item.ticket_id),))
+
+            if item.email:
+                # Get the user ID for the given email
+                cursor.execute("SELECT user_id FROM users WHERE email = %s", (item.email,))
+                recipient = cursor.fetchone()
+                if recipient:
+                    recipient_id = recipient['user_id']
+                    # Add ticket to recipient's Ticket_List table
+                    cursor.execute("INSERT INTO ticket_list (user_id, ticket_id) VALUES (%s, %s)", (str(recipient_id), str(item.ticket_id)))
+                else:
+                    raise HTTPException(status_code=404, detail="Recipient not found")
+            else:
+                # Add ticket to buyer's Ticket_List table
+                cursor.execute("INSERT INTO ticket_list (user_id, ticket_id) VALUES (%s, %s)", (str(item.buyer_id), str(item.ticket_id)))
+
+            # Update organizer's balance
+            cursor.execute("UPDATE event_organizer SET balance = balance + %s WHERE user_id = %s", (item.amount, str(item.organizer_id)))
+
         conn.commit()
-
         return {"message": "Transaction completed successfully"}
+
     except Exception as e:
-        conn.rollback() 
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
-@router.get("/get_tickets", response_model=List[TicketInfo])
-async def get_tickets(user_id: str = Query(...)):
-    cursor = conn.cursor(cursor_factory=RealDictCursor)
+@router.delete('/delete_from_cart/{ticket_id}', summary="Remove a ticket from the cart")
+async def delete_from_cart(ticket_id: UUID):
     try:
-        cursor.execute("""
-            SELECT t.ticket_id, tc.event_id, t.seat_number, tc.category_name, tc.price
-            FROM Ticket AS t JOIN Added ON t.ticket_id = Added.ticket_id 
-            JOIN Cart ON Added.cart_id = Cart.cart_id JOIN Ticket_Buyer AS tb ON Cart.cart_id = tb.current_cart
-            JOIN Ticket_Category AS tc ON t.event_id = tc.event_id AND t.category_name = tc.category_name
-            WHERE tb.user_id = %s
-                       """, (user_id,))
-        tickets = cursor.fetchall()
-        if not tickets:
-            return Response(status_code=status.HTTP_204_NO_CONTENT)
-        return tickets
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+        cursor.execute("SELECT cart_id FROM added WHERE ticket_id = %s", (str(ticket_id),))
+        result = cursor.fetchone()
+        if not result:
+            raise HTTPException(status_code=404, detail="Ticket not found in any cart")
+
+        cart_id = result['cart_id']
+
+        cursor.execute("DELETE FROM added WHERE cart_id = %s AND ticket_id = %s", (str(cart_id), str(ticket_id)))
+
+        cursor.execute("UPDATE seating_plan SET is_reserved = FALSE WHERE ticket_id = %s", (str(ticket_id),))
+
+        conn.commit()
+        return {"message": "Ticket removed from cart successfully"}
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
+    
