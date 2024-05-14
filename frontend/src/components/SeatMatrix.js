@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col } from "antd";
+import { Row, Col, Spin } from "antd";
 import Seat from "./Seat";
 import SeatHeader from "./SeatHeader";
 
@@ -13,6 +13,7 @@ export default function SeatMatrix({
   header,
   is_draggable = true,
   flush = false,
+  isLoading = false,
 }) {
   if (onSeatClick === undefined) {
     onSeatClick = () => {};
@@ -25,18 +26,18 @@ export default function SeatMatrix({
 
   useEffect(() => {
     getSeats(selectedSeats);
-    console.log("Selected seats from matrix: ", selectedSeats);
+    // console.log("Selected seats from matrix: ", selectedSeats);
   }, [selectedSeats]);
 
   useEffect(() => {
-    console.log("Flush: ", flush);
+    // console.log("Flush: ", flush);
     setSelectedSeats([]);
   }, [flush]);
 
   useEffect(() => {
     const newSelectedSeats = selectedSeats.filter((seat) => seat[0] <= rows);
     setSelectedSeats(newSelectedSeats);
-    onSeatClick(newSelectedSeats); // NOT SURE
+    // onSeatClick(newSelectedSeats); // NOT SURE
   }, [rows]);
 
   useEffect(() => {
@@ -55,7 +56,7 @@ export default function SeatMatrix({
       newSelectedSeats.splice(index, 1);
     }
     setSelectedSeats(newSelectedSeats);
-    onSeatClick(newSelectedSeats);
+    onSeatClick(row, column);
   };
 
   const handleMouseDown = (row, column) => {
@@ -181,6 +182,7 @@ export default function SeatMatrix({
 
   return (
     <>
+      {isLoading && <Spin spinning={isLoading} fullscreen />}
       <SeatHeader
         full={header[0]}
         empty={header[1]}
@@ -232,7 +234,7 @@ export default function SeatMatrix({
                       isClicked={isSelected}
                       isOccupied={seat[4]}
                       isDisabled={seat[5]}
-                      onSeatClick={() => handleSeatClick(seat[0], seat[1])}
+                      onSeatClick={handleSeatClick}
                     />
                   </div>
                 );

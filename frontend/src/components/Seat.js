@@ -15,9 +15,11 @@ export default function Seat({
   status = isActive ? status : "inactive";
 
   const handleClick = () => {
+    // console.log("Seat clicked: ", number);
     if (onSeatClick) {
       if (isActive && !isDisabled && !isOccupied) {
-        onSeatClick(number); // Call onSeatClick function
+        const tmp = number.split("-");
+        onSeatClick(Number(tmp[0]), Number(tmp[1])); // Call onSeatClick function
       }
     }
     if (isActive) {
