@@ -27,7 +27,7 @@ class LocReq(BaseModel):
     row_count: int
     column_count: int
     seats: List[List[int]] = None
-    organizer_name: str
+    organizer_name: str  # Yeni alan
 
 class VenueCreate(BaseModel):
     requester_id: UUID

@@ -1,4 +1,5 @@
 from fastapi import FastAPI, status, HTTPException, Depends, APIRouter, Path
+import psycopg2
 from app.database.session import cursor, conn
 from app.models.venue import Venue, LocReq
 from app.models.user import EventOrganizer, TicketBuyer
@@ -7,10 +8,11 @@ from typing import List
 from psycopg2.extras import DictCursor, RealDictCursor
 router = APIRouter()
 
-@router.get("/location_requests", response_model=List[Venue])
+@router.get("/location_requests", response_model=List[LocReq])
 async def list_location_requests():
+    cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
     query = """
-    SELECT v.venue_id, v.requester_id, v.name, v.city, v.state, v.street, v.status, v.capacity, v.row_count, v.column_count, eo.name as organizer_name
+    SELECT v.venue_id, v.requester_id, v.name, v.city, v.state, v.street, v.status, v.capacity, v.row_count, v.column_count, eo.organizer_name as organizer_name
     FROM Venue v
     JOIN event_organizer eo ON v.requester_id = eo.user_id
     WHERE v.status = 'pending';
@@ -18,7 +20,7 @@ async def list_location_requests():
     try:
         cursor.execute(query)
         venue_records = cursor.fetchall()
-        venues = [Venue(
+        venues = [LocReq(
             venue_id=record['venue_id'],
             requester_id=record['requester_id'],
             name=record['name'],
@@ -35,6 +37,7 @@ async def list_location_requests():
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.get("/verified_venues", response_model=List[Venue])
 async def list_verified_locations():
