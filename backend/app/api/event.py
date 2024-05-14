@@ -483,11 +483,10 @@ async def get_buyer_age_distribution(event_id: UUID):
       SELECT
         DATE_PART('year', AGE(tb.birth_date)) AS age
       FROM
-        Ticket t
-        JOIN Seating_Plan sp ON t.ticket_id = sp.ticket_id
+        Transaction t
         JOIN Ticket_Buyer tb ON t.buyer_id = tb.user_id
       WHERE
-        t.event_id = %s AND t.is_sold = TRUE
+        t.event_id = %s
     ) AS ages
     GROUP BY age_group
     ORDER BY age_group;
@@ -498,5 +497,8 @@ async def get_buyer_age_distribution(event_id: UUID):
             result = cursor.fetchall()
             return {"event_id": event_id, "buyer_age_distribution": result}
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+
 
