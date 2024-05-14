@@ -127,25 +127,43 @@ async def reject_venue(venue_id: UUID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@router.get("/event_organizers", response_model=List[EventOrganizer])
+@router.get("/event_organizers")
 async def list_all_event_organizers():
     query = "SELECT user_id, organizer_name, balance FROM Event_Organizer;"
     try:
-        cursor.execute(query)
-        records = cursor.fetchall()
-        return [EventOrganizer(**record) for record in records]
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query)
+            records = cursor.fetchall()
+            event_organizers = [
+                {
+                    "user_id": record["user_id"],
+                    "organizer_name": record["organizer_name"],
+                    "balance": float(record["balance"])
+                }
+                for record in records
+            ]
+            return event_organizers
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/ticket_buyers", response_model=List[TicketBuyer])
+@router.get("/ticket_buyers")
 async def list_all_ticket_buyers():
-    query = "SELECT user_id, balance, birth_date, current_cart FROM Ticket_Buyer;"
+    query = "SELECT user_id, balance, birth_date FROM Ticket_Buyer;"
     try:
-        cursor.execute(query)
-        records = cursor.fetchall()
-        return [TicketBuyer(**record) for record in records]
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query)
+            records = cursor.fetchall()
+            ticket_buyers = [
+                {
+                    "user_id": record["user_id"],
+                    "balance": float(record["balance"]),
+                    "birth_date": record["birth_date"]
+                }
+                for record in records
+            ]
+            return ticket_buyers
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
