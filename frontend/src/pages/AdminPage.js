@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, Table, Button, message, Card, Statistic, Row, Col, Modal } from "antd";
-import { ArrowUpOutlined, PauseCircleOutlined, UserOutlined, RocketOutlined, HomeOutlined, NotificationOutlined } from "@ant-design/icons";
+import { ArrowUpOutlined, PauseCircleOutlined, UserOutlined, RocketOutlined, HomeOutlined, NotificationOutlined, CloseCircleFilled } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Axios from "../Axios";
 import moment from 'moment';
@@ -81,7 +81,7 @@ export function AdminPage() {
     };
 
     const fetchAllEvents = async () => {
-        let response = await Axios.get("/event");
+        let response = await Axios.get("/event/all");
         console.log("Response: ", response.data); //TEST
         setEvents(response.data);
         setStats(prevStats => ({ ...prevStats, eventsCount: response.data.length }));
@@ -290,7 +290,7 @@ export function AdminPage() {
         { title: 'Date', dataIndex: 'date', key: 'date', render: (text) => moment(text).format('YYYY-MM-DD') },
         { title: 'Location', key: 'venue.name', render: (text, record) => record.venue?.name || 'N/A' },
         { title: 'Category', key: 'category', render: (text, record) => record.category?.category_name || 'N/A' },
-        { title: 'Is Cancelled', dataIndex: 'is_cancelled', key: 'is_cancelled', render: (is_cancelled) => is_cancelled ? 'Yes' : 'No' },
+        { title: 'Is Cancelled', dataIndex: 'is_cancelled', key: 'is_cancelled', render: (is_cancelled) => is_cancelled ? <> <CloseCircleFilled style={{color:'red', fontSize:'16px'}}/> Yes</>  : 'No' },
         { 
             title: 'See Details', 
             key: 'details',

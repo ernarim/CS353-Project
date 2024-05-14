@@ -20,7 +20,11 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const addCategory = (values) => {
-    const { name, color, price } = values;
+    let { name, color, price } = values;
+    if (color==null || color=='') {
+      color = 'black';
+    }
+
     setCategories(prev => ({
       ...prev,
       [name]: { color, price }
@@ -262,7 +266,7 @@ export default function SeatMatrixCreate({ venue, getTicketCategories, getSeats}
           <Form.Item name="price" label="Price" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="color" label="Color" rules={[{ required: true }]}>
+          <Form.Item name="color" label="Color">
             <Input type="color" />
           </Form.Item>
           <Form.Item>

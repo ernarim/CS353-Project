@@ -146,7 +146,7 @@ export function SelectTicketPage() {
       cancelText: "No",
       onOk() {
         console.log("OK:", selectedSeats);
-        navigate("/");
+        navigate("/home");
       },
       onCancel() {
         console.log("Cancel operation was aborted.");

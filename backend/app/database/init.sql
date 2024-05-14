@@ -162,7 +162,7 @@ BEGIN
             remaining_seat_no INT,
             return_expire_date DATE,
             organizer_id UUID NOT NULL,
-            venue_id UUID NOT NULL,
+            venue_id UUID,
             category_id UUID NOT NULL,
             photo VARCHAR(255),
             photo_plan VARCHAR(255),
