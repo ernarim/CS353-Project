@@ -1,39 +1,39 @@
 from fastapi import FastAPI, status, HTTPException, Depends, APIRouter, Path
 from app.database.session import cursor, conn
-from app.models.venue import Venue
+from app.models.venue import Venue, LocReq
 from app.models.user import EventOrganizer, TicketBuyer
 from uuid import UUID
 from typing import List
 from psycopg2.extras import DictCursor, RealDictCursor
 router = APIRouter()
 
-
 @router.get("/location_requests", response_model=List[Venue])
 async def list_location_requests():
     query = """
-    SELECT venue_id, requester_id, name, city, state, street, status, capacity, row_count, column_count
-    FROM Venue
-    WHERE status = 'pending';
+    SELECT v.venue_id, v.requester_id, v.name, v.city, v.state, v.street, v.status, v.capacity, v.row_count, v.column_count, eo.name as organizer_name
+    FROM Venue v
+    JOIN event_organizer eo ON v.requester_id = eo.user_id
+    WHERE v.status = 'pending';
     """
     try:
         cursor.execute(query)
         venue_records = cursor.fetchall()
         venues = [Venue(
             venue_id=record['venue_id'],
-            requester_id = ['requester_id'],
+            requester_id=record['requester_id'],
             name=record['name'],
             city=record['city'],
             state=record['state'],
-            street=record['street'],
+            street=record.get('street'),
             status=record['status'],
-            capacity=record['capacity'],
+            capacity=record.get('capacity'),
             row_count=record['row_count'],
-            column_count=record['column_count']
+            column_count=record['column_count'],
+            organizer_name=record['organizer_name']
         ) for record in venue_records]
         return venues
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
 
 @router.get("/verified_venues", response_model=List[Venue])
 async def list_verified_locations():

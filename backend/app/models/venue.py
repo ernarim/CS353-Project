@@ -15,6 +15,20 @@ class Venue(BaseModel):
     column_count: int
     seats: List[List[int]] = None
 
+class LocReq(BaseModel):
+    venue_id: UUID
+    requester_id: UUID
+    name: str
+    city: str
+    state: str
+    street: str = None
+    status: str = 'pending'
+    capacity: int = None
+    row_count: int
+    column_count: int
+    seats: List[List[int]] = None
+    organizer_name: str
+
 class VenueCreate(BaseModel):
     requester_id: UUID
     name: str
