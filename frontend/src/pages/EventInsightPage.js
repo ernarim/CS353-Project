@@ -62,14 +62,19 @@ export function EventInsightPage() {
       }
     };
 
-    const fetchAgeDistribution = async () => {
-      try {
-        const response = await Axios.get(`/event/${event_id}/age_distribution`);
-        setAgeDistribution(response.data);
-      } catch (error) {
-        console.error('Failed to fetch age distribution', error);
-      }
-    };
+const fetchAgeDistribution = async () => {
+  try {
+    const response = await Axios.get(`/event/${event_id}/buyer_age_distribution`);
+    const data = response.data.buyer_age_distribution; 
+    if (Array.isArray(data)) {
+      setAgeDistribution(data);
+    } else {
+      console.error('Age Distribution data is not an array:', data);
+    }
+  } catch (error) {
+    console.error('Failed to fetch age distribution', error);
+  }
+};
 
     fetchEventDetails();
     fetchTicketCategories();
