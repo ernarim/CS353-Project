@@ -33,6 +33,7 @@ async def list_location_requests():
         ) for record in venue_records]
         return venues
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/verified_venues", response_model=List[Venue])
@@ -59,6 +60,7 @@ async def list_verified_locations():
         ) for record in venue_records]
         return venues
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
 
@@ -88,6 +90,7 @@ async def verify_venue(venue_id: UUID):
             'column_count': updated_venue['column_count']
         })
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
 
@@ -117,6 +120,7 @@ async def reject_venue(venue_id: UUID):
             'column_count': updated_venue['column_count']
         })
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
 
@@ -128,6 +132,7 @@ async def list_all_event_organizers():
         records = cursor.fetchall()
         return [EventOrganizer(**record) for record in records]
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -139,6 +144,7 @@ async def list_all_ticket_buyers():
         records = cursor.fetchall()
         return [TicketBuyer(**record) for record in records]
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
     
 
@@ -185,4 +191,5 @@ async def get_organizer_info(user_id: UUID):
             return result
 
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))   
