@@ -136,7 +136,7 @@ export function CreateNewEventPage ()  {
     try{
       Axios.post('/event', values);
       message.success('Event created successfully');
-      navigate('/');
+      navigate('/home');
     }
     catch(error){
       console.log(error);

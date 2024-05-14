@@ -37,7 +37,7 @@ export  function LoginPage()  {
             localStorage.setItem("user", JSON.stringify(result.data));
             message.success('Login successful');
 
-            navigate('/');
+            navigate('/home');
           }
           catch (error) {
             console.error('User info failed', error);

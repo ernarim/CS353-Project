@@ -14,7 +14,7 @@ const Topbar = () => {
 
 
   const items = [
-    { key: 'home_logo', label: <Link to="/"><Title level={4} style={{color:'white',margin:'17px 0px'}} className="site-name">PICKaTICKET</Title></Link>, className: "home-logo" },
+    { key: 'home_logo', label: <Link to="/home"><Title level={4} style={{color:'white',margin:'17px 0px'}} className="site-name">PICKaTICKET</Title></Link>, className: "home-logo" },
     { key: 'select_ticket', label:<Link to="/select_ticket"><span className="site-name">Select Ticket</span></Link>, className: "page-name" },
     { key: 'event_detail', label:<Link to="/event_detail"> <span className="site-name">Event Detail</span></Link>, className: "page-name" },
     { key: 'shopping_cart', label:<Link to="/shopping_cart"><span className="site-name">Shopping Cart</span></Link> , className: "page-name" },
