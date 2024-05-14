@@ -428,3 +428,41 @@ async def get_seating_plan_by_category(event_id: UUID, category_name: str):
     if not seating_plan:
         raise HTTPException(status_code=404, detail="No seating plan found for this category")
     return seating_plan
+
+@router.get("/{event_id}/sold_tickets_by_category")
+async def get_number_of_sold_tickets_by_category(event_id: UUID):
+    query = """
+    SELECT tc.category_name, tc.price, COUNT(t.ticket_id) AS sold_tickets
+    FROM Ticket t
+    JOIN Seating_Plan sp ON t.ticket_id = sp.ticket_id
+    JOIN Ticket_Category tc ON sp.event_id = tc.event_id AND sp.category_name = tc.category_name
+    WHERE t.event_id = %s AND t.is_sold = TRUE
+    GROUP BY tc.category_name, tc.price
+    ORDER BY tc.price ASC
+    """
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (str(event_id),))
+            result = cursor.fetchall()
+            return {"event_id": event_id, "sold_tickets_by_category": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/{event_id}/available_tickets_by_category")
+async def get_number_of_available_tickets_by_category(event_id: UUID):
+    query = """
+    SELECT tc.category_name, tc.price, COUNT(t.ticket_id) AS available_tickets
+    FROM Ticket t
+    JOIN Seating_Plan sp ON t.ticket_id = sp.ticket_id
+    JOIN Ticket_Category tc ON sp.event_id = tc.event_id AND sp.category_name = tc.category_name
+    WHERE t.event_id = %s AND t.is_sold = FALSE
+    GROUP BY tc.category_name, tc.price
+    ORDER BY tc.price DESC
+    """
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (str(event_id),))
+            result = cursor.fetchall()
+            return {"event_id": event_id, "available_tickets_by_category": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

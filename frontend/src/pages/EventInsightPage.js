@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 
 import { Modal, notification } from 'antd';
 import Axios from "../Axios";
+
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
 
 export function EventInsightPage() {
@@ -14,7 +15,7 @@ export function EventInsightPage() {
   const [eventCancelled, setEventCancelled] = useState(false);
 
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
@@ -27,8 +28,26 @@ export function EventInsightPage() {
 
     const fetchTicketCategories = async () => {
       try {
-        const response = await Axios.get(`/ticket_category/${event_id}`);
-        setTicketCategories(response.data);
+        const [soldResponse, availableResponse] = await Promise.all([
+          Axios.get(`/event/${event_id}/sold_tickets_by_category`),
+          Axios.get(`/event/${event_id}/available_tickets_by_category`)
+        ]);
+
+        const soldTickets = soldResponse.data.sold_tickets_by_category;
+        const availableTickets = availableResponse.data.available_tickets_by_category;
+
+        // Combine sold and available tickets data
+        const combinedData = availableTickets.map(available => {
+          const sold = soldTickets.find(s => s.category_name === available.category_name);
+          return {
+            category_name: available.category_name,
+            price: available.price,
+            available: available.available_tickets,
+            sold: sold ? sold.sold_tickets : 0
+          };
+        });
+
+        setTicketCategories(combinedData);
       } catch (error) {
         console.error('Failed to fetch ticket categories', error);
       }
@@ -41,7 +60,7 @@ export function EventInsightPage() {
       } catch (error) {
         console.error('Failed to fetch total sold tickets', error);
       }
-    }; 
+    };
 
     fetchEventDetails();
     fetchTicketCategories();
@@ -57,7 +76,7 @@ export function EventInsightPage() {
     console.log('Update Event Clicked!');
     navigate(`/update_event/${event_id}`);
   };
-  
+
   const handleCancelEvent = () => {
     Modal.confirm({
       title: `Are you sure you want to cancel the "${eventDetails.name}" event?`,
@@ -95,6 +114,7 @@ export function EventInsightPage() {
       });
     }
   };
+
   // Columns for ticket categories table
   const columns = [
     { title: 'Category', dataIndex: 'category_name', key: 'category_name' },
@@ -108,7 +128,7 @@ export function EventInsightPage() {
   return (
     <div style={{ display: 'flex', justifyContent: 'space-around', padding: '20px' }}>
       {/* Event Image and Details */}
-      <Card style={{ width: '60%', margin: '0 20px',boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display:'flex', flexDirection:'column', justifyContent:'space-around' }}>
+      <Card style={{ width: '60%', margin: '0 20px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <img src={`${baseURLEvents}${eventDetails.photo}`} alt="event" style={{ width: '500px', height: '100%', objectFit: 'contain', borderRadius: '8px 8px 0 0' }} />
         </div>
@@ -119,32 +139,32 @@ export function EventInsightPage() {
       </Card>
 
       {/* Event Insights */}
-        <div style={{ flex: 2, margin: '20px', padding: '20px', borderRadius: '8px', backgroundColor: 'white' }}>
-          <h2>Event Insights</h2>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Statistic title="Total Sold Tickets" value={totalSoldTickets} style={{ marginRight: '40px' }} /> {/* Display total sold tickets */}
-            <Statistic title="Total Available Seats" value={eventDetails.remaining_seat_no} /> {/* Display total available tickets */}
-          </div>
-          <Divider style={{ margin: '10px 0px' }}></Divider>
-          <Table
-            dataSource={ticketCategories}
-            columns={columns}
-            pagination={false}
-            bordered
-            size="small"
-          />
+      <div style={{ flex: 2, margin: '20px', padding: '20px', borderRadius: '8px', backgroundColor: 'white' }}>
+        <h2>Event Insights</h2>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Statistic title="Total Sold Tickets" value={totalSoldTickets} style={{ marginRight: '40px' }} /> {/* Display total sold tickets */}
+          <Statistic title="Total Available Seats" value={eventDetails.remaining_seat_no} /> {/* Display total available tickets */}
+        </div>
+        <Divider style={{ margin: '10px 0px' }}></Divider>
+        <Table
+          dataSource={ticketCategories}
+          columns={columns}
+          pagination={false}
+          bordered
+          size="small"
+        />
 
         <Row gutter={16} style={{ marginTop: '20px' }}>
-        <Col span={12}>
-          <Button block onClick={handleUpdateEvent} disabled={eventDetails.is_cancelled || eventCancelled}>
-            Update Event
-          </Button>
-        </Col>
-        <Col span={12}>
-          <Button block onClick={handleCancelEvent} danger disabled={eventDetails.is_cancelled || eventCancelled}>
-            Cancel Event
-          </Button>
-        </Col>
+          <Col span={12}>
+            <Button block onClick={handleUpdateEvent} disabled={eventDetails.is_cancelled || eventCancelled}>
+              Update Event
+            </Button>
+          </Col>
+          <Col span={12}>
+            <Button block onClick={handleCancelEvent} danger disabled={eventDetails.is_cancelled || eventCancelled}>
+              Cancel Event
+            </Button>
+          </Col>
         </Row>
       </div>
     </div>
