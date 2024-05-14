@@ -46,6 +46,8 @@ BEGIN
     ) THEN
         CREATE TABLE Ticket_Buyer (
             user_id UUID,
+            name VARCHAR(255) NOT NULL,
+            surname VARCHAR(255) NOT NULL,
             balance DECIMAL(10, 2) DEFAULT 0.0 CHECK(balance >= 0),
             birth_date DATE NOT NULL,
             current_cart UUID,

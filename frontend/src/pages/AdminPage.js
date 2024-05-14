@@ -1,8 +1,10 @@
 // src/pages/AdminPage.js
 import React, { useState, useEffect } from "react";
-import { Tabs, Table } from "antd";
+import { Tabs, Table , Button} from "antd";
 import Axios from "../Axios";
 import { Theme } from "../style/theme";
+import moment from 'moment';
+import "../style/admin.css";
 
 const { TabPane } = Tabs;
 const { colors, font } = Theme;
@@ -78,14 +80,16 @@ const ticketBuyersColumns = [
     { title: 'Surname', dataIndex: 'surname', key: 'surname' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Phone', dataIndex: 'phone', key: 'phone' },
-    { title: 'Last Login', dataIndex: 'last_login', key: 'last_login' },
     { title: 'Balance', dataIndex: 'balance', key: 'balance' },
-    { title: 'Birth Date', dataIndex: 'birth_date', key: 'birth_date' },
-   
+    {
+        title: 'Birth Date',
+        dataIndex: 'birth_date',
+        key: 'birth_date',
+        render: (text) => moment(text).format('YYYY-MM-DD'),
+    },   
 ];
 
-
-const locationColumns = [
+const verifiedLocationsColumns = [
     { title: 'Name', dataIndex: 'name', key: 'name' },
     { title: 'City', dataIndex: 'city', key: 'city' },
     { title: 'State', dataIndex: 'state', key: 'state' },
@@ -93,31 +97,109 @@ const locationColumns = [
     { title: 'Capacity', dataIndex: 'capacity', key: 'capacity' },
 ];
 
+
+
 const eventOrganizersColumns = [
     { title: 'Organizer Name', dataIndex: 'organizer_name', key: 'organizer_name' },
     { title: 'Email', dataIndex: 'email', key: 'email' },
     { title: 'Phone', dataIndex: 'phone', key: 'phone' },
-    { title: 'Last Login', dataIndex: 'last_login', key: 'last_login' },
     { title: 'Balance', dataIndex: 'balance', key: 'balance' },
 ];
 
 export function AdminPage() {
-    //const [locationRequests, setLocationRequests] = useState([]);
+    const [locationRequests, setLocationRequests] = useState([]);
+    const [eventOrganizers, setEventOrganizers] = useState([]);
+    const [ticketBuyers, setTicketBuyers] = useState([]);
+
 
     useEffect(() => {
         fetchLocationRequests();
+        fetchEventOrganizers();
+        fetchTicketBuyers();
+
     }, []);
 
-    const fetchLocationRequests = async () => {
-        let response = Axios.get("/admin/location_requests");
+    const fetchEventOrganizers = async () => {
+        let response = await Axios.get("/admin/event_organizers");
         console.log("Response: ", response); //TEST
-        //setLocationRequests(response.data);
+        setEventOrganizers(response.data);
     };
 
+    const fetchTicketBuyers = async () => {
+        let response = await Axios.get("/admin/ticket_buyers");
+        console.log("Response: ", response); //TEST
+        setTicketBuyers(response.data);
+    };
+
+    const fetchLocationRequests = async () => {
+        let response = await Axios.get("/admin/location_requests");
+        console.log("Response: ", response); //TEST
+        setLocationRequests(response.data);
+    };
+
+    const handleAccept = async (record) => {
+        console.log("Accepting location request: ", record);
+        try {
+            let response = await Axios.post("/admin/accept_location", {
+                location_id: record.key,
+            });
+            console.log("Response: ", response); //TEST
+            fetchLocationRequests();
+        } catch (error) {
+            console.error("Failed to accept location request", error);
+        }
+    }
+
+    const handleReject = async (record) => {
+        console.log("Rejecting location request: ", record);
+        try {
+            let response = await Axios.post("/admin/reject_location", {
+                location_id: record.key,
+            });
+            console.log("Response: ", response); //TEST
+            fetchLocationRequests();
+        } catch (error) {
+            console.error("Failed to reject location request", error);
+        }
+    }
+
+
+
+    const locationColumns = [
+
+        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: 'Organizer Name', dataIndex: 'organizer_name', key: 'organizer_name'},
+        { title: 'City', dataIndex: 'city', key: 'city' },
+        { title: 'State', dataIndex: 'state', key: 'state' },
+        { title: 'Street', dataIndex: 'street', key: 'street' },
+        { title: 'Capacity', dataIndex: 'capacity', key: 'capacity' },
+        {
+            title: 'Actions',
+            key: 'actions',
+            render: (text, record) => (
+                <span>
+                    <Button
+                        type="primary"
+                        style={{ backgroundColor: 'green', borderColor: 'green', marginRight: 8 }}
+                        onClick={() => handleAccept(record)}
+                    >
+                        Accept
+                    </Button>
+                    <Button
+                        type="primary"
+                        style={{ backgroundColor: 'red', borderColor: 'red' }}
+                        onClick={() => handleReject(record)}
+                    >
+                        Reject
+                    </Button>
+                </span>
+            ),
+        },
+    ];
  
     return (
-        <div className="admin-page" style={{display:'flex', flexDirection:'column', alignItems:'center', width:'90%', margin:'0px 5%' }}>
-            <h2>Welcome to the admin panel!</h2>
+        <div className="admin-page" style={{display:'flex', flexDirection:'column', alignItems:'center', width:'90%', height:'100vh', padding:'0px 5%' }}>
+            <h2 style={{color:'white'}}>Welcome to The Admin Panel!</h2>
             <Tabs style={{width:'100%'}} defaultActiveKey="1">
                 <TabPane tab="Ticket Buyers" key="2">
                     <Table dataSource={ticketBuyers} columns={ticketBuyersColumns} />

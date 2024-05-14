@@ -1,0 +1,60 @@
+.admin-page {
+    
+    background-color:  #0a2431;
+
+   
+    .ant-tabs-nav {
+      color: #ffffff; /* Sets the text color for the tabs */
+        background-color: #003554;
+        border-radius: 10px;
+        padding: 0 20px;
+        margin-bottom: 10px;
+
+      .ant-tabs-tab {
+        color: #ffffff;
+      }
+  
+      .ant-tabs-tab-active {
+        color: #ffffff;
+        font-weight: bold;
+      }
+    }
+  
+    .ant-table {
+      background-color: #003554;
+      color: #ffffff; /* Sets the text color for the table */
+  
+      .ant-table-thead > tr > th {
+        background-color: #003554;
+        color: #ffffff;
+        font-weight: bold;
+      }
+  
+      .ant-table-tbody > tr > td {
+        background-color: #051923;
+        color: #ffffff;
+        border-color: #ffffff; /* Adds border color to table cells */
+      }
+  
+      .ant-table-tbody > tr:hover > td {
+        background-color: #003554; /* Changes background color on hover */
+      }
+  
+      .ant-table-tbody > tr > td button {
+        margin-right: 8px; /* Adds margin between action buttons */
+      }
+  
+      .ant-table-pagination.ant-pagination {
+        .ant-pagination-item-active {
+          border-color: #ffffff;
+          a {
+            color: #ffffff;
+          }
+        }
+  
+        .ant-pagination-item-link {
+          color: #ffffff;
+        }
+      }
+    }
+  }

@@ -129,7 +129,12 @@ async def reject_venue(venue_id: UUID):
 
 @router.get("/event_organizers")
 async def list_all_event_organizers():
-    query = "SELECT user_id, organizer_name, balance FROM Event_Organizer;"
+    query = """
+        SELECT eo.user_id, eo.organizer_name, eo.balance, u.phone, u.email
+        FROM Event_Organizer eo
+        JOIN Users u ON eo.user_id = u.user_id;
+    """
+
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query)
@@ -138,7 +143,9 @@ async def list_all_event_organizers():
                 {
                     "user_id": record["user_id"],
                     "organizer_name": record["organizer_name"],
-                    "balance": float(record["balance"])
+                    "balance": float(record["balance"]),
+                    "phone": record["phone"],
+                    "email": record["email"]
                 }
                 for record in records
             ]
@@ -147,10 +154,13 @@ async def list_all_event_organizers():
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/ticket_buyers")
 async def list_all_ticket_buyers():
-    query = "SELECT user_id, balance, birth_date FROM Ticket_Buyer;"
+    query = """
+        SELECT tb.user_id, tb.balance, tb.birth_date, tb.name, tb.surname, u.phone, u.email
+        FROM Ticket_Buyer tb
+        JOIN Users u ON tb.user_id = u.user_id;
+    """
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
             cursor.execute(query)
@@ -159,7 +169,11 @@ async def list_all_ticket_buyers():
                 {
                     "user_id": record["user_id"],
                     "balance": float(record["balance"]),
-                    "birth_date": record["birth_date"]
+                    "birth_date": record["birth_date"],
+                    "name": record["name"],
+                    "surname": record["surname"],
+                    "phone": record["phone"],
+                    "email": record["email"]
                 }
                 for record in records
             ]
@@ -167,6 +181,7 @@ async def list_all_ticket_buyers():
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
     
 
 @router.get("/organizer_info/{user_id}")

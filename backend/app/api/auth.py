@@ -57,10 +57,10 @@ async def register_ticket_buyer(buyer: TicketBuyerCreate):
             cursor.execute("INSERT INTO cart (cart_id) VALUES (%s)", (current_cart_str,))
 
         # Insert into users table
-        cursor.execute("INSERT INTO users (user_id, email, password) VALUES (%s, %s, %s)", (user_id, email, hashed_password))
+        cursor.execute("INSERT INTO users (user_id, email, password, phone) VALUES (%s, %s, %s, %s)", (user_id, email, hashed_password, buyer.phone))
         # Insert into ticket_buyer table
-        cursor.execute("INSERT INTO ticket_buyer (user_id, birth_date, balance, current_cart) VALUES (%s, %s, %s, %s)",
-                       (user_id, buyer.birth_date, buyer.balance, current_cart_str))
+        cursor.execute("INSERT INTO ticket_buyer (user_id, birth_date, balance, current_cart, name, surname) VALUES (%s, %s, %s, %s, %s, %s)",
+                       (user_id, buyer.birth_date, buyer.balance, current_cart_str, buyer.name, buyer.surname))
 
         cursor.execute("INSERT INTO owned (user_id, cart_id) VALUES (%s, %s)", (user_id, current_cart_str))
 
@@ -85,7 +85,7 @@ async def register_event_organizer(organizer: EventOrganizerCreate):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="User with this email already exists"
             )
-        cursor.execute("INSERT INTO users (user_id, email, password) VALUES (%s, %s, %s)", (user_id, email, hashed_password))
+        cursor.execute("INSERT INTO users (user_id, email, password, phone) VALUES (%s, %s, %s, %s)", (user_id, email, hashed_password, organizer.phone))
         cursor.execute("INSERT INTO event_organizer (user_id, organizer_name) VALUES (%s, %s)", (user_id, organizer.organizer_name))
         conn.commit()
         return {"user_id": user_id, "email": email, "organizer_name": organizer.organizer_name}
