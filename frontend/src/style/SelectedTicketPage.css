@@ -8,3 +8,13 @@
 .loc-row .loc-col{
     height: inherit;
 }
+
+.loc-row .loc-col .loc-col-card{
+    margin: 10px;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+}

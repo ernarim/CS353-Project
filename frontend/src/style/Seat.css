@@ -27,7 +27,11 @@
 }
 
 .seat.active {
-    background: #aaaaaa;
+    background: gray;
+}
+
+.seat.occupied {
+    background: #c05d5d;
 }
 
 .seat.inactive {
@@ -36,6 +40,10 @@
 
 .seat.inactive::after {
     background: transparent;
+}
+
+.seat.disabled {
+    background: #aaaaaa;
 }
 
 .seat.selected {

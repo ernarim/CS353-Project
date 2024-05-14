@@ -1,14 +1,24 @@
 import React, { useState } from "react";
 import "../style/Seat.css";
-export default function Seat({ number, isActive, isClicked, onSeatClick }) {
+export default function Seat({
+  number,
+  isActive,
+  isClicked,
+  onSeatClick,
+  isDisabled,
+  isOccupied,
+}) {
   const [isClicked_, setIsClicked_] = useState(false);
-
-  const activeStatus = isActive ? "seat active" : "seat inactive";
-  const clickedStyle = isClicked ? "selected" : "";
+  let status = isClicked ? "selected" : "active";
+  status = isOccupied ? "occupied" : status;
+  status = isDisabled ? "disabled" : status;
+  status = isActive ? status : "inactive";
 
   const handleClick = () => {
     if (onSeatClick) {
-      onSeatClick(number); // Call onSeatClick function
+      if (isActive && !isDisabled && !isOccupied) {
+        onSeatClick(number); // Call onSeatClick function
+      }
     }
     if (isActive) {
       setIsClicked_(!isClicked_);
@@ -17,7 +27,7 @@ export default function Seat({ number, isActive, isClicked, onSeatClick }) {
 
   return (
     <>
-      <div className={`${activeStatus} ${clickedStyle}`} onClick={handleClick}>
+      <div className={`seat ${status}`} onClick={handleClick}>
         <span>{number}</span>
       </div>
     </>

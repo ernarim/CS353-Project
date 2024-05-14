@@ -1,12 +1,21 @@
 import React, { useState } from "react";
 import "../style/SeatHeader.css";
 
-export default function SeatHeader({ full, empty, selected, disabled, onModeChange }) {
+export default function SeatHeader({
+  full,
+  empty,
+  selected,
+  disabled,
+  onModeChange,
+  is_draggable = true,
+}) {
   const [activeMode, setActiveMode] = useState("selected");
 
   const handleModeChange = (mode) => {
-    setActiveMode(mode);
-    onModeChange(mode);
+    if (is_draggable) {
+      setActiveMode(mode);
+      onModeChange(mode);
+    }
   };
 
   return (
@@ -14,14 +23,16 @@ export default function SeatHeader({ full, empty, selected, disabled, onModeChan
       <div className="seat-area-header">
         {full && <span className="full">Full</span>}
         {empty && <span className="empty">Empty</span>}
-        <span 
-          className={`selected ${activeMode === "selected" ? "active" : ""}`} 
+        <span
+          className={`selected ${
+            activeMode === "selected" && is_draggable ? "active" : ""
+          }`}
           onClick={() => handleModeChange("selected")}
         >
           Selected
         </span>
-        <span 
-          className={`disabled ${activeMode === "disabled" ? "active" : ""}`} 
+        <span
+          className={`disabled ${activeMode === "disabled" ? "active" : ""}`}
           onClick={() => handleModeChange("disabled")}
         >
           Disabled

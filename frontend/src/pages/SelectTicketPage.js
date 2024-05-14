@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Form, message, Select, Card, Row, Col } from "antd";
+import { Form, message, Select, Card, Row, Col, Spin } from "antd";
 import SeatMatrix from "../components/SeatMatrix";
 import Axios from "../Axios";
 import "../style/SelectedTicketPage.css";
 
 export function SelectTicketPage() {
+  const [isLoading, setIsLoading] = useState(false);
+
   const { event_id } = useParams();
   const [form] = Form.useForm();
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [addedSeats, setAddedSeats] = useState([]);
 
   const [categorySeats, setCategorySeats] = useState([]);
   const [eventSeats, setEventSeats] = useState([]);
 
-  const [venueSeats, setVenueSeats] = useState([]);
   const [venueRows, setVenueRows] = useState(0);
   const [venueColumns, setVenueColumns] = useState(0);
 
   const [categories, setCategories] = useState([]);
-  // const [activeCategory, setActiveCategory] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [flushSeatMatrix, setFlushSeatMatrix] = useState(false);
 
   useEffect(() => {
     fetchTicketCategories();
@@ -32,24 +34,58 @@ export function SelectTicketPage() {
       message.info(`Selected category: ${selectedCategory}`);
       fetchCategorySeats();
     }
+    setSelectedSeats([]);
+    setAddedSeats([]);
+    flushSeatMatrix ? setFlushSeatMatrix(false) : setFlushSeatMatrix(true);
   }, [selectedCategory]);
 
+  useEffect(() => {
+    console.log("Selected seats: ", selectedSeats);
+    matchAddedSeats();
+  }, [selectedSeats]);
+
+  const matchAddedSeats = () => {
+    let added = [];
+    for (let i = 0; i < selectedSeats.length; i++) {
+      let seat = selectedSeats[i];
+      let match = false;
+      for (let j = 0; j < categorySeats.length; j++) {
+        if (
+          seat[0] === categorySeats[j].row_number &&
+          seat[1] === categorySeats[j].column_number
+        ) {
+          match = true;
+          break;
+        }
+      }
+      if (match) {
+        added.push(seat);
+      }
+    }
+    setAddedSeats(added);
+  };
+
   const fetchTicketCategories = async () => {
+    setIsLoading(true);
     const response = await Axios.get(`/ticket_category/${event_id}`);
+    setIsLoading(false);
     // console.log("Eventres:", response.data); //TEST
     setCategories(response.data);
+    setSelectedCategory(response.data[0].category_name);
+    form.setFieldsValue({ category: response.data[0].category_name });
   };
 
   const fetchCategorySeats = async () => {
     const response = await Axios.get(
       `/event/${event_id}/seating_plan/${selectedCategory}`
     );
-    console.log("S SSats:", response.data);
+    // console.log("S SSats:", response.data);
+    setCategorySeats(response.data);
   };
 
   const fetchEventSeats = async () => {
     const response = await Axios.get(`/event/${event_id}/seating_plan`);
-    console.log("SEL seats:", response.data);
+    // console.log("SEL seats:", response.data);
 
     let seats = [];
     for (let i = 0; i < response.data.length; i++) {
@@ -58,8 +94,8 @@ export function SelectTicketPage() {
       seat[1] = response.data[i].column_number;
       seats.push(seat);
     }
-    setCategorySeats(seats);
-    console.log("S seats:", categorySeats);
+    setEventSeats(seats);
+    // console.log("S seats:", categorySeats);
   };
 
   const getSeats = (seats) => {
@@ -70,10 +106,9 @@ export function SelectTicketPage() {
     try {
       const event = await Axios.get(`/event/${event_id}`);
       const venue = await Axios.get(`/venue/${event.data.venue.venue_id}`);
-      setVenueSeats(venue.data.seats);
       setVenueRows(venue.data.row_count);
       setVenueColumns(venue.data.column_count);
-      console.log(event.data);
+      // console.log(event.data);
     } catch (error) {
       console.log(error.detail);
     }
@@ -103,14 +138,14 @@ export function SelectTicketPage() {
   // };
 
   const handleReserve = (row, column) => {
-    console.log(row, column);
+    // console.log(row, column);
   };
 
-  return (
+  return !isLoading ? (
     <>
       <Row className="loc-row" justify={"center"}>
         <Col span={8} className="loc-col">
-          <Card>
+          <Card title="Select Category" className="loc-col-card">
             <Form form={form} layout="vertical">
               <Form.Item
                 label="Select Ticket Category"
@@ -134,21 +169,35 @@ export function SelectTicketPage() {
                 </Select>
               </Form.Item>
             </Form>
+            <Card title="Selected Seats">
+              {addedSeats.map((seat, index) => (
+                <p key={index}>
+                  Row: {seat[0]}, Column: {seat[1]}
+                </p>
+              ))}
+            </Card>
           </Card>
         </Col>
         <Col span={16} className="loc-col">
-          <Card title="Select Seat">
+          <Card title="Select Seat" className="loc-col-card">
             <SeatMatrix
               rows={venueRows}
               columns={venueColumns}
-              available_seats={categorySeats}
+              available_seats={eventSeats}
+              active_seats={categorySeats}
               onSeatClick={handleReserve}
               getSeats={getSeats}
+              is_draggable={false}
               header={[true, true, true, true]}
+              flush={flushSeatMatrix}
             />
           </Card>
         </Col>
       </Row>
+    </>
+  ) : (
+    <>
+      <Spin spinning={isLoading} fullscreen />
     </>
   );
 }
