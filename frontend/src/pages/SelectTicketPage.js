@@ -123,22 +123,19 @@ export function SelectTicketPage() {
     }
   };
 
-  // const test = async () => {
-  //   try {
-  //     await Axios.post("/selection/reserve", {
-  //       event_id: "3bf3aa38-fee5-4ef2-9589-c6528376c04f",
-  //       row_number: 1,
-  //       column_number: 1,
-  //     }).then((response) => {
-  //       console.log(response.data);
-  //     });
-  //   } catch (error) {
-  //     console.log(error.detail);
-  //   }
-  // };
-
-  const handleReserve = (row, column) => {
-    // console.log(row, column);
+  const handleReserve = async (seat) => {
+    // try {
+    //   console.log("Seat:", seat);
+    //   let data = {
+    //     event_id: event_id,
+    //     row_number: seat[0][0],
+    //     column_number: seat[0][1],
+    //   };
+    //   const response = await Axios.post("/selection/reserve", data);
+    //   message.success("Seat reserved successfully!");
+    // } catch (error) {
+    //   console.log(error);
+    // }
   };
 
   return !isLoading ? (

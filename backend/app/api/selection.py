@@ -7,6 +7,7 @@ router = APIRouter()
 
 @router.post("/reserve")
 async def reserve_seat(reserved_seat:ReserverSeating):
+    print("Reserve Seat", reserved_seat)
     availablity_query = '''
         SELECT
             CASE
@@ -49,6 +50,7 @@ async def reserve_seat(reserved_seat:ReserverSeating):
             }
         )
         availability_status = cursor.fetchone()[0]
+        print(availability_status)
 
         if not availability_status :
             raise HTTPException(

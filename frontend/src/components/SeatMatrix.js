@@ -7,7 +7,7 @@ export default function SeatMatrix({
   rows,
   columns,
   available_seats,
-  active_seats,
+  active_seats = [],
   onSeatClick,
   getSeats = {},
   header,
@@ -59,7 +59,7 @@ export default function SeatMatrix({
   };
 
   const handleMouseDown = (row, column) => {
-    setIsDragging(true);
+    setIsDragging(true && is_draggable);
     setDragStart({ row, column });
     const seatNumber = `${row}-${column}`;
   };
@@ -106,6 +106,7 @@ export default function SeatMatrix({
 
   useEffect(() => {
     if (is_draggable) {
+      console.log("Adding event listener");
       document.addEventListener("mouseup", handleMouseUp);
       return () => {
         document.removeEventListener("mouseup", handleMouseUp);
@@ -161,11 +162,12 @@ export default function SeatMatrix({
               active_seats[i].row_number === seat[0] &&
               active_seats[i].column_number === seat[1]
             ) {
-              if (active_seats[i].is_available) {
-                seat[5] = false;
-                if (active_seats[i].is_reserved) {
-                  seat[4] = true;
-                }
+              seat[5] = false;
+              if (
+                !active_seats[i].is_available ||
+                active_seats[i].is_reserved
+              ) {
+                seat[4] = true;
               }
               break;
             }

@@ -1,9 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, InputNumber, Button, Switch, Card, Row, Col } from "antd";
+import {
+  Form,
+  Input,
+  InputNumber,
+  Button,
+  Switch,
+  Card,
+  Row,
+  Col,
+  Select,
+} from "antd";
 import "../style/NewLocationRequestPage.css";
 import SeatMatrix from "../components/SeatMatrix";
 import Axios from "../Axios";
 import { message } from "antd";
+import cities from "../data/cities.json";
 
 export const NewLocationRequestPage = () => {
   const [formMeta] = Form.useForm();
@@ -47,7 +58,7 @@ export const NewLocationRequestPage = () => {
     }
     console.log("Data: ", data);
 
-    if(data.capacity === 0) {
+    if (data.capacity === 0) {
       message.error("Please select a valid capacity!");
       return;
     }
@@ -86,7 +97,13 @@ export const NewLocationRequestPage = () => {
                 label="City"
                 rules={[{ required: true, message: "Please input the city!" }]}
               >
-                <Input placeholder="Enter city" />
+                <Select placeholder="Select a city">
+                  {cities.map((city) => (
+                    <Select.Option key={city.id} value={city.name}>
+                      {city.name}
+                    </Select.Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               <Form.Item
