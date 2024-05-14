@@ -4,6 +4,7 @@ from app.models.venue import Venue
 from app.models.user import EventOrganizer, TicketBuyer
 from uuid import UUID
 from typing import List
+from psycopg2.extras import DictCursor, RealDictCursor
 router = APIRouter()
 
 
@@ -139,3 +140,49 @@ async def list_all_ticket_buyers():
         return [TicketBuyer(**record) for record in records]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/organizer_info/{user_id}")
+async def get_organizer_info(user_id: UUID):
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            # Fetch total revenue, organizer name, and balance
+            revenue_query = """
+            SELECT eo.organizer_name, eo.balance AS current_balance, COALESCE(SUM(t.amount), 0) AS total_revenue
+            FROM Event_Organizer eo
+            LEFT JOIN Transaction t ON eo.user_id = t.organizer_id
+            WHERE eo.user_id = %s
+            GROUP BY eo.user_id
+            """
+            cursor.execute(revenue_query, (str(user_id),))
+            organizer_info = cursor.fetchone()
+
+            if not organizer_info:
+                raise HTTPException(status_code=404, detail="Organizer not found")
+
+            # Fetch number of sold and unsold tickets
+            ticket_query = """
+            SELECT 
+                COUNT(CASE WHEN is_sold = TRUE THEN 1 END) AS sold_tickets,
+                COUNT(CASE WHEN is_sold = FALSE THEN 1 END) AS unsold_tickets
+            FROM Ticket
+            WHERE event_id IN (SELECT event_id FROM Event WHERE organizer_id = %s)
+            """
+            cursor.execute(ticket_query, (str(user_id),))
+            ticket_info = cursor.fetchone()
+
+            if not ticket_info:
+                ticket_info = {"sold_tickets": 0, "unsold_tickets": 0}
+
+            result = {
+                "organizer_id": user_id,
+                "organizer_name": organizer_info["organizer_name"],
+                "current_balance": organizer_info["current_balance"],
+                "total_revenue": organizer_info["total_revenue"],
+                "sold_tickets": ticket_info["sold_tickets"],
+                "unsold_tickets": ticket_info["unsold_tickets"]
+            }
+            return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))   

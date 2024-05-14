@@ -466,3 +466,37 @@ async def get_number_of_available_tickets_by_category(event_id: UUID):
             return {"event_id": event_id, "available_tickets_by_category": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/{event_id}/buyer_age_distribution")
+async def get_buyer_age_distribution(event_id: UUID):
+    query = """
+    SELECT
+      CASE
+        WHEN age BETWEEN 18 AND 25 THEN '18-25'
+        WHEN age BETWEEN 26 AND 40 THEN '26-40'
+        WHEN age BETWEEN 41 AND 60 THEN '41-60'
+        WHEN age > 60 THEN '60+'
+      END AS age_group,
+      COUNT(*) AS count
+    FROM (
+      SELECT
+        DATE_PART('year', AGE(tb.birth_date)) AS age
+      FROM
+        Ticket t
+        JOIN Seating_Plan sp ON t.ticket_id = sp.ticket_id
+        JOIN Ticket_Buyer tb ON t.buyer_id = tb.user_id
+      WHERE
+        t.event_id = %s AND t.is_sold = TRUE
+    ) AS ages
+    GROUP BY age_group
+    ORDER BY age_group;
+    """
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (str(event_id),))
+            result = cursor.fetchall()
+            return {"event_id": event_id, "buyer_age_distribution": result}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
