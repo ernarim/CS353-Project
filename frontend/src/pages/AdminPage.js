@@ -10,13 +10,6 @@ const { TabPane } = Tabs;
 
 
 
-const verifiedLocationsColumns = [
-    { title: 'Name', dataIndex: 'name', key: 'name' },
-    { title: 'City', dataIndex: 'city', key: 'city' },
-    { title: 'State', dataIndex: 'state', key: 'state' },
-    { title: 'Street', dataIndex: 'street', key: 'street' },
-    { title: 'Capacity', dataIndex: 'capacity', key: 'capacity' },
-];
 
 
 
@@ -166,6 +159,39 @@ export function AdminPage() {
         console.log("Event Details: ", record);
         navigate(`/event_insight/${record.event_id}`);
     };
+
+    const handleDeleteLocation = async (record) => {
+        console.log("Deleting location: ", record.venue_id);
+        try {
+            let response = await Axios.delete("/venue/" + record.venue_id);
+            console.log("Response: ", response); //TEST
+            message.success("Location deleted successfully!");
+            fetchStatistics();
+        } catch (error) {
+            console.error("Failed to delete location", error);
+            if(error.response.status === 500) {
+                message.error("Location cannot be deleted because it is associated with an event!");
+            }
+        }
+    };
+
+    const verifiedLocationsColumns = [
+        { title: 'Name', dataIndex: 'name', key: 'name' },
+        { title: 'City', dataIndex: 'city', key: 'city' },
+        { title: 'State', dataIndex: 'state', key: 'state' },
+        { title: 'Street', dataIndex: 'street', key: 'street' },
+        { title: 'Capacity', dataIndex: 'capacity', key: 'capacity' },
+        { title: 'Options', key: 'options', render: (text, record) => (
+            <Button
+                type="primary"
+                style={{ backgroundColor: 'red', borderColor: 'red' }}
+                onClick={() => handleDeleteLocation(record)}
+            >
+                Delete Location
+            </Button>
+        )
+        }
+    ];
 
     const locationColumns = [
         { title: 'Name', dataIndex: 'name', key: 'name' },
