@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Axios from "../Axios";
-import { Card, List, Input, Button, Typography, Row, Col, message, Divider } from 'antd';
+import { Card, List, Input, Button, Typography, Row, Col, message, Divider, Modal } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
+import Lottie from 'react-lottie';
+import giftBoxAnimation from '../animations/giftBox.json';
 import '../style/ShoppingCartPage.css';
 
 const { Text } = Typography;
@@ -11,6 +13,7 @@ export function ShoppingCartPage() {
   const [balance, setBalance] = useState(0);
   const [email, setEmail] = useState('');
   const [userId, setUserId] = useState('');
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('user');
@@ -117,8 +120,14 @@ export function ShoppingCartPage() {
       const response = await Axios.post('/buy/transaction', { transactions });
       if (response.status === 200) {
         message.success('Tickets gifted successfully');
+        setIsModalVisible(true);  // Show the modal with the animation
         fetchBalance(userId); 
         fetchTickets(userId);
+
+        // Automatically close the modal after 2 seconds
+        setTimeout(() => {
+          setIsModalVisible(false);
+        }, 3000);
       } else {
         throw new Error('Failed to complete the transaction');
       }
@@ -145,6 +154,23 @@ export function ShoppingCartPage() {
     } catch (error) {
       message.error('Failed to remove ticket: ' + (error.response ? error.response.data.detail : error.message));
     }
+  };
+
+  const defaultOptions = {
+    loop: false,
+    autoplay: true,
+    animationData: giftBoxAnimation,
+    rendererSettings: {
+      preserveAspectRatio: 'xMidYMid slice'
+    }
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
   };
 
   return (
@@ -193,6 +219,10 @@ export function ShoppingCartPage() {
           </Button>
         </Card>
       </Col>
+
+      <Modal visible={isModalVisible} onOk={handleOk} onCancel={handleCancel} footer={null} centered>
+        <Lottie options={defaultOptions} height={400} width={400} />
+      </Modal>
     </Row>
   );
 }
