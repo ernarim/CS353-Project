@@ -1,3 +1,4 @@
+from datetime import datetime
 from fastapi import APIRouter, Query
 from app.database.session import cursor, conn, dictCursor
 from app.models.event import Event, EventRead, EventCreate, EventUpdate
@@ -47,7 +48,12 @@ async def read_restriction(event_id: str):
 
 
 @router.get("")
-async def get_all_events():
+async def get_all_events(name: Optional[str] = Query(None, description="Search by event name"),
+    city: Optional[str] = Query(None, description="Filter by city"),
+    start_date: Optional[datetime] = Query(None, description="Filter by start date"),
+    end_date: Optional[datetime] = Query(None, description="Filter by end date"),
+    category_name: Optional[str] = Query(None, description="Filter by event category")
+):
     query = """
     SELECT
         e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
@@ -84,7 +90,24 @@ async def get_all_events():
     JOIN Venue v ON e.venue_id = v.venue_id
     JOIN Event_Category c ON e.category_id = c.category_id
     """
-    cursor.execute(query)
+    params = []
+    if name:
+        query += " AND e.name ILIKE %s"
+        params.append(f"%{name}%")
+    if city:
+        query += " AND v.city ILIKE %s"
+        params.append(f"%{city}%")
+    if start_date:
+        query += " AND e.date >= %s"
+        params.append(start_date)
+    if end_date:
+        query += " AND e.date <= %s"
+        params.append(end_date)
+    if category_name:
+        query += " AND c.name = %s"
+        params.append(category_name)
+
+    cursor.execute(query, tuple(params))
     events = cursor.fetchall()
     if not events:
         return []
