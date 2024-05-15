@@ -1,11 +1,11 @@
-import {Button, Card, Carousel, Col, Divider, Row, Select, DatePicker} from "antd";
-import Search from "antd/lib/input/Search";
+import {Button, Card, Carousel, Col, Divider, Row, Select, DatePicker, Input} from "antd";
 import { useNavigate } from "react-router-dom";
 import React, {useContext, useEffect, useState} from "react";
 import {Theme} from "../style/theme";
 import Axios from "../Axios";
 import turkishCities from '../data/cities.json';
 
+const { RangePicker } = DatePicker;
 
 const baseURLCategory = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/event_categories/`;
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
@@ -21,14 +21,12 @@ const carouselStyle = {
 }
 
 const contentStyle = {
-
     color: '#fff',
     lineHeight: '350px',
     textAlign: 'center',
     background: '#364d79',
     borderBottom: '2px solid #364d79',
 };
-
 
 const searchBarStyle = {
     display:'flex',
@@ -41,27 +39,28 @@ const searchBarStyle = {
     borderRadius: '10px',
     zIndex: '2',
     gap:'15px'
-
 }
+
 export function MainPage (){
     const navigate = useNavigate();
 
     const [events, setEvents] = useState([]);
     const [eventCategories, setEventCategories] = useState([]);
     const [carouselEvents, setCarouselEvents] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCity, setSelectedCity] = useState('');
+    const [dateRange, setDateRange] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     eventCategories.forEach(category => {
         category.image = `${baseURLCategory}${category.name}.png`;
     });
-    console.log(eventCategories);   
+    console.log(eventCategories);
 
-
-
-
-    const fetchEvents = async () => {
-        // Fetch events from the backend
+    const fetchEvents = async (params = {}) => {
+        // Fetch events from the backend with the given params
         try {
-            const response = await Axios.get('/event');
+            const response = await Axios.get('/event', { params });
             console.log('Fetched events', response.data);
             setEvents(response.data);
         }
@@ -85,7 +84,21 @@ export function MainPage (){
         let shuffled = events.sort(() => 0.5 - Math.random());
         return shuffled.slice(0, count);
     }
-    
+
+    const handleSearch = () => {
+        // Prepare search params
+        const params = {};
+        if (searchTerm) params.name = searchTerm;
+        if (selectedCity) params.city = selectedCity;
+        if (dateRange.length === 2) {
+            params.start_date = dateRange[0].toISOString();
+            params.end_date = dateRange[1].toISOString();
+        }
+        if (selectedCategory) params.category_name = selectedCategory;
+
+        // Fetch events with search params
+        fetchEvents(params);
+    }
 
     useEffect(() => {
         fetchEvents();
@@ -96,48 +109,64 @@ export function MainPage (){
         if (events.length > 0) {
             setCarouselEvents(getRandomEvents(events, 3));
         }
-    }, [events]); 
-    
+    }, [events]);
+
     return (
         <div className="site-layout-content" style={{marginBottom:'3%'}}>
 
-
-        <Carousel autoplay style={carouselStyle}>
-            {carouselEvents.map((event, index) => (
-                <div key={index}>
-                    <div style={contentStyle}>
-                        <img 
-                            src={baseURLEvents + event.photo} 
-                            alt={event.title} 
-                            style={{
-                                width: '100%', 
-                                height: '350px', 
-                                objectFit: 'cover' 
-                            }}
-                        />
-                        <h3 style={{ color: '#fff', position: 'absolute', bottom: 10, left: 10 }}>
-                            {event.title}
-                        </h3>
+            <Carousel autoplay style={carouselStyle}>
+                {carouselEvents.map((event, index) => (
+                    <div key={index}>
+                        <div style={contentStyle}>
+                            <img 
+                                src={baseURLEvents + event.photo} 
+                                alt={event.title} 
+                                style={{
+                                    width: '100%', 
+                                    height: '350px', 
+                                    objectFit: 'cover' 
+                                }}
+                            />
+                            <h3 style={{ color: '#fff', position: 'absolute', bottom: 10, left: 10 }}>
+                                {event.title}
+                            </h3>
+                        </div>
                     </div>
-                </div>
-            ))}
-        </Carousel>
-
+                ))}
+            </Carousel>
 
             <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
                 {/* Search bar */}
                 <div className="search-bar" style={searchBarStyle}>
-                    <Search placeholder="Search event" loading={false} onSearch={value => console.log(value)} style={{ width: 200 }} />
-                    <Select placeholder="Select a city" style={{ width: 120 }} onChange={value => console.log(value)}>
+                    <Input 
+                        placeholder="Search event" 
+                        value={searchTerm} 
+                        onChange={e => setSearchTerm(e.target.value)} 
+                        style={{ width: 200 }} 
+                    />
+                    <Select 
+                        placeholder="Select a city" 
+                        style={{ width: 120 }} 
+                        onChange={value => setSelectedCity(value)}
+                    >
                         {turkishCities.map(city => (
                             <Select.Option key={city.id} value={city.name}>{city.name}</Select.Option>
                         ))}
                     </Select>
-                    <DatePicker.RangePicker
+                    <RangePicker
                         style={{ width: 240 }}
-                        onChange={dates => console.log(dates)}
+                        onChange={dates => setDateRange(dates)}
                     />
-                    <Button type="primary">Search</Button>
+                    <Select 
+                        placeholder="Select a category" 
+                        style={{ width: 120 }} 
+                        onChange={value => setSelectedCategory(value)}
+                    >
+                        {eventCategories.map(category => (
+                            <Select.Option key={category.id} value={category.name}>{category.name}</Select.Option>
+                        ))}
+                    </Select>
+                    <Button type="primary" onClick={handleSearch}>Search</Button>
                 </div>
 
                 <Row gutter={50} style={{margin:'50px 0px', justifyContent:'center'}}>
@@ -153,13 +182,10 @@ export function MainPage (){
                                         border: '2px solid ',
                                     }} 
                                 />
-                            
-
                             <p>{category.name}</p>
                         </Col>
                     ))}
                 </Row>
-
 
                 {/* Event List */}
                 <Row gutter={[20,30]} style={{margin:'0px 4%'}}>
@@ -186,7 +212,6 @@ export function MainPage (){
                                         <Divider style={{marginBottom:'0px'}}/>
                                     </>
                                 }
-                               
                             >
                                 <Card.Meta title={event.name} description={event.date} />
                             </Card>
@@ -195,8 +220,6 @@ export function MainPage (){
                 </Row>
             </div>
 
-
         </div>
-
     );
 }

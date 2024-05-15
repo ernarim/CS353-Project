@@ -362,34 +362,6 @@ async def upload_photo(photo: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/search_events", response_model=List[Event])
-async def search_events(name: Optional[str] = Query(None, description="Search by event name")):
-    query = """
-    SELECT
-        e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
-        e.organizer_id, o.organizer_name AS organizer_name,
-        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name
-    FROM Event e
-    JOIN Event_Organizer o ON e.organizer_id = o.user_id
-    JOIN Venue v ON e.venue_id = v.venue_id
-    JOIN Event_Category c ON e.category_id = c.category_id
-    """
-    # Eğer bir isim query'si varsa, WHERE koşulunu sorguya ekleyin
-    if name:
-        query += " WHERE e.name ILIKE %s"
-        name_pattern = f"%{name}%"
-        cursor.execute(query, (name_pattern,))
-    else:
-        cursor.execute(query)
-
-    events = cursor.fetchall()
-    if not events:
-        raise HTTPException(status_code=404, detail="No events found")
-
-    prepared_events = [prepare_event_data(event) for event in events]
-    return prepared_events
-
 # Prepare each event's data including the restriction (asynchronously fetched)
 async def prepare_event_data(event):
     event_dict = {
