@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api import general, auth, user, event, event_category, venue, restriction, ticket_category, buy, report, selection, ticket, admin
+from app.api import general, auth, user, event, event_category, venue, restriction, ticket_category, buy, report, selection, ticket, admin, buyer_profile
 
 api_router = APIRouter()
 api_router.include_router(general.router, prefix="")
