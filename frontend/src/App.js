@@ -42,7 +42,7 @@ function App() {
         },
         { path: "/location_request", element: <NewLocationRequestPage /> },
         { path: "/event_insight/:event_id", element: <EventInsightPage /> },
-        { path: "/buyer_profile", element: <BuyerProfilePage /> },
+        { path: "/buyer_profile/:user_id", element: <BuyerProfilePage /> },
         { path: "/update_event/:event_id", element: <UpdateEventPage /> },
       ],
       errorElement: <></>,

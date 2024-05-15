@@ -5,11 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.router import api_router
 from app.database.session import cursor, conn
 from fastapi.staticfiles import StaticFiles
+from app.api.buyer_profile import router as buyer_profile_router
 
 
 app = FastAPI()
 app.include_router(api_router, prefix="/api")
-
+app.include_router(buyer_profile_router, prefix="/api")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # Allows all origins

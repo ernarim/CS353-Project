@@ -15,5 +15,6 @@ api_router.include_router(ticket.router, prefix="/ticket", tags=["ticket"])
 api_router.include_router(buy.router, prefix="/buy", tags=["buy"])
 api_router.include_router(report.router, prefix="/report", tags=["report"])
 api_router.include_router(selection.router, prefix="/selection", tags=["selection"])
+api_router.include_router(buyer_profile.router, prefix="/buyer_profile", tags=["buyer_profile"])
 
 #api_router.include_router(logs.router, prefix="/")
