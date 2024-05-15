@@ -14,12 +14,9 @@ import shutil
 import psycopg2
 from starlette.responses import JSONResponse
 
-
-
 from typing import List, Dict, Optional
 import logging
 import asyncio
-
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -66,30 +63,6 @@ async def get_all_events(name: Optional[str] = Query(None, description="Search b
     JOIN Event_Category c ON e.category_id = c.category_id
     WHERE e.is_cancelled = false
     """
-    try:
-        cursor.execute(query)
-        events = cursor.fetchall()
-        if not events:
-            return []
-        # Asynchronously prepare event data for all events
-        prepared_events = await asyncio.gather(*[prepare_event_data(event) for event in events])
-        return prepared_events
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-@router.get("/all")
-async def get_all_events():
-    query = """
-    SELECT
-        e.event_id, e.name, e.date, e.description, e.is_done, e.remaining_seat_no, e.return_expire_date,
-        e.organizer_id, o.organizer_name AS organizer_name,
-        e.venue_id, v.name AS venue_name, v.city AS venue_city, v.state AS venue_state, v.street AS venue_street, v.status, v.capacity, v.row_count, v.column_count,
-        e.category_id, c.name AS category_name, e.photo, e.is_cancelled, e.photo_plan
-    FROM Event e
-    JOIN Event_Organizer o ON e.organizer_id = o.user_id
-    JOIN Venue v ON e.venue_id = v.venue_id
-    JOIN Event_Category c ON e.category_id = c.category_id
-    """
     params = []
     if name:
         query += " AND e.name ILIKE %s"
@@ -107,14 +80,17 @@ async def get_all_events():
         query += " AND c.name = %s"
         params.append(category_name)
 
-    cursor.execute(query, tuple(params))
-    events = cursor.fetchall()
-    if not events:
-        return []
-    # Asynchronously prepare event data for all events
-    prepared_events = await asyncio.gather(*[prepare_event_data(event) for event in events])
-    return prepared_events
-
+    try:
+        cursor.execute(query, tuple(params))
+        events = cursor.fetchall()
+        if not events:
+            return []
+        # Asynchronously prepare event data for all events
+        prepared_events = await asyncio.gather(*[prepare_event_data(event) for event in events])
+        return prepared_events
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
 
 @router.get("/{event_id}")
 async def read_event(event_id: UUID):
