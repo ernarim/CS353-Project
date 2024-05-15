@@ -111,7 +111,7 @@ async def get_all_events():
     # Asynchronously prepare event data for all events
     prepared_events = await asyncio.gather(*[prepare_event_data(event) for event in events])
     return prepared_events
-    
+
 
 @router.get("/{event_id}")
 async def read_event(event_id: UUID):

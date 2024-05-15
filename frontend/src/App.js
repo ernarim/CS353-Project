@@ -21,12 +21,14 @@ import { EventInsightPage } from "./pages/EventInsightPage";
 import { BuyerProfilePage } from "./pages/BuyerProfilePage";
 import { UpdateEventPage } from "./pages/UpdateEventPage";
 import { AdminPage } from "./pages/AdminPage";
+import { AdminLoginPage } from "./pages/AdminLoginPage";
 
 function App() {
   const routesConfig = [
     { path: "/login", element: <LoginPage /> },
     { path: "/register/:type", element: <RegisterPage /> },
-    { path: "/admin", element: <AdminPage />},
+    { path: "/admin", element: <AdminLoginPage />},
+    { path: "/admin/panel", element: <AdminPage />},
     {
       element: <AppLayout />,
       children: [
