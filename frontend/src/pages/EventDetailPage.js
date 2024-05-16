@@ -52,7 +52,7 @@ export function EventDetailPage() {
   }
 
   return (
-    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between', position:'relative'}}>
+    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between', position: 'relative' }}>
       {/* Event Image and Details */}
       <Card style={{ width: '60%', margin: '0 20px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -63,14 +63,14 @@ export function EventDetailPage() {
           <p>{eventDetails.description}</p>
         </div>
       </Card>
-
+  
       {/* Organizer, Venue, and Tickets */}
-      <div style={{ width: '35%', margin: '0 20px', padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)' }}>
+      <div style={{ flex: '1', margin: '0 20px', padding: '20px', background: 'white', borderRadius: '8px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', overflowY: 'auto', maxHeight: '80vh' }}>
         <h3>Organizer</h3>
         <p>{eventDetails.organizer.organizer_name}</p>
         <h3>Venue</h3>
         <p>{`${eventDetails.venue.name}, ${eventDetails.venue.city}`}</p>
-       
+  
         {/* Restrictions */}
         <div>
           <h3 style={{ marginBottom: '5px' }}>Restrictions</h3>
@@ -87,10 +87,10 @@ export function EventDetailPage() {
         </div>
         <h3 style={{ marginBottom: '5px' }}>Date and Time</h3>
         <p>{moment(eventDetails.date).format('MMMM Do YYYY, h:mm:ss a')}</p>
-
+  
         <h3 style={{ marginBottom: '5px' }}>Category</h3>
         <p>{eventDetails.category.category_name}</p>
-        
+  
         <h3 style={{ marginBottom: '5px' }}>Ticket Categories</h3>
         <List
           itemLayout="horizontal"
@@ -104,11 +104,11 @@ export function EventDetailPage() {
             </List.Item>
           )}
         />
-        <Button type="primary" style={{ width: '32vw', marginTop: '10px', position:'absolute', bottom:'40px' }} onClick={() => navigate(`/select_ticket/${event_id}`)}>
+        <Button type="primary" style={{ width: '100%', marginTop: '10px' }} onClick={() => navigate(`/select_ticket/${event_id}`)}>
           Choose Ticket
         </Button>
-
       </div>
     </div>
   );
+  
 }

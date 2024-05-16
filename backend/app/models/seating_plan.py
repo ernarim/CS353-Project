@@ -16,8 +16,14 @@ class SeatingPlanCreate(BaseModel):
     category_name: str
     row_number: int
     column_number: int
-   
+
 class ReserverSeating(BaseModel):
+    user_id: UUID
     event_id: UUID
     row_number: int
     column_number: int
+
+class UnreserveSeating(BaseModel):
+    user_id: UUID
+    event_id: UUID
+    category_name: str

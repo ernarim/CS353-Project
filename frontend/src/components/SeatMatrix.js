@@ -6,43 +6,30 @@ import SeatHeader from "./SeatHeader";
 export default function SeatMatrix({
   rows,
   columns,
-  available_seats,
-  active_seats = [],
-  onSeatClick,
   getSeats = {},
-  header,
-  is_draggable = true,
   flush = false,
-  isLoading = false,
 }) {
-  if (onSeatClick === undefined) {
-    onSeatClick = () => {};
-  }
-
-  const [selectedSeats, setSelectedSeats] = useState([]); // [row, column]
+  const [selectedSeats, setSelectedSeats] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState(null);
-  const [mode, setMode] = useState("selected"); // Mode can be "selected" or "disabled"
+  const [mode, setMode] = useState("selected");
 
   useEffect(() => {
     getSeats(selectedSeats);
-    // console.log("Selected seats from matrix: ", selectedSeats);
   }, [selectedSeats]);
 
   useEffect(() => {
-    // console.log("Flush: ", flush);
     setSelectedSeats([]);
   }, [flush]);
 
   useEffect(() => {
     const newSelectedSeats = selectedSeats.filter((seat) => seat[0] <= rows);
     setSelectedSeats(newSelectedSeats);
-    // onSeatClick(newSelectedSeats); // NOT SURE
   }, [rows]);
 
   useEffect(() => {
     const newSelectedSeats = selectedSeats.filter((seat) => seat[1] <= columns);
-    setSelectedSeats(newSelectedSeats); // NOT SURE
+    setSelectedSeats(newSelectedSeats);
   }, [columns]);
 
   const handleSeatClick = (row, column) => {
@@ -56,11 +43,10 @@ export default function SeatMatrix({
       newSelectedSeats.splice(index, 1);
     }
     setSelectedSeats(newSelectedSeats);
-    onSeatClick(row, column);
   };
 
   const handleMouseDown = (row, column) => {
-    setIsDragging(true && is_draggable);
+    setIsDragging(true);
     setDragStart({ row, column });
     const seatNumber = `${row}-${column}`;
   };
@@ -95,8 +81,6 @@ export default function SeatMatrix({
         });
         setSelectedSeats(updatedSeats);
       }
-
-      onSeatClick(selectedSeats);
     }
   };
 
@@ -106,13 +90,11 @@ export default function SeatMatrix({
   };
 
   useEffect(() => {
-    if (is_draggable) {
-      console.log("Adding event listener");
-      document.addEventListener("mouseup", handleMouseUp);
-      return () => {
-        document.removeEventListener("mouseup", handleMouseUp);
-      };
-    }
+    console.log("Adding event listener");
+    document.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
   }, []);
 
   const [seatMatrix, setSeatMatrix] = useState([]);
@@ -127,69 +109,19 @@ export default function SeatMatrix({
         seatMatrix[i].push(seat);
       }
     }
-    if (available_seats.length > 0) {
-      // Mark all seats as inactive
-      seatMatrix.forEach((row) => {
-        row.forEach((seat) => {
-          seat[2] = true;
-        });
-      });
-      seatMatrix.forEach((row) => {
-        row.forEach((seat) => {
-          for (let i = 0; i < available_seats.length; i++) {
-            if (
-              available_seats[i][0] === seat[0] &&
-              available_seats[i][1] === seat[1]
-            ) {
-              seat[2] = false;
-              break;
-            }
-          }
-        });
-      });
-    }
-    if (active_seats.length > 0) {
-      // Reset all seats to disabled
-      seatMatrix.forEach((row) => {
-        row.forEach((seat) => {
-          seat[5] = true;
-        });
-      });
 
-      seatMatrix.forEach((row) => {
-        row.forEach((seat) => {
-          for (let i = 0; i < active_seats.length; i++) {
-            if (
-              active_seats[i].row_number === seat[0] &&
-              active_seats[i].column_number === seat[1]
-            ) {
-              seat[5] = false;
-              if (
-                !active_seats[i].is_available ||
-                active_seats[i].is_reserved
-              ) {
-                seat[4] = true;
-              }
-              break;
-            }
-          }
-        });
-      });
-    }
-    // console.log("Active seats:", active_seats);
     setSeatMatrix(seatMatrix);
-  }, [rows, columns, available_seats, active_seats]);
+  }, [rows, columns]);
 
   return (
     <>
-      {isLoading && <Spin spinning={isLoading} fullscreen />}
       <SeatHeader
-        full={header[0]}
-        empty={header[1]}
-        disabled={header[2]}
-        selected={header[3]}
+        full={false}
+        empty={false}
+        disabled={true}
+        selected={true}
         onModeChange={setMode}
-        is_draggable={is_draggable}
+        is_draggable={true}
       />
       <div
         style={{

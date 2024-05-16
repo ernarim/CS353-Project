@@ -324,6 +324,7 @@ BEGIN
             column_number INT NOT NULL,
             is_available BOOLEAN DEFAULT TRUE,
             is_reserved BOOLEAN DEFAULT FALSE,
+            last_reserver UUID,
             PRIMARY KEY (ticket_id),
             FOREIGN KEY(event_id) REFERENCES Event(event_id),
             FOREIGN KEY(event_id, category_name) REFERENCES Ticket_Category(event_id, category_name),
@@ -421,8 +422,8 @@ BEGIN
 
     INSERT INTO Users (user_id, email, password)
     VALUES (
-        gen_random_uuid(),     
-        'admin',           
+        gen_random_uuid(),
+        'admin',
         crypt('admin', gen_salt('bf'))
 
     )

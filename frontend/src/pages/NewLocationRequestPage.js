@@ -19,7 +19,7 @@ import cities from "../data/cities.json";
 export const NewLocationRequestPage = () => {
   const [formMeta] = Form.useForm();
   const [selectedSeats, setSelectedSeats] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(true);
   const rows = Form.useWatch("row", formMeta);
   const columns = Form.useWatch("column", formMeta);
   const rowColSwitch = Form.useWatch(
@@ -75,7 +75,7 @@ export const NewLocationRequestPage = () => {
     }
   };
 
-  return (
+  return isLoading ? (
     <>
       <Row className="loc-row" justify={"center"}>
         <Col span={6} className="loc-col">
@@ -217,7 +217,6 @@ export const NewLocationRequestPage = () => {
             <SeatMatrix
               rows={rows}
               columns={columns}
-              available_seats={[]}
               getSeats={getSeats}
               header={[false, false, true, true]}
             />
@@ -225,5 +224,7 @@ export const NewLocationRequestPage = () => {
         </Col>
       </Row>
     </>
+  ) : (
+    <></>
   );
 };
