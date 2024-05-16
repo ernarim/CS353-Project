@@ -50,7 +50,7 @@ export const OrganizerProfilePage = () => {
         return <div>Loading...</div>;
     }
 
-    const { user, reports } = profile;
+    const { user, reports , events } = profile;
 
     return (
         <div style={{ padding: '20px' }}>

@@ -12,16 +12,17 @@ const Topbar = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
+    const storedUserType = localStorage.getItem('userType');
     if (storedUser) {
-      setUserType(storedUser.user_type);
+      setUserType(storedUserType);
       setUserId(storedUser.user_id);
-      console.log("user type", storedUser.user_type);
+      console.log("user type", storedUser.userType);
       console.log("user id", storedUser.user_id);
     }
   }, []);
 
   const handleProfileClick = () => {
-    if (userType === 'organizer') {
+    if (userType == 'organizer') {
       navigate(`/org_profile/${userId}`);
     } else {
       navigate(`/buyer_profile/${userId}`);
