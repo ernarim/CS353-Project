@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, Table, Button, message, Card, Statistic, Row, Col, Modal } from "antd";
-import { ArrowUpOutlined, PauseCircleOutlined, UserOutlined, RocketOutlined, HomeOutlined, NotificationOutlined, CloseCircleFilled } from "@ant-design/icons";
+import { ArrowUpOutlined, PauseCircleOutlined, UserOutlined, RocketOutlined, HomeOutlined, NotificationOutlined, CloseCircleFilled, BookOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import Axios from "../Axios";
 import moment from 'moment';
@@ -13,6 +13,7 @@ const { TabPane } = Tabs;
 export function AdminPage() {
     const navigate = useNavigate();
 
+
     const [activeTab, setActiveTab] = useState("1");
     const [stats, setStats] = useState({
         ticketBuyersCount: 0,
@@ -20,6 +21,7 @@ export function AdminPage() {
         locationRequestsCount: 0,
         verifiedLocationsCount: 0,
         eventsCount: 0,
+        reportsCount: 0,
     });
 
     const [locationRequests, setLocationRequests] = useState([]);
@@ -27,6 +29,7 @@ export function AdminPage() {
     const [ticketBuyers, setTicketBuyers] = useState([]);
     const [verifiedLocations, setVerifiedLocations] = useState([]);
     const [events, setEvents] = useState([]);
+    const [reports, setReports] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [organizerStats, setOrganizerStats] = useState(null);
 
@@ -37,19 +40,22 @@ export function AdminPage() {
     useEffect(() => {
         switch (activeTab) {
             case "2":
-                fetchTicketBuyers();
+                fetchAllEvents();
                 break;
             case "3":
-                fetchEventOrganizers();
+                fetchTicketBuyers();
                 break;
             case "4":
-                fetchLocationRequests();
+                fetchEventOrganizers();
                 break;
             case "5":
-                fetchVerifiedLocations();
+                fetchLocationRequests();
                 break;
             case "6":
-                fetchAllEvents();
+                fetchVerifiedLocations();
+                break;
+            case "7":
+                fetchReports();
             default:
                 break;
         }
@@ -97,6 +103,15 @@ export function AdminPage() {
         setVerifiedLocations(response.data);
         setStats(prevStats => ({ ...prevStats, verifiedLocationsCount: response.data.length }));
     };
+
+    const fetchReports = async () => {
+        let response = await Axios.get("/report");
+        console.log("Response: ", response.data); //TEST
+        setReports(response.data);
+        setStats(prevStats => ({ ...prevStats, reportsCount: response.data.length }));
+
+    };
+
 
     const handleAccept = async (record) => {
         console.log("Accepting location request: ", record);
@@ -172,6 +187,18 @@ export function AdminPage() {
         }
     };
 
+    const handleReportDelete = async (record) => {
+        console.log("Deleting report: ", record.report_id);
+        try {
+            let response = await Axios.delete("/report/" + record.report_id);
+            console.log("Response: ", response); //TEST
+            message.success("Report deleted successfully!");
+            fetchReports();
+        } catch (error) {
+            console.error("Failed to delete report", error);
+        }
+    };
+    
     const verifiedLocationsColumns = [
         { title: 'Name', dataIndex: 'name', key: 'name' },
         { title: 'City', dataIndex: 'city', key: 'city' },
@@ -303,9 +330,58 @@ export function AdminPage() {
         },
     ];
 
+    const reportColumns = [
+        { title: 'Organizer Name', dataIndex: 'organizer_name', key: 'organizer_name' },
+        { title: 'Date', dataIndex: 'date', key: 'date', render: (text) => moment(text).format('YYYY-MM-DD'), },
+        { title: 'Balance', dataIndex: 'balance', key: 'balance' },
+        { title: 'Total Revenue', dataIndex: 'total_revenue', key: 'total_revenue' },
+        { title: 'Sold Tickets', dataIndex: 'sold_tickets', key: 'sold_tickets' },
+        { title: 'Unsold Tickets', dataIndex: 'unsold_tickets', key: 'unsold_tickets' },
+        { title: 'Total Events', dataIndex: 'total_events', key: 'total_events' },
+        { 
+            title: 'Options', 
+            key: 'options',
+            render: (text, record) => (
+                <Button
+                    type="primary"
+                    style={{ backgroundColor: 'red', borderColor: 'green', marginRight: 8 }}
+                    onClick={() => handleReportDelete(record)}
+                >
+                    Delete Report
+                </Button>
+            ),
+        },
+    ];
+    
     const handleCardClick = (tabKey) => {
         setActiveTab(tabKey);
     };
+
+    const handleCreateReport = async (organizerStats) => {
+        console.log("Creating report for organizer: ", organizerStats);
+        const reportData = {
+            organizer_id: organizerStats.organizer_id,
+            organizer_name: organizerStats.organizer_name,
+            balance: organizerStats.current_balance,
+            date: moment().format('YYYY-MM-DD'),
+            total_revenue: organizerStats.total_revenue,
+            sold_tickets: organizerStats.sold_tickets,
+            unsold_tickets: organizerStats.unsold_tickets,
+            total_events: organizerStats.total_events,
+        };
+
+        try {
+            let response = await Axios.post("/report", reportData);
+            console.log("Response: ", response); //TEST
+            message.success("Report created successfully!");
+            handleModalClose();
+        }
+        catch (error) {
+            console.error("Failed to create report", error);
+        }
+
+
+    }
 
     return (
         <div className="admin-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '90%', height: '100vh', padding: '0px 5%' }}>
@@ -362,24 +438,38 @@ export function AdminPage() {
                                 />
                             </Card>
                         </Col>
-                        
+                    </Row>
+                    <Row gutter={16} style={{ marginTop: 16 }}>
+                        <Col span={24}>
+                            <Card bordered={false} onClick={() => handleCardClick("7")}>
+                                <Statistic
+                                    title="Reports"
+                                    value={stats.reportsCount}
+                                    prefix={<BookOutlined />}
+                                />
+                            </Card>
+                        </Col>
                     </Row>
                 </TabPane>
-                <TabPane tab="Ticket Buyers" key="2">
-                    <Table dataSource={ticketBuyers} columns={ticketBuyersColumns} />
-                </TabPane>
-                <TabPane tab="Event Organizers" key="3">
-                    <Table dataSource={eventOrganizers} columns={eventOrganizersColumns} />
-                </TabPane>
-                <TabPane tab="Location Requests" key="4">
-                    <Table dataSource={locationRequests} columns={locationColumns} />
-                </TabPane>
-                <TabPane tab="Verified Locations" key="5">
-                    <Table dataSource={verifiedLocations} columns={verifiedLocationsColumns} />
-                </TabPane>
-                <TabPane tab="All Events" key="6">
+                <TabPane tab="All Events" key="2">
                     <Table dataSource={events} columns={eventColumns} />
                 </TabPane>
+                <TabPane tab="Ticket Buyers" key="3">
+                    <Table dataSource={ticketBuyers} columns={ticketBuyersColumns} />
+                </TabPane>
+                <TabPane tab="Event Organizers" key="4">
+                    <Table dataSource={eventOrganizers} columns={eventOrganizersColumns} />
+                </TabPane>
+                <TabPane tab="Location Requests" key="5">
+                    <Table dataSource={locationRequests} columns={locationColumns} />
+                </TabPane>
+                <TabPane tab="Verified Locations" key="6">
+                    <Table dataSource={verifiedLocations} columns={verifiedLocationsColumns} />
+                </TabPane>
+                <TabPane tab="Reports" key="7">
+                    <Table dataSource={reports} columns={reportColumns} />
+                </TabPane>
+
             </Tabs>
 
             <Modal
@@ -387,6 +477,10 @@ export function AdminPage() {
                 visible={isModalVisible}
                 onCancel={handleModalClose}
                 footer={[
+                    <Button key="report" type="primary" onClick={()=> handleCreateReport(organizerStats)}>
+                        Create Report
+                    </Button>,
+
                     <Button key="close" onClick={handleModalClose}>
                         Close
                     </Button>
@@ -422,6 +516,7 @@ export function AdminPage() {
 
                             </Col>
                         </Row>
+
 
                     </>
                     

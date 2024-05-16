@@ -3,11 +3,21 @@ from uuid import UUID
 
 class Report(BaseModel):
     report_id: UUID
-    admin_id: UUID
-    name: str
-    description: str
+    date: str
+    balance: float
+    organizer_id: UUID
+    organizer_name: str
+    sold_tickets: int
+    unsold_tickets: int
+    total_revenue: float
+    total_events: int
     
 class ReportCreate(BaseModel):
-    admin_id: UUID
-    name: str
-    description: str
+    date: str
+    balance: float
+    organizer_id: UUID
+    organizer_name: str
+    sold_tickets: int
+    unsold_tickets: int
+    total_revenue: float
+    total_events: int

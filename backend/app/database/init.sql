@@ -1,5 +1,16 @@
 DO $$
 BEGIN
+
+    -- DECLARE
+    --     r RECORD;
+    -- BEGIN
+    --     -- Loop through each table in the public schema and drop it
+    --     FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public')
+    --     LOOP
+    --         EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE;';
+    --     END LOOP;
+    -- END;
+
     IF NOT EXISTS (
         SELECT 1
         FROM information_schema.tables
@@ -281,12 +292,17 @@ BEGIN
     ) THEN
         CREATE TABLE Report (
             report_id UUID,
-            admin_id UUID NOT NULL,
-            name VARCHAR(255) NOT NULL,
-            description TEXT NOT NULL,
+            date TIMESTAMP,
+            organizer_id UUID,
+            organizer_name VARCHAR(255),
+            sold_tickets INT,
+            unsold_tickets INT,
+            total_revenue DECIMAL(10, 2),
+            total_events INT,
+            balance DECIMAL(10, 2),
             PRIMARY KEY (report_id),
-            FOREIGN KEY (admin_id) REFERENCES Admin(user_id)
-        );
+            FOREIGN KEY (organizer_id) REFERENCES Event_Organizer(user_id)
+            );
 
         RAISE NOTICE 'Table ''Report'' created successfully.';
     END IF;
