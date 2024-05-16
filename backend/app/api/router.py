@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api import general, auth, user, event, event_category, venue, restriction, ticket_category, buy, report, selection, ticket, admin, buyer_profile
+from app.api import org_profile, general, auth, user, event, event_category, venue, restriction, ticket_category, buy, report, selection, ticket, admin, buyer_profile
 
 api_router = APIRouter()
 api_router.include_router(general.router, prefix="")
@@ -16,5 +16,6 @@ api_router.include_router(buy.router, prefix="/buy", tags=["buy"])
 api_router.include_router(report.router, prefix="/report", tags=["report"])
 api_router.include_router(selection.router, prefix="/selection", tags=["selection"])
 api_router.include_router(buyer_profile.router, prefix="/buyer_profile", tags=["buyer_profile"])
+api_router.include_router(org_profile.router, prefix="/org_profile", tags=["org_profile"])
 
 #api_router.include_router(logs.router, prefix="/")

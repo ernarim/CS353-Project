@@ -22,6 +22,7 @@ import { BuyerProfilePage } from "./pages/BuyerProfilePage";
 import { UpdateEventPage } from "./pages/UpdateEventPage";
 import { AdminPage } from "./pages/AdminPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
+import { OrganizerProfilePage } from "./pages/OrganizerProfilePage";
 
 function App() {
   const routesConfig = [
@@ -45,6 +46,7 @@ function App() {
         { path: "/location_request", element: <NewLocationRequestPage /> },
         { path: "/event_insight/:event_id", element: <EventInsightPage /> },
         { path: "/buyer_profile/:user_id", element: <BuyerProfilePage /> },
+        { path: "/org_profile/:user_id", element: <OrganizerProfilePage /> },
         { path: "/update_event/:event_id", element: <UpdateEventPage /> },
       ],
       errorElement: <></>,
