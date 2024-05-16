@@ -192,7 +192,7 @@ export function MainPage() {
                                     width: '100%',
                                     height: 'auto',
                                     borderRadius: '50%',
-                                    border: selectedCategory === category.name ? '2px solid #0056b3' : '2px solid transparent',
+                                    border: selectedCategory === category.name ? '2px solid #0056b3' : '2px solid black',
                                     transition: 'border 0.3s ease'
                                 }}
                             />

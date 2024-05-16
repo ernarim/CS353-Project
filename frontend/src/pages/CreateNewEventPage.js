@@ -126,6 +126,8 @@ export function CreateNewEventPage ()  {
     values.restriction.smoke = values.smoke;
     values.restriction.age = values.age;
     values.restriction.max_ticket = values.max_ticket;
+    //add a week after
+    values.return_expire_date = moment(values.date).add(7, 'days').format('YYYY-MM-DD HH:mm:ss');
   
     delete values.alcohol;
     delete values.smoke;

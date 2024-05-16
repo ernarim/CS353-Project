@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {Tabs, Form, Input, Button, Radio, DatePicker, message } from 'antd';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import moment from 'moment';
 import Axios from '../Axios';
 
 const { TabPane } = Tabs;
@@ -36,6 +37,10 @@ export function RegisterPage (){
     };
     
 
+    const disabledDate = (current) => {
+      return current && current >= moment().startOf('day');
+    };
+
     return (
         <div style={{ padding: '50px', maxWidth: '400px', margin: 'auto' }}>
           <div style={{ marginBottom: '24px', textAlign: 'center', fontSize: '24px', fontWeight: 'bold' }}>
@@ -54,7 +59,7 @@ export function RegisterPage (){
                 <Input placeholder="Surname" />
                 </Form.Item>
                 <Form.Item name="birth_date" rules={[{ required: true, message: 'Please input your birth date!' }]}>
-                  <DatePicker style={{ width: '100%' }} placeholder="Birth Date" />
+                  <DatePicker style={{ width: '100%' }} placeholder="Birth Date"  disabledDate={disabledDate}/>
                 </Form.Item>
                 <Form.Item name="phone"  rules={[{ required: true, message: 'Please input your phone number!' }]}>
                 <Input placeholder="Phone Number" />
