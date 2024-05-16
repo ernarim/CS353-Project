@@ -23,20 +23,22 @@ export default function SeatHeader({
       <div className="seat-area-header">
         {full && <span className="full">Full</span>}
         {empty && <span className="empty">Empty</span>}
-        <span
-          className={`selected ${
-            activeMode === "selected" && is_draggable ? "active" : ""
-          }`}
-          onClick={() => handleModeChange("selected")}
-        >
-          Selected
-        </span>
-        <span
-          className={`disabled ${activeMode === "disabled" ? "active" : ""}`}
-          onClick={() => handleModeChange("disabled")}
-        >
-          Disabled
-        </span>
+        {selected && (
+          <span
+            className={`selected ${activeMode === "selected" && is_draggable ? "active" : ""}`}
+            onClick={() => handleModeChange("selected")}
+          >
+            Selected
+          </span>
+        )}
+        {disabled && (
+          <span
+            className={`disabled ${activeMode === "disabled" ? "active" : ""}`}
+            onClick={() => handleModeChange("disabled")}
+          >
+            Disabled
+          </span>
+        )}
       </div>
     </>
   );

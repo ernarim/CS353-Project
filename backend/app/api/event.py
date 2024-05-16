@@ -511,6 +511,7 @@ async def get_number_of_sold_tickets_by_category(event_id: UUID):
             result = cursor.fetchall()
             return {"event_id": event_id, "sold_tickets_by_category": result}
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{event_id}/available_tickets_by_category")
@@ -530,7 +531,9 @@ async def get_number_of_available_tickets_by_category(event_id: UUID):
             result = cursor.fetchall()
             return {"event_id": event_id, "available_tickets_by_category": result}
     except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 
 @router.get("/{event_id}/buyer_age_distribution")

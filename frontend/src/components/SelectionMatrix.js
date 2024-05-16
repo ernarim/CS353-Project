@@ -11,6 +11,7 @@ export default function SelectionMatrix({
   getSeats = {},
   currentSeats,
   flush = false,
+  header = [true, true, true, true],
 }) {
   const { event_id } = useParams();
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -147,10 +148,10 @@ export default function SelectionMatrix({
   return (
     <>
       <SeatHeader
-        full={true}
-        empty={true}
-        disabled={true}
-        selected={true}
+        full={header[0]}
+        empty={header[1]}
+        disabled={header[2]}
+        selected={header[3]}
         is_draggable={false}
       />
       <div
