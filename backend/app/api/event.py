@@ -111,7 +111,7 @@ async def get_all_events():
     # Asynchronously prepare event data for all events
     prepared_events = await asyncio.gather(*[prepare_event_data(event) for event in events])
     return prepared_events
-    
+
 
 @router.get("/{event_id}")
 async def read_event(event_id: UUID):
@@ -298,10 +298,10 @@ async def delete_event(event_id: UUID):
         cursor.execute("DELETE FROM Seating_Plan WHERE event_id = %s;", (str(event_id),))
         print(f"Deleted seating plans for event {event_id}")
 
-        
+
         cursor.execute("DELETE FROM Ticket WHERE event_id = %s;", (str(event_id),))
         print(f"Deleted tickets for event {event_id}")
-        
+
         cursor.execute("DELETE FROM Ticket_Category WHERE event_id = %s;", (str(event_id),))
         print(f"Deleted ticket categories for event {event_id}")
 
@@ -422,8 +422,21 @@ async def prepare_event_data(event):
 
 @router.get("/{event_id}/seating_plan")
 async def get_seating_plan(event_id: UUID):
+    dictCursor.execute("""
+        SELECT row_count, column_count
+        FROM Venue
+        WHERE venue_id = (SELECT venue_id
+                            FROM Event
+                            WHERE event_id = %s)""", (str(event_id),))
+
+    dim = dictCursor.fetchone()
+    row = dim['row_count']
+    col = dim['column_count']
+
+
     query = """
-    SELECT * FROM seating_plan WHERE event_id = %(event_id)s;
+    SELECT * FROM seating_plan WHERE event_id = %(event_id)s
+    ORDER BY row_number, column_number;
     """
     dictCursor.execute(query, {
         'event_id': str(event_id)
@@ -431,12 +444,33 @@ async def get_seating_plan(event_id: UUID):
     seating_plan = dictCursor.fetchall()
     if not seating_plan:
         raise HTTPException(status_code=404, detail="No seating plan found for this event")
-    return seating_plan
+
+    response = []
+    for i in range(row):
+        row_data = []
+        for j in range(col):
+            if seating_plan and seating_plan[0]['row_number'] == i+1 and seating_plan[0]['column_number'] == j+1:
+                row_data.append(seating_plan.pop(0))
+        response.append(row_data)
+
+    return response
 
 @router.get("/{event_id}/seating_plan/{category_name}")
 async def get_seating_plan_by_category(event_id: UUID, category_name: str):
+    dictCursor.execute("""
+        SELECT row_count, column_count
+        FROM Venue
+        WHERE venue_id = (SELECT venue_id
+                            FROM Event
+                            WHERE event_id = %s)""", (str(event_id),))
+
+    dim = dictCursor.fetchone()
+    row = dim['row_count']
+    col = dim['column_count']
+
     query = """
-    SELECT * FROM seating_plan WHERE event_id = %(event_id)s AND category_name = %(category_name)s;
+    SELECT * FROM seating_plan WHERE event_id = %(event_id)s AND category_name = %(category_name)s
+    ORDER BY row_number, column_number;
     """
     dictCursor.execute(query, {
         'event_id': str(event_id),
@@ -445,7 +479,20 @@ async def get_seating_plan_by_category(event_id: UUID, category_name: str):
     seating_plan = dictCursor.fetchall()
     if not seating_plan:
         raise HTTPException(status_code=404, detail="No seating plan found for this category")
-    return seating_plan
+
+    # print(seating_plan)
+
+    response = []
+    for i in range(row):
+        row_data = []
+        for j in range(col):
+            if seating_plan and seating_plan[0]['row_number'] == i+1 and seating_plan[0]['column_number'] == j+1:
+                row_data.append(seating_plan.pop(0))
+        response.append(row_data)
+
+    print(response)
+
+    return response
 
 @router.get("/{event_id}/sold_tickets_by_category")
 async def get_number_of_sold_tickets_by_category(event_id: UUID):
@@ -484,7 +531,7 @@ async def get_number_of_available_tickets_by_category(event_id: UUID):
             return {"event_id": event_id, "available_tickets_by_category": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 
 @router.get("/{event_id}/buyer_age_distribution")
 async def get_buyer_age_distribution(event_id: UUID):
