@@ -206,7 +206,7 @@ export function MainPage() {
                     {events.map(event => (
                         <Col span={8} key={event.event_id}>
                             <Card
-                                onClick={() => navigate(`/event_detail/${event.event_id}`)}
+                                onClick={() => navigate(`/event/${event.event_id}`)}
                                 hoverable
                                 style={{
                                     minHeight: '280px',
