@@ -67,6 +67,7 @@ export function AdminPage() {
         fetchLocationRequests();
         fetchVerifiedLocations();
         fetchAllEvents();
+        fetchReports();
     };
 
     const fetchEventOrganizers = async () => {
