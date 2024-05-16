@@ -7,6 +7,7 @@ export default function Seat({
   onSeatClick,
   isDisabled,
   isOccupied,
+  disableSelection = false,
 }) {
   const [isClicked_, setIsClicked_] = useState(false);
   let status = isClicked ? "selected" : "active";
@@ -15,6 +16,9 @@ export default function Seat({
   status = isActive ? status : "inactive";
 
   const handleClick = () => {
+    if (disableSelection) {
+      return;
+    }
     // console.log("Seat clicked: ", number);
     if (onSeatClick) {
       if (isActive && !isDisabled && !isOccupied) {

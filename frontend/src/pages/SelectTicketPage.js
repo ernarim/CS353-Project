@@ -34,9 +34,14 @@ export function SelectTicketPage() {
   const [flushSeatMatrix, setFlushSeatMatrix] = useState(false);
 
   useEffect(() => {
+    setIsLoading(true);
+    while (event_id === undefined || event_id === null) {
+      console.log("Waiting for event_id...");
+    }
     getVenue();
     fetchTicketCategories();
     fetchEventSeats();
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {

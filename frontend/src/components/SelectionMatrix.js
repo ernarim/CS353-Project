@@ -11,6 +11,7 @@ export default function SelectionMatrix({
   getSeats = {},
   currentSeats,
   flush = false,
+  disableSelection = false,
   header = [true, true, true, true],
 }) {
   const { event_id } = useParams();
@@ -196,6 +197,7 @@ export default function SelectionMatrix({
                       isOccupied={!seat.isAvailable || seat.isReserved}
                       isDisabled={!seat.show}
                       onSeatClick={handleSeatClick}
+                      disableSelection={disableSelection}
                     />
                   </div>
                 );
