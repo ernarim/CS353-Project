@@ -10,6 +10,7 @@ export const BuyerProfilePage = () => {
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [form] = Form.useForm();
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -48,10 +49,12 @@ export const BuyerProfilePage = () => {
                 amount: parseFloat(values.amount),
             });
             message.success(response.data.message);
+
             setProfile((prevProfile) => ({
                 ...prevProfile,
                 user: { ...prevProfile.user, balance: response.data.new_balance },
             }));
+            form.resetFields();
         } catch (error) {
             const errorMessage = error.response ? error.response.data.detail : error.message;
             message.error(`Failed to add balance: ${errorMessage}`);
@@ -116,7 +119,7 @@ export const BuyerProfilePage = () => {
                 onCancel={handleCancel}
                 footer={null}
             >
-                <Form onFinish={handleOk}>
+                <Form form={form} onFinish={handleOk}>
                     <Form.Item
                         name="amount"
                         rules={[{ required: true, message: 'Please enter amount' }]}
