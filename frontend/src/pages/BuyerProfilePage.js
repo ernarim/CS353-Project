@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, Typography, Divider, Input, Button, message, Modal, Form } from 'antd';
 import { useParams } from 'react-router-dom';
+import moment from 'moment';
 import Axios from '../Axios';
 
 const { Title, Text } = Typography;
@@ -85,9 +86,8 @@ export const BuyerProfilePage = () => {
                 <div>
                     <Title level={5}>Contact Information</Title>
                     <Text strong>Phone:</Text> <Text>{user.phone || 'N/A'}</Text><br />
-                    <Text strong>Last Login:</Text> <Text>{user.last_login || 'N/A'}</Text><br />
                     <Text strong>Balance:</Text> <Text>{user.balance}</Text><br />
-                    <Text strong>Birth Date:</Text> <Text>{user.birth_date}</Text>
+                    <Text strong>Birth Date:</Text> <Text>{moment(user.birth_date).format('YYYY-MM-DD')}</Text><br />
                 </div>
                 <Divider />
                 <div>
