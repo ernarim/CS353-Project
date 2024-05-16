@@ -84,7 +84,7 @@ export function MainPage() {
         return shuffled.slice(0, count);
     }
 
-    const handleSearch = () => {
+    const handleSearch = (categoryName = selectedCategory) => {
         const params = {};
         if (searchTerm) params.name = searchTerm;
         if (selectedCity) params.city = selectedCity;
@@ -92,16 +92,17 @@ export function MainPage() {
             params.start_date = dateRange[0].toISOString();
             params.end_date = dateRange[1].toISOString();
         }
-        if (selectedCategory) params.category_name = selectedCategory;
+        if (categoryName) params.category_name = categoryName;
         fetchEvents(params);
     }
 
     const handleCategoryClick = (category) => {
         if (selectedCategory === category) {
             setSelectedCategory('');
+            handleSearch(''); // Fetch all events if category is unselected
         } else {
             setSelectedCategory(category);
-            fetchEvents({ category_name: category });
+            handleSearch(category);
         }
     }
 
@@ -162,7 +163,7 @@ export function MainPage() {
                         style={{ width: 240 }}
                         onChange={dates => setDateRange(dates)}
                     />
-                    <Button type="primary" onClick={handleSearch}>Search</Button>
+                    <Button type="primary" onClick={() => handleSearch(selectedCategory)}>Search</Button>
                 </div>
 
                 <Row gutter={50} style={{ margin: '50px 0px', justifyContent: 'center' }}>
@@ -236,4 +237,3 @@ export function MainPage() {
         </div>
     );
 }
-
