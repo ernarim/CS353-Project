@@ -3,6 +3,7 @@ import { Card, List, Button } from 'antd';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Axios from "../Axios";
+import moment from 'moment';
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
 
 export function EventDetailPage() {
@@ -51,7 +52,7 @@ export function EventDetailPage() {
   }
 
   return (
-    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between' }}>
+    <div style={{ display: 'flex', padding: '20px', justifyContent: 'space-between', position:'relative'}}>
       {/* Event Image and Details */}
       <Card style={{ width: '60%', margin: '0 20px', boxShadow: '0 4px 8px 0 rgba(0,0,0,0.1)', display: 'flex', flexDirection: 'column', justifyContent: 'space-around' }}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -84,7 +85,12 @@ export function EventDetailPage() {
             </div>
           </div>
         </div>
+        <h3 style={{ marginBottom: '5px' }}>Date and Time</h3>
+        <p>{moment(eventDetails.date).format('MMMM Do YYYY, h:mm:ss a')}</p>
 
+        <h3 style={{ marginBottom: '5px' }}>Category</h3>
+        <p>{eventDetails.category.category_name}</p>
+        
         <h3 style={{ marginBottom: '5px' }}>Ticket Categories</h3>
         <List
           itemLayout="horizontal"
@@ -98,7 +104,7 @@ export function EventDetailPage() {
             </List.Item>
           )}
         />
-        <Button type="primary" style={{ width: '97%', marginTop: '10px' }} onClick={() => navigate(`/select_ticket/${event_id}`)}>
+        <Button type="primary" style={{ width: '32vw', marginTop: '10px', position:'absolute', bottom:'40px' }} onClick={() => navigate(`/select_ticket/${event_id}`)}>
           Choose Ticket
         </Button>
 

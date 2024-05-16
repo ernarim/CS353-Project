@@ -3,6 +3,7 @@ import { Card, Button, Table, Statistic, Row, Col, Divider } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Modal, notification } from 'antd';
 import Axios from "../Axios";
+import moment from 'moment';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
@@ -151,6 +152,16 @@ const fetchAgeDistribution = async () => {
 
         <div style={{ flex: 2, margin: '20px', padding: '20px', borderRadius: '8px', backgroundColor: 'white' }}>
           <h2>Event Insights</h2>
+          
+          <h4 style={{ marginBottom: '5px' }}>Venue</h4>
+          <p>{`${eventDetails.venue.name}, ${eventDetails.venue.city}`}</p>
+
+          <h4 style={{ marginBottom: '5px' }}>Date and Time</h4>
+          <p>{moment(eventDetails.date).format('MMMM Do YYYY, h:mm:ss a')}</p>
+
+          <h4 style={{ marginBottom: '5px' }}>Category</h4>
+          <p>{eventDetails.category.category_name}</p>
+
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Statistic title="Total Sold Tickets" value={totalSoldTickets} style={{ marginRight: '40px' }} />
             <Statistic title="Total Available Seats" value={eventDetails.remaining_seat_no} />

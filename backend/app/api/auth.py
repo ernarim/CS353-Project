@@ -35,7 +35,39 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         "access_token": create_access_token(user[2]),
         "refresh_token": create_refresh_token(user[2]),
     }
+
+@router.post('/login/admin', summary="Create access and refresh tokens for admin")
+async def admin_login(form_data: OAuth2PasswordRequestForm = Depends()):
+    cursor.execute("SELECT * FROM users WHERE email = %s", (form_data.username,))
+    user = cursor.fetchone()
+    conn.commit()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="There is no available account with this email"
+        )
+    print(user)
+    hashed_pass = user[1]
+    if not verify_password(form_data.password, hashed_pass):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Incorrect email or password"
+        )
     
+    cursor.execute("SELECT * FROM admin WHERE user_id = %s", (user[0],))
+    admin = cursor.fetchone()
+    conn.commit()
+    if admin is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is not an admin"
+        )
+
+    return {
+        "access_token": create_access_token(user[2]),
+        "refresh_token": create_refresh_token(user[2]),
+    }
+
 @router.post('/register/ticketbuyer', summary="Register a new ticket buyer")
 async def register_ticket_buyer(buyer: TicketBuyerCreate):
     email = buyer.email

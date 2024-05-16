@@ -59,6 +59,8 @@ BEGIN
         RAISE NOTICE 'Table ''Ticket_Buyer'' created successfully.';
     END IF;
 
+    DROP TABLE IF EXISTS Admin CASCADE;
+
     IF NOT EXISTS (
         SELECT 1
         FROM information_schema.tables
@@ -67,7 +69,6 @@ BEGIN
     ) THEN
         CREATE TABLE Admin (
             user_id UUID,
-            group_privilege VARCHAR(255) NOT NULL,
             PRIMARY KEY (user_id),
             FOREIGN KEY (user_id) REFERENCES Users(user_id)
         );
@@ -416,4 +417,20 @@ BEGIN
         RAISE NOTICE 'Table ''Ticket_List'' created successfully.';
     END IF;
 
+
+    INSERT INTO Users (user_id, email, password)
+    VALUES (
+        gen_random_uuid(),     
+        'admin',           
+        crypt('admin', gen_salt('bf'))
+
+    )
+    ON CONFLICT (email) DO NOTHING;
+
+    INSERT INTO Admin (user_id)
+    SELECT user_id FROM Users WHERE email = 'admin';
+
+
 END $$;
+
+
