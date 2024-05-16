@@ -10,9 +10,6 @@ const { TabPane } = Tabs;
 
 
 
-
-
-
 export function AdminPage() {
     const navigate = useNavigate();
 

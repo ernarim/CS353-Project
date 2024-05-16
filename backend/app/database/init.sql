@@ -417,6 +417,7 @@ BEGIN
         RAISE NOTICE 'Table ''Ticket_List'' created successfully.';
     END IF;
 
+    CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
     INSERT INTO Users (user_id, email, password)
     VALUES (
