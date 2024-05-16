@@ -133,3 +133,27 @@ async def get_me(user: User = Depends(get_current_user)):
 
     return user
 
+
+@router.get('/user_type/{user_id}', summary='Get details of currently logged in user')
+async def get_user_type(user_id: UUID):
+    user_type = None
+    try:
+        cursor.execute("SELECT * FROM users WHERE user_id = %s", (str(user_id),))
+        user = cursor.fetchone()
+        if not user:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+        cursor.execute("SELECT * FROM event_organizer WHERE user_id = %s", (str(user_id),))
+        if cursor.fetchone():
+            user_type = 'organizer'
+        else:
+            cursor.execute("SELECT * FROM ticket_buyer WHERE user_id = %s", (str(user_id),))
+            if cursor.fetchone():
+                user_type = 'buyer'
+
+        return {"user_type": user_type}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )

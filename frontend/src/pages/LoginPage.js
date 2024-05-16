@@ -27,16 +27,16 @@ export  function LoginPage()  {
 
 
           try {
-            let result = await Axios.get('/auth/me');
-            console.log(result.data);
-            let userId = result.data.user_id;
-            localStorage.setItem("user", JSON.stringify(result.data));
-            console.log(result.data);
-            let user = JSON.parse(localStorage.getItem("user"));
-            localStorage.setItem("userId", userId);
-            localStorage.setItem("user", JSON.stringify(result.data));
+            const loginResult = await Axios.get('/auth/me');
+            const user = loginResult.data;
+            localStorage.setItem("userId", user.user_id);
+            localStorage.setItem("user", JSON.stringify(user));
+        
+            const userDetailsResult = await Axios.get(`/auth/user_type/${user.user_id}`);
+            const userDetails = userDetailsResult.data;
+            localStorage.setItem("userType", userDetails.user_type);
+        
             message.success('Login successful');
-
             navigate('/home');
           }
           catch (error) {
