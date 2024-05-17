@@ -24,6 +24,8 @@ const Topbar = () => {
       console.log("user id", storedUser.user_id);
     }
 
+    fetchTickets();
+
     const handleAddToCart = () => {
       fetchTickets();
     };

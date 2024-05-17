@@ -37,7 +37,6 @@ export  function LoginPage()  {
             localStorage.setItem("userType", userDetails.user_type);
         
             message.success('Login successful');
-            window.dispatchEvent(new Event('addToCart'));
             navigate('/home');
           }
           catch (error) {
