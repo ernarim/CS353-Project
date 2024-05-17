@@ -3,6 +3,7 @@ import psycopg2
 from app.database.session import cursor, conn
 from app.models.venue import Venue, LocReq
 from app.models.user import EventOrganizer, TicketBuyer
+from app.models.event import EventRevenueDetails
 from uuid import UUID
 from typing import List
 from psycopg2.extras import DictCursor, RealDictCursor
@@ -216,6 +217,50 @@ async def get_organizer_info(user_id: UUID):
                 "total_events": event_count_info["total_events"]
             }
             return result
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.get("/organizer/{user_id}/min_max_revenue_events", response_model=List[EventRevenueDetails])
+async def get_min_max_revenue_events(user_id: UUID):
+    query = """
+        WITH EventStats AS (
+        SELECT
+            e.event_id,
+            e.name,
+            e.date,
+            COUNT(DISTINCT CASE WHEN t.is_sold THEN t.ticket_id ELSE NULL END) AS total_sold_tickets,
+            COUNT(DISTINCT CASE WHEN NOT t.is_sold THEN t.ticket_id ELSE NULL END) AS total_unsold_tickets,
+            COALESCE(SUM(tr.amount/ 100.0), 0) AS revenue
+        FROM
+            Event e
+            LEFT JOIN Ticket t ON e.event_id = t.event_id
+            LEFT JOIN Transaction tr ON e.event_id = tr.event_id
+        WHERE
+            e.organizer_id = %s
+        GROUP BY
+            e.event_id, e.name, e.date
+        )
+        SELECT * FROM EventStats
+        WHERE revenue = (SELECT MIN(revenue) FROM EventStats)
+        OR revenue = (SELECT MAX(revenue) FROM EventStats)
+    """
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute(query, (str(user_id),))
+            records = cursor.fetchall()
+            min_max_revenue_events = [
+                {
+                    "name": record["name"],
+                    "time": record["date"].isoformat(),
+                    "total_sold_tickets": record["total_sold_tickets"],
+                    "total_unsold_tickets": record["total_unsold_tickets"],
+                    "revenue": float(record["revenue"])
+                }
+                for record in records
+            ]
+            return min_max_revenue_events
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
