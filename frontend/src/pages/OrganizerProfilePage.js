@@ -72,7 +72,7 @@ export const OrganizerProfilePage = () => {
                         <Title level={4}>{user.organizer_name}</Title>
                         <Text type="secondary">{user.email}</Text>
                     </div>
-                    <Button type="primary" onClick={handleLogout}>
+                    <Button type="primary" danger onClick={handleLogout}>
                         Logout
                     </Button>
                 </div>
@@ -103,8 +103,8 @@ export const OrganizerProfilePage = () => {
                         filteredEvents.map((event, index) => (
                             <div key={index} style={{ marginBottom: '10px', cursor: 'pointer' }} onClick={() => handleEventClick(event.event_id)}>
                                 <Card>
-                                    <Text strong>Event:</Text> <Text>{event.name}</Text><br />
-                                    <Text strong>Status:</Text> 
+                                    <Text strong>Event: </Text> <Text>{event.name}</Text><br />
+                                    <Text strong>Status: </Text> 
                                     <Text style={{ color: event.is_done ? 'grey' : event.is_cancelled ? 'red' : 'green' }}>
                                         {event.is_done ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
                                     </Text>

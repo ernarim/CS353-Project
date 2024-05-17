@@ -13,7 +13,7 @@
 
 .logout-button {
     float: right; /* Aligns the logout button to the right */
-    background-color: #007bff; /* Bootstrap primary color */
+    background-color: #ff0000; /* Bootstrap primary color */
     color: white;
     border: none;
     padding: 5px 10px;

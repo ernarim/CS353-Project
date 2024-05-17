@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Typography, Divider, Input, Button, message, Modal, Form } from 'antd';
+import { Card, Typography, Divider, Select, Input, Button, message, Modal, Form } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import Axios from '../Axios';
 import moment from 'moment';
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 export const BuyerProfilePage = () => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ export const BuyerProfilePage = () => {
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState(null);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    const [filter, setFilter] = useState('All');
 
     const fetchProfile = async () => {
         try {
@@ -60,6 +62,18 @@ export const BuyerProfilePage = () => {
 
     const { user, tickets } = profile;
 
+    const filteredTickets = tickets.filter(ticket => {
+        if (filter === 'All') return true;
+        if (filter === 'Upcoming' && !ticket.event_info.is_done && !ticket.event_info.is_cancelled) return true;
+        if (filter === 'Passed' && ticket.event_info.is_done) return true;
+        if (filter === 'Cancelled' && ticket.event_info.is_cancelled) return true;
+        return false;
+    });
+
+    const handleFilterChange = (value) => {
+        setFilter(value);
+    };
+
     const showModal = () => {
         setIsModalVisible(true);
     };
@@ -98,7 +112,7 @@ export const BuyerProfilePage = () => {
                             <Text type="secondary">{user.email}</Text>
                         </div>
                     </div>
-                    <Button type="primary" onClick={handleLogout}>
+                    <Button type="primary" danger onClick={handleLogout}>
                         Logout
                     </Button>
                 </div>
@@ -110,21 +124,30 @@ export const BuyerProfilePage = () => {
                     <Text strong>Balance:</Text> <Text>{user.balance}</Text><br /> 
                     <Text strong>Birth Date:</Text> <Text>{user.birth_date}</Text>
                 </div>
+                <Divider />
                 <Button type="primary" onClick={showModal}>
                         Add Balance
                     </Button>
                 <Divider />
                 <div>
                     <Title level={5}>Purchased Tickets</Title>
-                    {tickets.length === 0 ? (
-                        <Text>No tickets purchased.</Text>
+                    <Select defaultValue="All" style={{ width: 120, marginBottom: '10px' }} onChange={handleFilterChange}>
+                        <Option value="All">All</Option>
+                        <Option value="Upcoming">Upcoming</Option>
+                        <Option value="Passed">Passed</Option>
+                        <Option value="Cancelled">Cancelled</Option>
+                    </Select>
+                    <br />
+                    {filteredTickets.length === 0 ? (
+                        <Text>No tickets matching this filter.</Text>
                     ) : (
-                        tickets.map((ticket, index) => (
+                        filteredTickets.map((ticket, index) => (
                             <div key={index} style={{ marginBottom: '10px', cursor: 'pointer' }} onClick={() => handleTicketClick(ticket.event_info.event_id)}>
                                 <Card>
+                                    <Text strong>Ticket ID:</Text> <Text>{ticket.ticket_info.ticket_id}</Text><br />
                                     <Text strong>Event:</Text> <Text>{ticket.event_info.event_name} / {ticket.ticket_info.category_name}</Text><br />
                                     <Text strong>Status:</Text> <Text style={{ color: ticket.event_info.is_done || ticket.event_info.is_cancelled ? 'red' : 'green' }}>
-                                    {ticket.event_info.is_done ? 'Passed' : ticket.event_info.is_cancelled ? 'Cancelled' : 'Upcoming'}
+                                        {ticket.event_info.is_done ? 'Passed' : ticket.event_info.is_cancelled ? 'Cancelled' : 'Upcoming'}
                                     </Text><br />
                                     <Text strong>Date:</Text> <Text>{ticket.event_info.event_date}</Text><br />
                                     {moment().isBefore(moment(ticket.event_info.return_expire_date)) && (
@@ -135,6 +158,8 @@ export const BuyerProfilePage = () => {
                         ))
                     )}
                 </div>
+
+                
             </Card>
 
             <Modal
