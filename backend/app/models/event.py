@@ -58,4 +58,10 @@ class EventRead(BaseModel):
     category: Optional[EventCategory] = None
     restriction : Optional[Restriction] = None
 
+class EventRevenueDetails(BaseModel):
+    name: str
+    time: str
+    total_sold_tickets: int
+    total_unsold_tickets: int
+    revenue: float = 0.0
     
