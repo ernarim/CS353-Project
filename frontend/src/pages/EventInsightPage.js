@@ -3,7 +3,7 @@ import { Card, Button, Table, Statistic, Row, Col, Divider, Modal, notification 
 import { useParams, useNavigate } from "react-router-dom";
 import Axios from "../Axios";
 import moment from "moment";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell as BarCell, LabelList } from "recharts";
 import SelectionMatrix from "../components/SelectionMatrix";
 const { Panel } = Collapse;
 
@@ -181,6 +181,15 @@ export function EventInsightPage() {
 
   const COLORS = ["#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d", "#a4de6c"];
 
+  const calculateTotalRevenue = () => {
+    return ticketCategories.map(category => ({
+      category_name: category.category_name,
+      total_revenue: category.price * category.sold,
+    }));
+  };
+
+  const totalRevenueData = calculateTotalRevenue();
+
   return (
     <div>
       {eventDetails && venueRows && venueColumns && categorySeats && ticketCategories.length && totalSoldTickets !== null && totalAvailableTickets !== null  ? (
@@ -283,6 +292,57 @@ export function EventInsightPage() {
                   bordered
                   size="small"
                 />
+
+                <div style={{ marginTop: "20px" }}>
+                  <h2>Age Distribution of Ticket Buyers</h2>
+                  <ResponsiveContainer width="100%" height={230}>
+                    {ageDistribution && (
+                      <PieChart>
+                        <Pie
+                          data={ageDistribution}
+                          dataKey="count"
+                          nameKey="age_group"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={86}
+                          fill="#8884d8"
+                          label
+                        >
+                          {ageDistribution.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    )}
+                  </ResponsiveContainer>
+
+                <div style={{ marginTop: "20px" }}>
+                  <h2> Total Revenue by Ticket Category</h2>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={totalRevenueData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="category_name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="total_revenue">
+                      {totalRevenueData.map((entry, index) => (
+                        <BarCell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                      <LabelList dataKey="total_revenue" position="top" />
+                    </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                </div>
                 <Row gutter={16} style={{ marginTop: "20px" }}>
                   <Col span={12}>
                     <Button
@@ -304,36 +364,6 @@ export function EventInsightPage() {
                     </Button>
                   </Col>
                 </Row>
-
-                <div style={{ marginTop: "20px" }}>
-                  <h2>Age Distribution of Ticket Buyers</h2>
-                  <ResponsiveContainer width="100%" height={230}>
-                    {ageDistribution &&
-                      <PieChart>
-                      <Pie
-                        data={ageDistribution}
-                        dataKey="count"
-                        nameKey="age_range"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={60}
-                        fill="#8884d8"
-                        label
-                      >
-                        {ageDistribution.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                      <Legend />
-                    </PieChart>
-                    }
-                    
-                  </ResponsiveContainer>
-                </div>
               </Card>
             </Col>
           </Row>

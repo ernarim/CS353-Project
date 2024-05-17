@@ -42,7 +42,8 @@ async def get_buyer_profile(user_id: UUID):
             JOIN event e ON t.event_id = e.event_id
             JOIN event_category ev ON ev.category_id = e.category_id           
             JOIN event_organizer eo ON e.organizer_id = eo.user_id
-            JOIN ticket_category tc ON t.event_id = tc.event_id         
+            JOIN Seating_Plan sp ON t.ticket_id = sp.ticket_id
+            JOIN Ticket_Category tc ON sp.event_id = tc.event_id AND sp.category_name = tc.category_name  
             WHERE tl.user_id = %s
         """, (str(user_id),))
         tickets_data = cursor.fetchall()
@@ -84,7 +85,6 @@ async def get_buyer_profile(user_id: UUID):
             "user": uuser.model_dump(),
             "tickets": tickets
         }
-
         return profile_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

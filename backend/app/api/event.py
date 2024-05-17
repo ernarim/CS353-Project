@@ -541,6 +541,7 @@ async def get_buyer_age_distribution(event_id: UUID):
     query = """
     SELECT
       CASE
+        WHEN age < 18 Then '18-'
         WHEN age BETWEEN 18 AND 25 THEN '18-25'
         WHEN age BETWEEN 26 AND 40 THEN '26-40'
         WHEN age BETWEEN 41 AND 60 THEN '41-60'
