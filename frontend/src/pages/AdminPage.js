@@ -152,6 +152,7 @@ export function AdminPage() {
     };
 
     const handleShowStatistics = async (organizer) => {
+        navigate(`/admin/report/${organizer.user_id}`);
         console.log("Showing statistics for organizer: ", organizer.user_id);
         try {
             let response = await Axios.get(`/admin/organizer_info/${organizer.user_id}`);

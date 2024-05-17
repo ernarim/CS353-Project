@@ -74,7 +74,7 @@ export  function AdminLoginPage()  {
               name="email"
               rules={[{ required: true, message: 'Please input your Email!' }]}
             >
-              <Input placeholder="email" />
+              <Input placeholder="username" />
             </Form.Item>
             <Form.Item
               name="password"

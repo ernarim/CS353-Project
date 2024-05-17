@@ -219,3 +219,82 @@ async def get_organizer_info(user_id: UUID):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/age_statistics/{organizer_id}")
+async def get_age_statistics(organizer_id: UUID):
+    query = """
+    WITH AgeData AS (
+        SELECT
+          tb.user_id,
+          DATE_PART('year', AGE(CURRENT_DATE, tb.birth_date)) AS age
+        FROM
+          Ticket_Buyer tb
+          JOIN Ticket_List tl ON tb.user_id = tl.user_id
+          JOIN Ticket t ON tl.ticket_id = t.ticket_id
+          JOIN Event e ON t.event_id = e.event_id
+        WHERE
+          e.organizer_id = %s
+    ),
+    AgeDistribution AS (
+        SELECT
+          CASE
+            WHEN age < 18 THEN 'Under 18'
+            WHEN age BETWEEN 18 AND 25 THEN '18-25'
+            WHEN age BETWEEN 26 AND 40 THEN '26-40'
+            WHEN age BETWEEN 41 AND 60 THEN '41-60'
+            WHEN age > 60 THEN 'Over 60'
+          END AS age_group,
+          COUNT(*) AS count
+        FROM AgeData
+        GROUP BY 1
+        ORDER BY 1
+    ),
+    MinMaxAge AS (
+        SELECT
+          MIN(age) AS min_age,
+          MAX(age) AS max_age
+        FROM AgeData
+    ),
+    EventParticipants AS (
+        SELECT
+            e.event_id,
+            e.name AS event_title,
+            ec.name AS event_category,
+            COUNT(*) AS participant_count
+        FROM
+            Event e
+            JOIN Ticket t ON e.event_id = t.event_id AND t.is_sold = TRUE 
+            JOIN Event_Category ec ON e.category_id = ec.category_id
+        WHERE
+            e.organizer_id = %s
+        GROUP BY e.event_id, ec.name
+    ),
+    MaxParticipants AS (
+        SELECT event_title, event_category, participant_count
+        FROM EventParticipants
+        WHERE participant_count = (SELECT MAX(participant_count) FROM EventParticipants)
+    ),
+    MinParticipants AS (
+        SELECT event_title, event_category, participant_count
+        FROM EventParticipants
+        WHERE participant_count = (SELECT MIN(participant_count) FROM EventParticipants)
+    )
+    SELECT
+      (SELECT json_agg(row_to_json(AgeDistribution)) FROM AgeDistribution) AS age_distribution,
+      MinMaxAge.min_age,
+      MinMaxAge.max_age,
+      (SELECT json_agg(row_to_json(MaxParticipants)) FROM MaxParticipants) AS max_participants_events,
+      (SELECT json_agg(row_to_json(MinParticipants)) FROM MinParticipants) AS min_participants_events
+    FROM
+      MinMaxAge;
+    """
+    try:
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(query, (str(organizer_id), str(organizer_id)))  # organizer_id is used twice
+        result = cursor.fetchone()
+        return result
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+

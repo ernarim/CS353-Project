@@ -24,6 +24,7 @@ import { AdminPage } from "./pages/AdminPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { OrganizerProfilePage } from "./pages/OrganizerProfilePage";
 import { EventPageNavigator } from "./pages/EventPagesNavigator";
+import { AdminReportPage } from "./pages/AdminReportPage";
 
 function App() {
   const routesConfig = [
@@ -31,6 +32,7 @@ function App() {
     { path: "/register/:type", element: <RegisterPage /> },
     { path: "/admin", element: <AdminLoginPage />},
     { path: "/admin/panel", element: <AdminPage />},
+    { path: "/admin/report/:organizer_id", element: <AdminReportPage />},
     {
       element: <AppLayout />,
       children: [
@@ -50,6 +52,7 @@ function App() {
         { path: "/buyer_profile/:user_id", element: <BuyerProfilePage /> },
         { path: "/org_profile/:user_id", element: <OrganizerProfilePage /> },
         { path: "/update_event/:event_id", element: <UpdateEventPage /> },
+
       ],
       errorElement: <></>,
     },

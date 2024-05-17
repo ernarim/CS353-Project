@@ -1,8 +1,36 @@
 .admin-page {
     
     background-color:  #0a2431;
-
-   
+    
+    .stat-card{
+      .ant-card {
+        background-color: #0a2431;
+        color: #ffffff; /* Sets the text color for the card */
+        border-radius: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ffffff;
+    
+        .ant-card-head {
+          background-color: #0a2431;
+          color: #ffffff;
+          border-radius: 10px 10px 0 0;
+        }
+    
+        .ant-card-body {
+          padding: 20px;
+          color: #ffffff;
+        }
+        .ant-statistic-title {
+          color: #ffffff;
+        }
+  
+        .ant-statistic-content {
+          color: #ffffff;
+        }
+      }
+     
+    }
+    
     .ant-tabs-nav {
       color: #ffffff; /* Sets the text color for the tabs */
         background-color: #003554;

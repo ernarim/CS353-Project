@@ -58,7 +58,7 @@ export default function SelectionMatrix({
 
   useEffect(() => {
     console.log("Current Seats:", selectedSeats);
-  }, [test]);
+  }, [test, selectedSeats]);
 
   useEffect(() => {
     getSeats(selectedSeats);
