@@ -35,12 +35,12 @@ export const BuyerProfilePage = () => {
         navigate('/login');
     };
 
-    const handleReturnTicket = async (e, ticket_id) => {
-        e.stopPropagation(); // Prevent event from propagating to parent
+    const handleReturnTicket = async (e, ticket_id, user_id) => {
+        e.stopPropagation(); 
         try {
             const response = await Axios.get(`/return_ticket/${ticket_id}`);
             alert('Ticket returned successfully');
-            // Optionally, refresh the data or redirect the user
+            fetchProfile();
         } catch (error) {
             console.error('Error returning ticket:', error.response?.data?.detail || 'Unknown error');
             alert('Failed to return ticket');
@@ -151,7 +151,7 @@ export const BuyerProfilePage = () => {
                                     </Text><br />
                                     <Text strong>Date:</Text> <Text>{moment(ticket.event_info.date).format('DD/MM/YYYY HH:mm')}</Text><br />
                                     {moment().isBefore(moment(ticket.event_info.return_expire_date)) && (
-                                        <Button onClick={(e) => handleReturnTicket(e, ticket.ticket_info.ticket_id)}>Return Ticket</Button>
+                                        <Button onClick={(e) => handleReturnTicket(e, ticket.ticket_info.ticket_id, user.user_id)}>Return Ticket</Button>
                                     )}
                                 </Card>
                             </div>
