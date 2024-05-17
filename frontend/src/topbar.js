@@ -2,13 +2,17 @@ import React, { useEffect, useState } from "react";
 import { Menu, Typography, Row, Col, Badge } from "antd";
 import { ShoppingCartOutlined, UserOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
+import Axios from './Axios';
 
 const { Title } = Typography;
 
 const Topbar = () => {
   const [userType, setUserType] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [badgeCount, setBadgeCount] = useState(0);
   const navigate = useNavigate();
+
+
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user'));
@@ -19,7 +23,33 @@ const Topbar = () => {
       console.log("user type", storedUser.userType);
       console.log("user id", storedUser.user_id);
     }
+
+    const handleAddToCart = () => {
+      fetchTickets();
+    };
+    window.addEventListener('addToCart', handleAddToCart);
+
+    return () => {
+      // Cleanup the event listener when the component unmounts
+      window.removeEventListener('addToCart', handleAddToCart);
+    };
   }, []);
+
+  const fetchTickets = async () => {
+    let userId = localStorage.getItem('userId');
+    try {
+      const response = await Axios.get(`/user/get_tickets/${userId}`);
+      if (response.status === 204) {
+        setBadgeCount(0);
+      } else {
+        setBadgeCount(response.data.length);
+        console.log("Fetched Tickets: ", response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch tickets:', error.response ? error.response.data : error.message);
+    }
+  };
+
 
   const handleProfileClick = () => {
     if (userType == 'organizer') {
@@ -52,7 +82,7 @@ const Topbar = () => {
       </Col>
       <Col span={4} style={{ textAlign: 'right', display: 'flex', justifyContent: 'center' }}>
         {userType !== 'organizer' && (
-          <Badge count={0}>
+          <Badge count={badgeCount}>
             <Link to="/shopping_cart" style={{ lineHeight: 'inherit', display: 'inline-flex' }}>
               <ShoppingCartOutlined style={{ fontSize: '24px', color: '#fff' }} />
             </Link>

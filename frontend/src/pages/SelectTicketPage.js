@@ -170,6 +170,8 @@ export function SelectTicketPage() {
         Axios.post(`/buy/add_to_cart/${cartId}`, data).then((response) => {
           console.log(response.data);
         });
+        window.dispatchEvent(new CustomEvent('addToCart'));
+
         navigate("/home");
       },
       onCancel() {
@@ -180,6 +182,8 @@ export function SelectTicketPage() {
 
   const handleAddToCartNoSeating = () => {
     message.info("Adding to cart without seating plan.");
+    window.dispatchEvent(new CustomEvent('addToCart'));
+
   };
 
   return !isLoading ? (

@@ -238,7 +238,7 @@ export function MainPage() {
                             </Col>
                         ))
                     ) : (
-                        <p>No events found</p>
+                        <h2>No events found</h2>
                     )}
                 </Row>
             </div>

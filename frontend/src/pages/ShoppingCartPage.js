@@ -77,6 +77,7 @@ export function ShoppingCartPage() {
       const response = await Axios.post('/buy/transaction', { transactions });
       if (response.status === 200) {
         message.success('Purchase successful');
+        window.dispatchEvent(new CustomEvent('addToCart'));
         fetchBalance(userId); 
         fetchTickets(userId);
       } else {
@@ -148,6 +149,8 @@ export function ShoppingCartPage() {
       if (response.status === 200) {
         message.success('Ticket removed from cart');
         fetchTickets(userId);
+        window.dispatchEvent(new CustomEvent('addToCart'));
+
       } else {
         throw new Error('Failed to remove ticket from cart');
       }
