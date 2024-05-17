@@ -33,12 +33,12 @@ export const NewLocationRequestPage = () => {
   };
 
   useEffect(() => {
-    console.log("TESTeffect: ", rowColSwitch);
+    if (rowColSwitch === undefined) {
+      formMeta.setFieldsValue({ is_seating_arrangement_provided: false });
+    }
   }, [rowColSwitch]);
 
   const onFinish = async (values) => {
-    console.log("Form values: ", values);
-    // Here you can handle the form submission, send the data to a server, etc.
     let data = {};
     data.name = values.name;
     data.city = values.city;
@@ -64,7 +64,6 @@ export const NewLocationRequestPage = () => {
     }
     try {
       const response = await Axios.post("/venue", data);
-      console.log("Response: ", response); //TEST
       if (response.status === 201) {
         message.success("Venue request created successfully!");
         formMeta.resetFields();

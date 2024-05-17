@@ -17,8 +17,44 @@ export default function SelectionMatrix({
   const { event_id } = useParams();
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [seatMatrix, setSeatMatrix] = useState([]);
-
+  const [isRemainingSelectedSeats, setIsRemainingSelectedSeats] =
+    useState(false);
   const [test, setTest] = useState(false);
+
+  useEffect(() => {
+    if (!isRemainingSelectedSeats) return;
+    function handleBeforeUnload(event) {
+      console.log(selectedSeats);
+      unreserveSelectedSeats();
+      event.preventDefault();
+      event.returnValue = "";
+    }
+
+    const cleanup = async () => {
+      try {
+        await Axios.post("/selection/unreserve", {
+          event_id: event_id,
+          user_id: localStorage.getItem("userId"),
+          category_name: currentSeats[0][0].category_name,
+        });
+      } catch (error) {
+        console.log(error);
+        message.error("Failed to unreserve the selected seats!");
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload, {
+      capture: true,
+    });
+    window.addEventListener("unload", cleanup);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload, {
+        capture: true,
+      });
+      window.removeEventListener("unload", cleanup);
+    };
+  }, [isRemainingSelectedSeats]);
 
   useEffect(() => {
     console.log("Current Seats:", selectedSeats);
@@ -31,6 +67,14 @@ export default function SelectionMatrix({
   useEffect(() => {
     if (selectedSeats.length > 0) {
       unreserveSelectedSeats();
+    }
+    for (let i = 0; i < selectedSeats.length; i++) {
+      seatMatrix[selectedSeats[i].row - 1][
+        selectedSeats[i].column - 1
+      ].isReserved = false;
+      seatMatrix[selectedSeats[i].row - 1][
+        selectedSeats[i].column - 1
+      ].lastReserver = null;
     }
     setSelectedSeats([]);
   }, [flush]);
@@ -81,8 +125,14 @@ export default function SelectionMatrix({
           );
           if (index === -1) {
             newSelectedSeats.push(seatMatrix[row - 1][column - 1]);
+            if (!isRemainingSelectedSeats) {
+              setIsRemainingSelectedSeats(true);
+            }
           } else {
             newSelectedSeats.splice(index, 1);
+            if (newSelectedSeats.length === 0) {
+              setIsRemainingSelectedSeats(false);
+            }
           }
           setSelectedSeats(newSelectedSeats);
         }
@@ -107,6 +157,9 @@ export default function SelectionMatrix({
   };
 
   useEffect(() => {
+    while (currentSeats.length <= 0) {
+      return;
+    }
     let seatMatrix = [];
     for (let i = 0; i < rows; i++) {
       seatMatrix.push([]);
@@ -119,6 +172,7 @@ export default function SelectionMatrix({
           isReserved: false,
           show: false,
           lastReserver: null,
+          ticketId: null,
         };
         seatMatrix[i].push(seat);
       }
@@ -137,6 +191,7 @@ export default function SelectionMatrix({
           seatMatrix[i][j].show = currentSeats[row][column].show;
           seatMatrix[i][j].lastReserver =
             currentSeats[row][column].last_reserver;
+          seatMatrix[i][j].ticketId = currentSeats[row][column].ticket_id;
           column++;
         }
       }

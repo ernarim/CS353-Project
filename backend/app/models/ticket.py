@@ -4,11 +4,12 @@ from uuid import UUID
 
 class Ticket(BaseModel):
     ticket_id: UUID
-    seat_number: str
-    is_sold: bool = False
-    event_id: UUID
-    category_name: str
-    
+    row_number: int
+    column_number: int
+
+class TicketList(BaseModel):
+    tickets: list[Ticket]
+
 class TicketInfo(BaseModel):
     ticket_id: UUID
     event_id: UUID

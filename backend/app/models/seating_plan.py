@@ -11,6 +11,7 @@ class SeatingPlan(BaseModel):
     is_available: bool
     is_reserved: bool
     category_id: UUID
+    last_reserver: UUID
 
 class SeatingPlanCreate(BaseModel):
     category_name: str

@@ -1,7 +1,8 @@
 from typing import List
 from fastapi import APIRouter, Depends, Query, Response, status
 from app.database.session import cursor, conn
-from app.models.ticket import Ticket
+from app.models.ticket import Ticket, TicketList
+from app.models.seating_plan import SeatingPlan
 from app.models.cart import Cart
 from app.models.gift import Gift
 from app.models.transaction import TransactionList
@@ -15,34 +16,33 @@ import asyncpg
 router = APIRouter()
 
 @router.post("/add_to_cart/{cart_id}")
-async def add_ticket_to_cart(ticket_data: Ticket, cart_id: UUID):
-    ticket_id = uuid4()  # Generate a new UUID for the ticket
+async def add_ticket_to_cart(tickets: TicketList, cart_id: UUID):
+    tickets = tickets.tickets
+    ticket_ids = [str(ticket.ticket_id) for ticket in tickets]
 
-    create_ticket_query = """
-    INSERT INTO Ticket (ticket_id, seat_number, is_sold, event_id, category_name)
-    VALUES (%s, %s, %s, %s, %s) RETURNING ticket_id;
+
+    adding_query = """
+        INSERT INTO added (cart_id, ticket_id) VALUES (%(cart_id)s, %(ticket_id)s);
     """
-    add_to_cart_query = """
-    INSERT INTO Added (cart_id, ticket_id)
-    VALUES (%s, %s);
-    """
+
     try:
-        # Create the ticket
-        cursor.execute(create_ticket_query, (str(ticket_id), ticket_data.seat_number, False, str(ticket_data.event_id), ticket_data.category_name))
-        ticket_id_returned = cursor.fetchone()[0]
+        if(len(ticket_ids) == 0):
+            raise HTTPException(status_code=400, detail="No ticket data provided")
 
-        # Add the ticket to the cart
-        cursor.execute(add_to_cart_query, (str(cart_id), str(ticket_id_returned)))
+        for i in range(len(ticket_ids)):
+            cursor.execute(adding_query, {
+                "ticket_id": ticket_ids[i],
+                "cart_id": str(cart_id)
+            })
+        conn.commit()
 
-        conn.commit()  # Commit the transaction
         return {
-            "ticket_id": ticket_id_returned,
-            "cart_id": cart_id
+            "message": "Ticket added to cart successfully"
         }
     except Exception as e:
-        conn.rollback()  # Rollback in case of any error
+        conn.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to add ticket to cart: {str(e)}")
-    
+
 
 @router.post("/make_gift/{cart_id}")
 async def make_cart_a_gift(cart_id: UUID, gift_data: Gift):
@@ -62,15 +62,15 @@ async def make_cart_a_gift(cart_id: UUID, gift_data: Gift):
 
     try:
         cursor.execute(gift_query, (str(gift_id), gift_data.gift_msg, gift_date, gift_data.receiver_mail))
-        
+
         cursor.execute(gifted_query, (str(gift_id), str(cart_id)))
-        
+
         cursor.execute(update_cart_query, (str(cart_id),))
-        
-        conn.commit() 
-        return {"gift_id": gift_id } 
+
+        conn.commit()
+        return {"gift_id": gift_id }
     except Exception as e:
-        conn.rollback()  
+        conn.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to process cart as gift: {str(e)}")
 
 
@@ -134,7 +134,7 @@ async def transaction(transaction_data: TransactionList):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @router.delete('/delete_from_cart/{ticket_id}', summary="Remove a ticket from the cart")
 async def delete_from_cart(ticket_id: UUID):
     try:
@@ -158,4 +158,4 @@ async def delete_from_cart(ticket_id: UUID):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-    
+
