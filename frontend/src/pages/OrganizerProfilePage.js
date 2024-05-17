@@ -65,7 +65,7 @@ export const OrganizerProfilePage = () => {
 
 
     return (
-        <div className="profile-container">
+        <div className="profile-container" style={{display:'flex', flexDirection:'row', justifyContent:'center', gap:'2%'}}>
             <Card style={{minWidth: '700px', maxWidth: '700px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                     <div>
