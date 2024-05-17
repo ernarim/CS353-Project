@@ -393,6 +393,15 @@ export function AdminPage() {
                         <Col span={8}>
                             <Card bordered={false} onClick={() => handleCardClick("2")}>
                                 <Statistic
+                                    title="All Events"
+                                    value={stats.eventsCount}
+                                    prefix={<NotificationOutlined />}
+                                />
+                            </Card>
+                        </Col>
+                        <Col span={8}>
+                            <Card bordered={false} onClick={() => handleCardClick("3")}>
+                                <Statistic
                                     title="Ticket Buyers"
                                     value={stats.ticketBuyersCount}
                                     prefix={<UserOutlined />}
@@ -400,7 +409,7 @@ export function AdminPage() {
                             </Card>
                         </Col>
                         <Col span={8}>
-                            <Card bordered={false} onClick={() => handleCardClick("3")}>
+                            <Card bordered={false} onClick={() => handleCardClick("4")}>
                                 <Statistic
                                     title="Event Organizers"
                                     value={stats.eventOrganizersCount}
@@ -408,34 +417,27 @@ export function AdminPage() {
                                 />
                             </Card>
                         </Col>
-                        <Col span={8}>
-                            <Card bordered={false} onClick={() => handleCardClick("6")}>
-                                <Statistic
-                                    title="All Events"
-                                    value={stats.eventsCount}
-                                    prefix={<NotificationOutlined />}
-                                />
-                            </Card>
-                        </Col>
+                       
                        
                     </Row>
                     <Row gutter={16} style={{ marginTop: 16 }}>
+                        
                         <Col span={12}>
                             <Card bordered={false} onClick={() => handleCardClick("5")}>
-                                <Statistic
-                                    title="Verified Locations"
-                                    value={stats.verifiedLocationsCount}
-                                    prefix={<HomeOutlined />}
-                                />
-                            </Card>
-                        </Col>
-                        <Col span={12}>
-                            <Card bordered={false} onClick={() => handleCardClick("4")}>
                                 <Statistic
                                     title="Location Requests"
                                     value={stats.locationRequestsCount}
                                     valueStyle={{ color: stats.locationRequestsCount ? '#3f8600' : 'black' }}
                                     prefix={ stats.locationRequestsCount ? <ArrowUpOutlined /> : <PauseCircleOutlined />}
+                                />
+                            </Card>
+                        </Col>
+                        <Col span={12}>
+                            <Card bordered={false} onClick={() => handleCardClick("6")}>
+                                <Statistic
+                                    title="Verified Locations"
+                                    value={stats.verifiedLocationsCount}
+                                    prefix={<HomeOutlined />}
                                 />
                             </Card>
                         </Col>

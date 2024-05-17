@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Typography, Divider, Button, Select  } from 'antd';
+import { Card, Typography, Divider, Button, Select, message  } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import Axios from '../Axios';
 import '../style/org_profile.css';
@@ -35,6 +35,7 @@ export const OrganizerProfilePage = () => {
     }
 
     const handleLogout = () => {
+        message.success('Logged out successfully!');
         navigate('/login');
     };
 
@@ -66,56 +67,7 @@ export const OrganizerProfilePage = () => {
 
     return (
         <div className="profile-container" style={{display:'flex', flexDirection:'row', justifyContent:'center', gap:'2%'}}>
-            <Card style={{minWidth: '700px', maxWidth: '700px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                    <div>
-                        <Title level={4}>{user.organizer_name}</Title>
-                        <Text type="secondary">{user.email}</Text>
-                    </div>
-                    <Button type="primary" danger onClick={handleLogout}>
-                        Logout
-                    </Button>
-                </div>
-                <Divider />
-
-                {/* Contact Information */}
-                <div>
-                    <Title level={5}>Contact Information</Title>
-                    <Text strong>Phone:</Text> <Text>{user.phone || '-'}</Text><br />
-                    <Text strong>Last Login:</Text> <Text>{user.last_login || '-'}</Text><br />
-                    <Text strong>Balance:</Text> <Text>{user.balance}</Text><br />
-                </div>
-                <Divider />
-
-                {/* The Events */}
-                <div>
-                    <Title level={4}>Events</Title>
-                    <Select defaultValue="All" style={{ width: 120, marginBottom: '10px' }} onChange={handleFilterChange}>
-                        <Option value="All">All</Option>
-                        <Option value="Upcoming">Upcoming</Option>
-                        <Option value="Passed">Passed</Option>
-                        <Option value="Cancelled">Cancelled</Option>
-                    </Select>
-                    <br />
-                    {filteredEvents.length === 0 ? (
-                        <Text>No events matching this filter.</Text>
-                    ) : (
-                        filteredEvents.map((event, index) => (
-                            <div key={index} style={{ marginBottom: '10px', cursor: 'pointer' }} onClick={() => handleEventClick(event.event_id)}>
-                                <Card>
-                                    <Text strong>Event: </Text> <Text>{event.name}</Text><br />
-                                    <Text strong>Status: </Text> 
-                                    <Text style={{ color: event.is_done ? 'grey' : event.is_cancelled ? 'red' : 'green' }}>
-                                        {event.is_done ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
-                                    </Text>
-                                    <Text> / {event.date}</Text><br />
-                                </Card>
-                            </div>
-                        ))
-                    )}
-                </div>
-            </Card>
-
+            
 
             {/* Location Request */}
             <Card style={{ minWidth: '700px',maxWidth: '700px'}}>
@@ -177,6 +129,57 @@ export const OrganizerProfilePage = () => {
                     )}
                 </div> 
             </Card>
+
+            <Card style={{minWidth: '700px', maxWidth: '700px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <div>
+                        <Title level={4}>{user.organizer_name}</Title>
+                        <Text type="secondary">{user.email}</Text>
+                    </div>
+                    <Button type="primary" danger onClick={handleLogout}>
+                        Logout
+                    </Button>
+                </div>
+                <Divider />
+
+                {/* Contact Information */}
+                <div>
+                    <Title level={5}>Contact Information</Title>
+                    <Text strong>Phone:</Text> <Text>{user.phone || '-'}</Text><br />
+                    <Text strong>Last Login:</Text> <Text>{user.last_login || '-'}</Text><br />
+                    <Text strong>Balance:</Text> <Text>{user.balance}</Text><br />
+                </div>
+                <Divider />
+
+                {/* The Events */}
+                <div>
+                    <Title level={4}>Events</Title>
+                    <Select defaultValue="All" style={{ width: 120, marginBottom: '10px' }} onChange={handleFilterChange}>
+                        <Option value="All">All</Option>
+                        <Option value="Upcoming">Upcoming</Option>
+                        <Option value="Passed">Passed</Option>
+                        <Option value="Cancelled">Cancelled</Option>
+                    </Select>
+                    <br />
+                    {filteredEvents.length === 0 ? (
+                        <Text>No events matching this filter.</Text>
+                    ) : (
+                        filteredEvents.map((event, index) => (
+                            <div key={index} style={{ marginBottom: '10px', cursor: 'pointer' }} onClick={() => handleEventClick(event.event_id)}>
+                                <Card>
+                                    <Text strong>Event: </Text> <Text>{event.name}</Text><br />
+                                    <Text strong>Status: </Text> 
+                                    <Text style={{ color: event.is_done ? 'grey' : event.is_cancelled ? 'red' : 'green' }}>
+                                        {event.is_done ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
+                                    </Text>
+                                    <Text> / {event.date}</Text><br />
+                                </Card>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </Card>
+
         </div>
     );
 }

@@ -31,6 +31,7 @@ export const BuyerProfilePage = () => {
     }, [user_id]);
 
     const handleLogout = () => {
+        message.success('Logged out successfully!');
         navigate('/login');
     };
 
@@ -120,9 +121,8 @@ export const BuyerProfilePage = () => {
                 <div>
                     <Title level={5}>Contact Information</Title>
                     <Text strong>Phone:</Text> <Text>{user.phone || 'N/A'}</Text><br />
-                    <Text strong>Last Login:</Text> <Text>{user.last_login || 'N/A'}</Text><br />
                     <Text strong>Balance:</Text> <Text>{user.balance}</Text><br /> 
-                    <Text strong>Birth Date:</Text> <Text>{user.birth_date}</Text>
+                    <Text strong>Birth Date:</Text> <Text>{moment(user.birth_date).format('DD/MM/YYYY')}</Text><br />
                 </div>
                 <Divider />
                 <Button type="primary" onClick={showModal}>
