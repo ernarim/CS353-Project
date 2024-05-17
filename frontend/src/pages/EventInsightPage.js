@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Table, Statistic, Row, Col, Divider, Modal, notification } from "antd";
+import { Card, Button, Table, Statistic, Row, Col, Divider, Modal, notification , Collapse} from "antd";
 import { useParams, useNavigate } from "react-router-dom";
 import Axios from "../Axios";
 import moment from "moment";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import SelectionMatrix from "../components/SelectionMatrix";
+const { Panel } = Collapse;
 
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
 
@@ -224,20 +225,23 @@ export function EventInsightPage() {
                   display: "flex",
                   flexDirection: "column",
                 }}
+                bodyStyle={{ padding: "0px", backgroundColor:'white', borderRadius: "10px"}}
               >
-                <div style={{ padding: "20px" }}>
-                  <h2>Seating Matrix</h2>
-                  <div style={{ overflowX: "auto" }}>
-                    <SelectionMatrix
-                      rows={venueRows}
-                      columns={venueColumns}
-                      currentSeats={categorySeats}
-                      getSeats={() => {}}
-                      disableSelection={true}
-                      header={[true, true, false, false]}
-                    />
-                  </div>
-                </div>
+                
+                <Collapse>
+                  <Panel header="Seating Plan" key="1" style={{backgroundColor:'white'}}>
+                    <div style={{ overflowX: "auto", display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+                      <SelectionMatrix
+                        rows={venueRows}
+                        columns={venueColumns}
+                        currentSeats={categorySeats}
+                        getSeats={() => {}}
+                        disableSelection={true}
+                        header={[true, true, false, false]}
+                      />
+                    </div>
+                  </Panel>
+                </Collapse>
               </Card>
             </Col>
             <Col span={8}>
