@@ -130,12 +130,12 @@ export function SelectTicketPage() {
       console.log(error.detail);
     }
   };
-
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (selectedSeats.length === 0) {
       message.warning("Please select a seat!");
       return;
     }
+  
     Modal.confirm({
       title: "Are you sure you want to add these seats to the cart?",
       content: selectedSeats.map((seat, index) => (
@@ -154,32 +154,32 @@ export function SelectTicketPage() {
       okText: "Yes",
       okType: "primary",
       cancelText: "No",
-      onOk() {
-        let tickets = [];
-        selectedSeats.forEach((seat) => {
-          tickets.push({
-            ticket_id: seat.ticketId,
-            row_number: seat.row,
-            column_number: seat.column,
-          });
-        });
+      onOk: async () => { // Marked this function as async
+        let tickets = selectedSeats.map((seat) => ({
+          ticket_id: seat.ticketId,
+          row_number: seat.row,
+          column_number: seat.column,
+        }));
+  
         const data = {
           tickets: tickets,
         };
-        window.dispatchEvent(new CustomEvent('addToCart'));
-
-
-        Axios.post(`/buy/add_to_cart/${cartId}`, data).then((response) => {
-          console.log(response.data);
-        });
-
-        navigate("/home");
+  
+        try {
+          await Axios.post(`/buy/add_to_cart/${cartId}`, data);
+          window.dispatchEvent(new CustomEvent('addToCart'));
+          navigate("/home");
+        } catch (error) {
+          console.error('Failed to add to cart:', error);
+          message.error('Failed to add seats to the cart!');
+        }
       },
       onCancel() {
         console.log("Cancel operation was aborted.");
       },
     });
   };
+  
 
   const handleAddToCartNoSeating = () => {
     message.info("Adding to cart without seating plan.");
