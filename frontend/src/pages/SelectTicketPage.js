@@ -166,11 +166,12 @@ export function SelectTicketPage() {
         const data = {
           tickets: tickets,
         };
+        window.dispatchEvent(new CustomEvent('addToCart'));
+
 
         Axios.post(`/buy/add_to_cart/${cartId}`, data).then((response) => {
           console.log(response.data);
         });
-        window.dispatchEvent(new CustomEvent('addToCart'));
 
         navigate("/home");
       },
