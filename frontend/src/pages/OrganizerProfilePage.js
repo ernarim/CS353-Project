@@ -3,6 +3,7 @@ import { Card, Typography, Divider, Button, Select, message  } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import Axios from '../Axios';
 import '../style/org_profile.css';
+import moment from 'moment';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -118,7 +119,7 @@ export const OrganizerProfilePage = () => {
                         reports.map((report, index) => (
                             <Card key={index} style={{ marginBottom: '10px' }}>
                                 <Text strong>Report:</Text> <Text>{report.report_id}</Text><br />
-                                <Text strong>Date:</Text> <Text>{report.date}</Text><br />
+                                <Text strong>Date:</Text> <Text>{moment(report.date).format('DD/MM/YYYY')}</Text><br />
                                 <Text strong>Sold Tickets:</Text> <Text>{report.sold_tickets}</Text><br />
                                 <Text strong>Unsold Tickets:</Text> <Text>{report.unsold_tickets}</Text><br />
                                 <Text strong>Total Revenue:</Text> <Text>{report.total_revenue}</Text><br />
@@ -172,7 +173,7 @@ export const OrganizerProfilePage = () => {
                                     <Text style={{ color: event.is_done ? 'grey' : event.is_cancelled ? 'red' : 'green' }}>
                                         {event.is_done ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
                                     </Text>
-                                    <Text> / {event.date}</Text><br />
+                                    <Text> / {moment(event.date).format('DD/MM/YYYY HH:mm')}</Text><br />
                                 </Card>
                             </div>
                         ))

@@ -149,7 +149,7 @@ export const BuyerProfilePage = () => {
                                     <Text strong>Status:</Text> <Text style={{ color: ticket.event_info.is_done || ticket.event_info.is_cancelled ? 'red' : 'green' }}>
                                         {ticket.event_info.is_done ? 'Passed' : ticket.event_info.is_cancelled ? 'Cancelled' : 'Upcoming'}
                                     </Text><br />
-                                    <Text strong>Date:</Text> <Text>{ticket.event_info.event_date}</Text><br />
+                                    <Text strong>Date:</Text> <Text>{moment(ticket.event_info.date).format('DD/MM/YYYY HH:mm')}</Text><br />
                                     {moment().isBefore(moment(ticket.event_info.return_expire_date)) && (
                                         <Button onClick={(e) => handleReturnTicket(e, ticket.ticket_info.ticket_id)}>Return Ticket</Button>
                                     )}
