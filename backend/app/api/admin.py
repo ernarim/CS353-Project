@@ -80,6 +80,7 @@ async def verify_venue(venue_id: str):
         updated_venue = cursor.fetchone()
         if not updated_venue:
             raise HTTPException(status_code=404, detail="Venue not found")
+        conn.commit()
         return updated_venue
     except Exception as e:
         conn.rollback()
@@ -99,6 +100,7 @@ async def reject_venue(venue_id: UUID):
         updated_venue = cursor.fetchone()
         if not updated_venue:
             raise HTTPException(status_code=404, detail="Venue not found")
+        conn.commit()
         return updated_venue
     except Exception as e:
         conn.rollback()
@@ -217,7 +219,3 @@ async def get_organizer_info(user_id: UUID):
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
-    except Exception as e:
-        conn.rollback()
-        raise HTTPException(status_code=500, detail=str(e))   
