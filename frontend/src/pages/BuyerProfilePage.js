@@ -88,7 +88,7 @@ export const BuyerProfilePage = () => {
                         tickets.map((ticket, index) => (
                             <div key={index} style={{ marginBottom: '10px', cursor: 'pointer' }} onClick={() => handleTicketClick(ticket.event_info.event_id)}>
                                 <Card>
-                                    <Text strong>Event:</Text> <Text>{ticket.event_info.event_name}</Text><br />
+                                    <Text strong>Event:</Text> <Text>{ticket.event_info.event_name} / {ticket.ticket_info.category_name}</Text><br />
                                     <Text strong>Status:</Text> <Text style={{ color: ticket.event_info.is_done || ticket.event_info.is_cancelled ? 'red' : 'green' }}>
                                     {ticket.event_info.is_done ? 'Passed' : ticket.event_info.is_cancelled ? 'Cancelled' : 'Upcoming'}
                                     </Text><br />

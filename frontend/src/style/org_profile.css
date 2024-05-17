@@ -1,0 +1,22 @@
+.profile-container {
+    display: flex;
+    justify-content: space-between; /* Space between the two cards */
+    padding: 20px;
+}
+
+.profile-card {
+    flex: 1; /* Makes each card take half of the container */
+    margin: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Optional: adds shadow for better visibility */
+}
+
+.logout-button {
+    float: right; /* Aligns the logout button to the right */
+    background-color: #007bff; /* Bootstrap primary color */
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+}

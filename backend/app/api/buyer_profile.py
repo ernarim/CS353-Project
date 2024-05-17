@@ -23,7 +23,7 @@ async def get_buyer_profile(user_id: UUID):
         if not user_data:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # SEAT NUMBER?
+        
         cursor.execute("""
             SELECT 
                 t.ticket_id, 
@@ -36,21 +36,13 @@ async def get_buyer_profile(user_id: UUID):
                 e.return_expire_date,
                 e.is_done, 
                 e.is_cancelled, 
-                eo.organizer_name,
-                v.name as venue_name,
-                v.city as venue_city,
-                v.state as venue_state,
-                v.street as venue_street,
-                res.alcohol, res.smoke, res.age, res.max_ticket
+                eo.organizer_name
             FROM ticket_list tl
             JOIN ticket t ON tl.ticket_id = t.ticket_id
             JOIN event e ON t.event_id = e.event_id
             JOIN event_category ev ON ev.category_id = e.category_id           
             JOIN event_organizer eo ON e.organizer_id = eo.user_id
-            JOIN venue v ON e.venue_id = v.venue_id
-            JOIN ticket_category tc ON t.event_id = tc.event_id
-            JOIN restricted r ON r.event_id = e.event_id
-            JOIN restriction res ON res.restriction_id = r.restriction_id           
+            JOIN ticket_category tc ON t.event_id = tc.event_id         
             WHERE tl.user_id = %s
         """, (str(user_id),))
         tickets_data = cursor.fetchall()
@@ -60,7 +52,6 @@ async def get_buyer_profile(user_id: UUID):
             ticket_info = {
                 "ticket_id": ticket['ticket_id'],
                 "event_id": ticket['event_id'],
-                "seat_number": "5",
                 "price": ticket['price'],
                 "category_name": ticket['cat_name']
             }
@@ -68,23 +59,10 @@ async def get_buyer_profile(user_id: UUID):
                 "event_name": ticket["event_name"],
                 "event_id": ticket['event_id'],
                 "event_date": ticket["event_date"],
-                "event_description": ticket["event_description"],
                 "is_done": ticket["is_done"],
                 "is_cancelled": ticket["is_cancelled"],
                 "organizer_name": ticket["organizer_name"],
-                "return_expire_date": ticket["return_expire_date"],
-                "venue": {
-                    "name": ticket["venue_name"],
-                    "city": ticket["venue_city"],
-                    "state": ticket["venue_state"],
-                    "street": ticket["venue_street"]
-                },
-                "restrictions": {
-                    "alcohol": ticket["alcohol"],
-                    "smoke": ticket["smoke"],
-                    "age": ticket["age"],
-                    "max_ticket": ticket["max_ticket"]
-                }
+                "return_expire_date": ticket["return_expire_date"]
             }
             tickets.append({"ticket_info": ticket_info, "event_info": event_info})
 

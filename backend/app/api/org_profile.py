@@ -33,86 +33,73 @@ async def get_org_profile(user_id: UUID):
         )
 
 
-        # Reports (if the Organizer is also an Admin)
         reports = []
         cursor.execute("""
-            SELECT r.report_id, r.name, r.description
+            SELECT r.report_id, r.date, r.organizer_name, r.sold_tickets,
+            r.unsold_tickets, r.total_revenue, r.total_events, r.balance
             FROM report r
-            WHERE r.admin_id = %s
+            WHERE r.organizer_id = %s
         """, (str(user_id),))
         reports_data = cursor.fetchall()
         for report in reports_data:
             reports.append({
                 "report_id": report['report_id'],
-                "name": report['name'],
-                "description": report['description']
+                "date": report['date'],
+                "organizer_name": report['organizer_name'],
+                "sold_tickets": report['sold_tickets'],
+                "unsold_tickets": report['unsold_tickets'],
+                "total_revenue": report['total_revenue'],
+                "total_events": report['total_events'],
+                "balance": report['balance']
             })
 
 
         events = []
         cursor.execute("""
             SELECT 
-                e.event_id, e.name, e.date, e.description, e.return_expire_date,
-                e.is_done, e.is_cancelled, e.remaining_seat_no,
-                v.name as venue, v.capacity as capacity, ec.name as category,
-                res.alcohol, res.smoke, res.age, res.max_ticket
-            FROM event e
-            JOIN venue v ON v.requester_id = e.organizer_id   
-            JOIN event_category ec ON ec.category_id = e.category_id  
-            JOIN restricted rted ON rted.event_id = e.event_id
-            JOIN restriction res ON res.restriction_id = rted.restriction_id                 
+                e.event_id, e.name, e.date,
+                e.is_done, e.is_cancelled, e.remaining_seat_no
+            FROM event e                
             WHERE e.organizer_id = %s
         """, (str(user_id),))
         events_data = cursor.fetchall()
 
         for event in events_data:
-            event_id = event['event_id']
-            ticket_buyers = []
-            
-            cursor.execute("""
-            SELECT sp.category_name, tb.name, tb.surname, ttc.price
-            FROM ticket_buyer tb
-            JOIN ticket_list tl ON tb.user_id = tl.user_id
-            JOIN ticket t ON tl.ticket_id = t.ticket_id
-            JOIN seating_plan sp ON t.ticket_id = sp.ticket_id
-            JOIN ticket_category ttc ON ttc.category_name = sp.category_name
-            WHERE 
-                t.event_id = %s
-            """, (str(event_id),))
-            buyers_data = cursor.fetchall()
-
-            for buyer in buyers_data:
-                ticket_buyers.append({
-                    "name": buyer['name'],
-                    "surname": buyer['surname'],
-                    "price": buyer['price'],
-                    "category_name": buyer['category_name']
-                })
-
             events.append({
+                "event_id": event['event_id'],
                 "name": event['name'],
                 "date": event['date'],
-                "description": event['description'],
                 "is_done": event['is_done'],
                 "is_cancelled": event['is_cancelled'],
-                "venue_name": event['venue'],
-                "venue_capacity": event['capacity'],
-                "category":event['category'],
-                "remaining_seat_no": event['remaining_seat_no'],
-                "return_expire_date": event['return_expire_date'],
-                "alcohol": event['alcohol'], 
-                "smoke": event['smoke'], 
-                "age": event['age'], 
-                "max_ticket": event['max_ticket'],
-                "ticket_buyers": ticket_buyers
+                "remaining_seat_no": event['remaining_seat_no']
             })
    
+        venues = []
+        cursor.execute("""
+            SELECT v.venue_id, v.name, v.city, v.state,
+            v.street, v.status, v.capacity
+            FROM venue v
+            WHERE v.requester_id = %s
+        """, (str(user_id),))
+        venue_data = cursor.fetchall()
+        for venue in venue_data:
+            venues.append({
+                "venue_id": venue['venue_id'],
+                "name": venue['name'],
+                "city": venue['city'],
+                "state": venue['state'],
+                "street": venue['street'],
+                "status": venue['status'],
+                "capacity": venue['capacity']
+            })
 
         profile_data = {
             "user": uuser.model_dump(),
             "reports": reports,
-            "events": events
+            "events": events,
+            "venues": venues
         }
+        
 
         return profile_data
     except Exception as e:
