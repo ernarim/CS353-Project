@@ -35,7 +35,7 @@ export const BuyerProfilePage = () => {
         navigate('/login');
     };
 
-    const handleReturnTicket = async (e, ticket_id, user_id) => {
+    const handleReturnTicket = async (e, ticket_id) => {
         e.stopPropagation(); 
         try {
             const response = await Axios.get(`/return_ticket/${ticket_id}`);
@@ -151,7 +151,7 @@ export const BuyerProfilePage = () => {
                                     </Text><br />
                                     <Text strong>Date:</Text> <Text>{moment(ticket.event_info.date).format('DD/MM/YYYY HH:mm')}</Text><br />
                                     {moment().isBefore(moment(ticket.event_info.return_expire_date)) && (
-                                        <Button onClick={(e) => handleReturnTicket(e, ticket.ticket_info.ticket_id, user.user_id)}>Return Ticket</Button>
+                                        <Button onClick={(e) => handleReturnTicket(e, ticket.ticket_info.ticket_id)}>Return Ticket</Button>
                                     )}
                                 </Card>
                             </div>
