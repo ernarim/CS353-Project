@@ -65,6 +65,7 @@ export function MainPage() {
         }
         catch (error) {
             console.error('Failed to fetch events', error);
+            setEvents([]); // Ensure events is never null
         }
     }
 
@@ -76,10 +77,12 @@ export function MainPage() {
         }
         catch (error) {
             console.error('Failed to fetch event categories', error);
+            setEventCategories([]); // Ensure eventCategories is never null
         }
     }
 
     const getRandomEvents = (events, count) => {
+        if (!events || events.length === 0) return []; // Check for null or empty array
         let shuffled = events.sort(() => 0.5 - Math.random());
         return shuffled.slice(0, count);
     }
@@ -114,6 +117,8 @@ export function MainPage() {
     useEffect(() => {
         if (events.length > 0) {
             setCarouselEvents(getRandomEvents(events, 3));
+        } else {
+            setCarouselEvents([]); // Ensure carouselEvents is never null
         }
     }, [events]);
 
@@ -203,34 +208,38 @@ export function MainPage() {
 
                 {/* Event List */}
                 <Row gutter={[20, 30]} style={{ margin: '0px 4%' }}>
-                    {events.map(event => (
-                        <Col span={8} key={event.event_id}>
-                            <Card
-                                onClick={() => navigate(`/event/${event.event_id}`)}
-                                hoverable
-                                style={{
-                                    minHeight: '280px',
-                                    minWidth: '280px',
-                                }}
-                                cover={
-                                    <>
-                                        <img
-                                            alt={event.name}
-                                            src={baseURLEvents + event.photo}
-                                            style={{
-                                                width: '100%',
-                                                height: '350px',
-                                                objectFit: 'contain'
-                                            }}
-                                        />
-                                        <Divider style={{ marginBottom: '0px' }} />
-                                    </>
-                                }
-                            >
-                                <Card.Meta title={event.name} description={event.date} />
-                            </Card>
-                        </Col>
-                    ))}
+                    {events.length > 0 ? (
+                        events.map(event => (
+                            <Col span={8} key={event.event_id}>
+                                <Card
+                                    onClick={() => navigate(`/event/${event.event_id}`)}
+                                    hoverable
+                                    style={{
+                                        minHeight: '280px',
+                                        minWidth: '280px',
+                                    }}
+                                    cover={
+                                        <>
+                                            <img
+                                                alt={event.name}
+                                                src={baseURLEvents + event.photo}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '350px',
+                                                    objectFit: 'contain'
+                                                }}
+                                            />
+                                            <Divider style={{ marginBottom: '0px' }} />
+                                        </>
+                                    }
+                                >
+                                    <Card.Meta title={event.name} description={event.date} />
+                                </Card>
+                            </Col>
+                        ))
+                    ) : (
+                        <p>No events found</p>
+                    )}
                 </Row>
             </div>
 

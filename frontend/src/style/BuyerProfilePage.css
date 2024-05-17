@@ -1,0 +1,45 @@
+.site-layout-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f0f2f5;
+}
+
+.ant-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.ant-btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+}
+
+.ant-btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.ant-btn-primary[disabled] {
+    background-color: #c0c0c0;
+    border-color: #c0c0c0;
+}
+
+.ant-btn-primary.danger {
+    background-color: #ff4d4f;
+    border-color: #ff4d4f;
+}
+
+.ant-btn-primary.danger:hover {
+    background-color: #d9363e;
+    border-color: #d9363e;
+}
+
+.ant-divider-horizontal {
+    margin: 16px 0;
+}
+
+.ant-typography {
+    margin-bottom: 10px;
+}
