@@ -1,25 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Typography, Divider, Button, Row, Col } from 'antd';
+import { Card, Typography, Divider, Button, Select  } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import Axios from '../Axios';
 import '../style/org_profile.css';
 
 const { Title, Text } = Typography;
+const { Option } = Select;
 
 export const OrganizerProfilePage = () => {
     const navigate = useNavigate();
     const { user_id } = useParams();
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState(null);
+    const [filter, setFilter] = useState('All');
 
     
     const fetchProfile = async () => {
         try {
-            const response = await axios.get(`http://localhost:8000/api/org_profile/${user_id}`);
-            console.log('Profile data:', response.data); // Debugging statement
+            const response = await Axios.get(`/org_profile/${user_id}`);
+            console.log('Profile data:', response.data);
             setProfile(response.data);
         } catch (err) {
-            console.error('Error fetching profile:', err); // Debugging statement
+            console.error('Error fetching profile:', err);
             setError(err);
         }
     };
@@ -47,6 +49,21 @@ export const OrganizerProfilePage = () => {
     const { user, reports , events, venues } = profile;
     const pendingVenues = venues.filter(venue => venue.status === "pending");
     const verifiedVenues = venues.filter(venue => venue.status === "verified");
+
+
+    const filteredEvents = events.filter(event => {
+        if (filter === 'All') return true;
+        if (filter === 'Upcoming' && !event.is_done && !event.is_cancelled) return true;
+        if (filter === 'Passed' && event.is_done) return true;
+        if (filter === 'Cancelled' && event.is_cancelled) return true;
+        return false;
+    });
+
+    const handleFilterChange = (value) => {
+        setFilter(value);
+    };
+
+
     return (
         <div className="profile-container">
             <Card style={{minWidth: '700px', maxWidth: '700px' }}>
@@ -73,16 +90,25 @@ export const OrganizerProfilePage = () => {
                 {/* The Events */}
                 <div>
                     <Title level={4}>Events</Title>
-                    {events.length === 0 ? (
-                        <Text>No Event organized yet.</Text>
+                    <Select defaultValue="All" style={{ width: 120, marginBottom: '10px' }} onChange={handleFilterChange}>
+                        <Option value="All">All</Option>
+                        <Option value="Upcoming">Upcoming</Option>
+                        <Option value="Passed">Passed</Option>
+                        <Option value="Cancelled">Cancelled</Option>
+                    </Select>
+                    <br />
+                    {filteredEvents.length === 0 ? (
+                        <Text>No events matching this filter.</Text>
                     ) : (
-                        events.map((event, index) => (
+                        filteredEvents.map((event, index) => (
                             <div key={index} style={{ marginBottom: '10px', cursor: 'pointer' }} onClick={() => handleEventClick(event.event_id)}>
                                 <Card>
                                     <Text strong>Event:</Text> <Text>{event.name}</Text><br />
-                                    <Text strong>Status:</Text> <Text style={{ color: event.is_done || event.is_cancelled ? 'red' : 'green' }}>
-                                    {event.is_done ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
-                                    </Text><Text> / {event.date}</Text><br />
+                                    <Text strong>Status:</Text> 
+                                    <Text style={{ color: event.is_done ? 'grey' : event.is_cancelled ? 'red' : 'green' }}>
+                                        {event.is_done ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
+                                    </Text>
+                                    <Text> / {event.date}</Text><br />
                                 </Card>
                             </div>
                         ))
@@ -111,7 +137,7 @@ export const OrganizerProfilePage = () => {
                         )}
                     </div>
                     {/* Verified Requests */}
-                    <div style={{ marginTop: '20px' }}> {/* Added margin for visual separation */}
+                    <div style={{ marginTop: '20px' }}>
                         <Title level={5} style={{ color: 'green' }}>Verified Venues</Title>
                         {verifiedVenues.length === 0 ? (
                             <Text>No Verified Venue</Text>

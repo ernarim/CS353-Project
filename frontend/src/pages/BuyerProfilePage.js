@@ -35,7 +35,7 @@ export const BuyerProfilePage = () => {
     const handleReturnTicket = async (e, ticket_id) => {
         e.stopPropagation(); // Prevent event from propagating to parent
         try {
-            const response = await Axios.get(`http://localhost:8000/api/return_ticket/${ticket_id}`);
+            const response = await Axios.get(`/return_ticket/${ticket_id}`);
             alert('Ticket returned successfully');
             // Optionally, refresh the data or redirect the user
         } catch (error) {
