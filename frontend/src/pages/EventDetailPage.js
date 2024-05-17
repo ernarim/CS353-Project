@@ -14,11 +14,18 @@ export function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   console.log("help");
 
+
+
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
         const response = await Axios.get(`/event/${event_id}`);
         console.log(response.data);
+        if(response.data && response.data.organizer.organizer_id === localStorage.getItem("userId")){
+          navigate(`/event_insight/${event_id}`, { replace: true }); 
+        }
+        
+
         setEventDetails(response.data);
       } catch (error) {
         console.error('Failed to fetch event details', error);

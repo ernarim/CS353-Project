@@ -23,6 +23,7 @@ import { UpdateEventPage } from "./pages/UpdateEventPage";
 import { AdminPage } from "./pages/AdminPage";
 import { AdminLoginPage } from "./pages/AdminLoginPage";
 import { OrganizerProfilePage } from "./pages/OrganizerProfilePage";
+import { EventPageNavigator } from "./pages/EventPagesNavigator";
 
 function App() {
   const routesConfig = [
@@ -44,6 +45,7 @@ function App() {
           element: <TicketCategoryAndSeatingPage />,
         },
         { path: "/location_request", element: <NewLocationRequestPage /> },
+        { path: "/event/:event_id", element: <EventPageNavigator />},
         { path: "/event_insight/:event_id", element: <EventInsightPage /> },
         { path: "/buyer_profile/:user_id", element: <BuyerProfilePage /> },
         { path: "/org_profile/:user_id", element: <OrganizerProfilePage /> },

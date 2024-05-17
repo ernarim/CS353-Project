@@ -18,3 +18,8 @@ class Transaction(BaseModel):
     organizer_id: UUID
     buyer_id: UUID
     amount: float
+
+class AddBalanceRequest(BaseModel):
+    user_id: str
+    password: str
+    amount: float

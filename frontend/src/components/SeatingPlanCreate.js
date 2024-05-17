@@ -58,7 +58,11 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats, g
   }, [categories]);
 
   const addCategory = (values) => {
-    const { name, color, price, capacity } = values;
+    let { name, color, price, capacity } = values;
+    if (color==null || color=='') {
+      color = 'black';
+    }
+
     if (totalCapacity + parseInt(capacity, 10) > venue.capacity) {
       message.error('Total capacity exceeds venue capacity');
       return;
@@ -144,9 +148,9 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats, g
   const data = categoryOrder.map(name => ({
     key: name,
     name,
-    price: categories[name].price,
-    color: categories[name].color,
-    capacity: categories[name].capacity
+    price: categories[name]?.price,
+    color: categories[name]?.color,
+    capacity: categories[name]?.capacity
   }));
 
   const RowContext = React.createContext({});
@@ -236,7 +240,7 @@ export default function SeatPlanCreate({ venue, getTicketCategories, getSeats, g
           <Form.Item name="price" label="Price" rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="color" label="Color" rules={[{ required: true }]}>
+          <Form.Item name="color" label="Color">
             <Input type="color" />
           </Form.Item>
           <Form.Item 

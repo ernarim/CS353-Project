@@ -1,12 +1,15 @@
+import decimal
 from fastapi import APIRouter, Query, Response
 from app.database.session import cursor, conn
 from app.models.user import User, GetTicketBuyer, GetUserBase, GetEventOrganizer
+from app.models.transaction import AddBalanceRequest
 from fastapi import HTTPException, status
 from typing import List
 from fastapi import Path
 from psycopg2.extras import RealDictCursor
 from uuid import UUID, uuid4
 from app.models.ticket import TicketInfo
+from app.utils.utils import verify_password
 
 router = APIRouter()
 
@@ -127,6 +130,7 @@ async def get_organizer(user_id: UUID):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+
 @router.get('/get_tickets/{user_id}', response_model=List[TicketInfo])
 async def get_tickets(user_id: UUID):
     try:
@@ -148,4 +152,32 @@ async def get_tickets(user_id: UUID):
             
             return tickets
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+
+@router.post("/add_balance")
+async def add_balance(request: AddBalanceRequest):
+    try:
+        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
+            cursor.execute("""
+                SELECT u.password, tb.balance 
+                FROM Users u 
+                JOIN Ticket_Buyer tb ON u.user_id = tb.user_id 
+                WHERE u.user_id = %s
+            """, (request.user_id,))
+            user = cursor.fetchone()
+
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+
+            if not verify_password(request.password, user['password']):
+                raise HTTPException(status_code=400, detail="Incorrect password")
+
+            new_balance = user['balance'] + decimal.Decimal(request.amount)
+            cursor.execute("UPDATE Ticket_Buyer SET balance = %s WHERE user_id = %s", (new_balance, request.user_id))
+            conn.commit()
+
+            return {"message": "Balance updated successfully", "new_balance": new_balance}
+    except Exception as e:
+        conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))

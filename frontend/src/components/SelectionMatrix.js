@@ -182,7 +182,7 @@ export default function SelectionMatrix({
     for (let i = 0; i < seatMatrix.length; i++) {
       for (let j = 0; j < seatMatrix[i].length; j++) {
         if (
-          seatMatrix[i][j].row === currentSeats[row][column].row_number &&
+          seatMatrix[i][j].row === currentSeats[row][column]?.row_number &&
           seatMatrix[i][j].column === currentSeats[row][column].column_number
         ) {
           seatMatrix[i][j].isActive = true;
