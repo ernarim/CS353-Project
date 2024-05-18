@@ -45,7 +45,6 @@ export function SelectTicketPage() {
     fetchTicketCategories();
     fetchEventSeats();
     fetchCart();
-    console.log("USEr Type:", localStorage.getItem("userType"));
     setIsLoading(false);
   }, []);
 
@@ -125,6 +124,7 @@ export function SelectTicketPage() {
       setVenueColumns(venue.data.column_count);
       if (venue.data.row_count === 0 || venue.data.column_count === 0) {
         setIsSeatingPlan(false);
+        form.setFieldsValue({ t_count: 1 });
       }
     } catch (error) {
       console.log(error.detail);
@@ -135,7 +135,7 @@ export function SelectTicketPage() {
       message.warning("Please select a seat!");
       return;
     }
-  
+
     Modal.confirm({
       title: "Are you sure you want to add these seats to the cart?",
       content: selectedSeats.map((seat, index) => (
@@ -154,24 +154,25 @@ export function SelectTicketPage() {
       okText: "Yes",
       okType: "primary",
       cancelText: "No",
-      onOk: async () => { // Marked this function as async
+      onOk: async () => {
+        // Marked this function as async
         let tickets = selectedSeats.map((seat) => ({
           ticket_id: seat.ticketId,
           row_number: seat.row,
           column_number: seat.column,
         }));
-  
+
         const data = {
           tickets: tickets,
         };
-  
+
         try {
           await Axios.post(`/buy/add_to_cart/${cartId}`, data);
-          window.dispatchEvent(new CustomEvent('addToCart'));
-          navigate("/home");
+          window.dispatchEvent(new CustomEvent("addToCart"));
+          navigate("/home"); //NAVIGATE TO /shopping_cart LATER
         } catch (error) {
-          console.error('Failed to add to cart:', error);
-          message.error('Failed to add seats to the cart!');
+          console.error("Failed to add to cart:", error);
+          message.error("Failed to add seats to the cart!");
         }
       },
       onCancel() {
@@ -179,12 +180,58 @@ export function SelectTicketPage() {
       },
     });
   };
-  
 
   const handleAddToCartNoSeating = () => {
-    message.info("Adding to cart without seating plan.");
-    window.dispatchEvent(new CustomEvent('addToCart'));
-
+    Axios.post("/selection/reserve_no_seating_plan", {
+      user_id: localStorage.getItem("userId"),
+      event_id: event_id,
+      category_name: selectedCategory,
+      count: form.getFieldValue("t_count"),
+      cart_id: cartId,
+    })
+      .then((response) => {
+        const status = response.data.status;
+        if (status === "reserved") {
+          let tickets = response.data.ticket_ids.map((ticket) => ({
+            ticket_id: ticket[0],
+            row_number: 0,
+            column_number: 0,
+          }));
+          const data = {
+            tickets: tickets,
+          };
+          console.log("Data:", data);
+          Axios.post(`/buy/add_to_cart/${cartId}`, data)
+            .then((response) => {
+              message.success("Tickets added to cart successfully!");
+              navigate("/home"); //NAVIGATE TO /shopping_cart LATER
+            })
+            .catch((error) => {
+              console.error("Failed to add tickets to cart:", error);
+              message.error("Failed to add tickets to cart!");
+            });
+        } else if (status === "exceeded") {
+          message.error("Ticket limit exceeded!");
+        } else {
+          message.error("Failed to reserve tickets!");
+        }
+      })
+      .catch((error) => {
+        Axios.post("/selection/unreserve", {
+          event_id: event_id,
+          user_id: localStorage.getItem("userId"),
+          category_name: selectedCategory,
+          cart_id: cartId,
+        })
+          .then((response) => {
+            console.log("Unreserved:", response);
+          })
+          .catch((error) => {
+            console.error("Failed to unreserve tickets:", error);
+          });
+        console.error("Q:", error);
+        message.error("Failed to add tickets to cart!");
+      });
   };
 
   return !isLoading ? (
@@ -285,6 +332,7 @@ export function SelectTicketPage() {
                 getSeats={getSeats}
                 currentSeats={categorySeats}
                 flush={flushSeatMatrix}
+                cartId={cartId}
               />
               <Divider />
               <Form

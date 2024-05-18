@@ -1,11 +1,12 @@
 from datetime import datetime
 from pydantic import BaseModel
 from uuid import UUID
+from typing import Optional
 
 class Ticket(BaseModel):
     ticket_id: UUID
-    row_number: int
-    column_number: int
+    row_number: Optional[int]
+    column_number: Optional[int]
 
 class TicketList(BaseModel):
     tickets: list[Ticket]

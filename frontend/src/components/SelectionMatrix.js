@@ -13,6 +13,7 @@ export default function SelectionMatrix({
   flush = false,
   disableSelection = false,
   header = [true, true, true, true],
+  cartId = null,
 }) {
   const { event_id } = useParams();
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -30,29 +31,14 @@ export default function SelectionMatrix({
       event.returnValue = "";
     }
 
-    const cleanup = async () => {
-      try {
-        await Axios.post("/selection/unreserve", {
-          event_id: event_id,
-          user_id: localStorage.getItem("userId"),
-          category_name: currentSeats[0][0].category_name,
-        });
-      } catch (error) {
-        console.log(error);
-        message.error("Failed to unreserve the selected seats!");
-      }
-    };
-
     window.addEventListener("beforeunload", handleBeforeUnload, {
       capture: true,
     });
-    window.addEventListener("unload", cleanup);
 
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload, {
         capture: true,
       });
-      window.removeEventListener("unload", cleanup);
     };
   }, [isRemainingSelectedSeats]);
 
@@ -77,6 +63,7 @@ export default function SelectionMatrix({
       ].lastReserver = null;
     }
     setSelectedSeats([]);
+    setIsRemainingSelectedSeats(false);
   }, [flush]);
 
   const unreserveSelectedSeats = () => {
@@ -84,6 +71,7 @@ export default function SelectionMatrix({
       event_id: event_id,
       user_id: localStorage.getItem("userId"),
       category_name: currentSeats[0][0].category_name,
+      cart_id: cartId,
     };
     Axios.post("/selection/unreserve", data)
       .then((response) => {
