@@ -24,7 +24,15 @@ class ReserverSeating(BaseModel):
     row_number: int
     column_number: int
 
+class MultipleNoSeatingPlanReserve(BaseModel):
+    user_id: UUID
+    event_id: UUID
+    category_name: str
+    count: int
+    cart_id: UUID
+
 class UnreserveSeating(BaseModel):
     user_id: UUID
     event_id: UUID
     category_name: str
+    cart_id: UUID
