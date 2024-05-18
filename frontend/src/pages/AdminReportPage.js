@@ -130,6 +130,14 @@ export function AdminReportPage() {
                                 />
                             </Card>
                         </Col>
+                        <Col span={6}>
+                            <Card>
+                                <Statistic
+                                    title="Total Events"
+                                    value={organizerStats.total_events}
+                                />
+                            </Card>
+                        </Col>
                         <Col span={6} >
                             <Card>
                                 <Statistic
@@ -146,14 +154,7 @@ export function AdminReportPage() {
                                 />
                             </Card>
                         </Col>
-                        <Col span={6}>
-                            <Card>
-                                <Statistic
-                                    title="Total Events"
-                                    value={organizerStats.total_events}
-                                />
-                            </Card>
-                        </Col>
+                        
                 </>
                 </Row>
 
@@ -225,7 +226,7 @@ export function AdminReportPage() {
                                             <Text>{participantStats.min_participants_events[0].event_category}</Text>
                                         </div>
                                         <div >
-                                            <Title level={5}>Minimum Participants</Title>
+                                            <Title level={5}>Participants</Title>
                                             <Text>{participantStats.min_participants_events[0].participant_count} participants</Text>
                                         </div>
                                         <div style={{height:'105px'}}></div>
@@ -250,7 +251,7 @@ export function AdminReportPage() {
                                             <Text>{participantStats.max_participants_events[0].event_category}</Text>
                                         </div>
                                         <div >
-                                            <Title level={5}>Maximum Participants</Title>
+                                            <Title level={5}>Participants</Title>
                                             <Text>{participantStats.max_participants_events[0].participant_count} participants</Text>
                                         </div>
                                         <div style={{height:'105px'}}></div>
