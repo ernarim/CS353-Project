@@ -28,10 +28,15 @@
           color: #ffffff;
         }
 
-        span,
-        h5 {
+        .description {
           color: #ffffff;
+          
+          span,
+          h5 {
+            color: #ffffff;
+          }
         }
+
         
         
       }

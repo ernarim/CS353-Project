@@ -215,51 +215,57 @@ export function AdminReportPage() {
                     <Row gutter={16}>
                         <Col span={12}>
                             <Card title="Event with Minimum Participants" bordered={false} style={{ color:'white'}}>
-                                {participantStats && participantStats.min_participants_events && participantStats.min_participants_events.length > 0 ? (
-                                    <>
-                                        <div >
-                                            <Title level={5}>Title</Title>
-                                            <Text>{participantStats.min_participants_events[0].event_title}</Text>
-                                        </div>
-                                        <div >
-                                            <Title level={5}>Category</Title>
-                                            <Text>{participantStats.min_participants_events[0].event_category}</Text>
-                                        </div>
-                                        <div >
-                                            <Title level={5}>Participants</Title>
-                                            <Text>{participantStats.min_participants_events[0].participant_count} participants</Text>
-                                        </div>
-                                        <div style={{height:'105px'}}></div>
-                                    </>
-                                ) : (
-                                    <Text>No data available</Text>
-                                )}
+                                <div className='description'>
+                                    {participantStats && participantStats.min_participants_events && participantStats.min_participants_events.length > 0 ? (
+                                        <>
+                                            <div >
+                                                <Title level={5}>Title</Title>
+                                                <Text>{participantStats.min_participants_events[0].event_title}</Text>
+                                            </div>
+                                            <div >
+                                                <Title level={5}>Category</Title>
+                                                <Text>{participantStats.min_participants_events[0].event_category}</Text>
+                                            </div>
+                                            <div >
+                                                <Title level={5}>Participants</Title>
+                                                <Text>{participantStats.min_participants_events[0].participant_count} participants</Text>
+                                            </div>
+                                            <div style={{height:'105px'}}></div>
+                                        </>
+                                    ) : (
+                                        <Text>No data available</Text>
+                                    )}
+                                </div>
+                                
                             </Card>
                         </Col>
                         <Col span={12}> 
 
 
                             <Card title="Event with Maximum Participants" bordered={false} style={{ color:'white'}}>
-                                {participantStats && participantStats.max_participants_events && participantStats.max_participants_events.length > 0 ? (
-                                    <>
-                                        <div >
-                                            <Title level={5}>Title</Title>
-                                            <Text>{participantStats.max_participants_events[0].event_title}</Text>
-                                        </div>
-                                        <div >
-                                            <Title level={5}>Category</Title>
-                                            <Text>{participantStats.max_participants_events[0].event_category}</Text>
-                                        </div>
-                                        <div >
-                                            <Title level={5}>Participants</Title>
-                                            <Text>{participantStats.max_participants_events[0].participant_count} participants</Text>
-                                        </div>
-                                        <div style={{height:'105px'}}></div>
+                                <div className='description'>
 
-                                    </>
-                                ) : (
-                                    <Text>No data available</Text>
-                                )}
+                                    {participantStats && participantStats.max_participants_events && participantStats.max_participants_events.length > 0 ? (
+                                        <>
+                                            <div >
+                                                <Title level={5}>Title</Title>
+                                                <Text>{participantStats.max_participants_events[0].event_title}</Text>
+                                            </div>
+                                            <div >
+                                                <Title level={5}>Category</Title>
+                                                <Text>{participantStats.max_participants_events[0].event_category}</Text>
+                                            </div>
+                                            <div >
+                                                <Title level={5}>Participants</Title>
+                                                <Text>{participantStats.max_participants_events[0].participant_count} participants</Text>
+                                            </div>
+                                            <div style={{height:'105px'}}></div>
+
+                                        </>
+                                    ) : (
+                                        <Text>No data available</Text>
+                                    )}
+                                </div>
                             </Card>
                         </Col>
                         </Row>
