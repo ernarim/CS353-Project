@@ -1,7 +1,6 @@
 import { Button, Card, Carousel, Col, Divider, Row, Select, DatePicker, Input } from "antd";
 import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
-import { Theme } from "../style/theme";
 import Axios from "../Axios";
 import turkishCities from '../data/cities.json';
 
@@ -9,7 +8,6 @@ const { RangePicker } = DatePicker;
 
 const baseURLCategory = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/event_categories/`;
 const baseURLEvents = `${window.location.protocol}//${window.location.hostname}${process.env.REACT_APP_API_URL}/static/events/`;
-const { colors, font } = Theme;
 
 const carouselStyle = {
     borderRadius: '10px',

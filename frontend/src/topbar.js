@@ -54,7 +54,7 @@ const Topbar = () => {
 
 
   const handleProfileClick = () => {
-    if (userType == 'organizer') {
+    if (userType === 'organizer') {
       navigate(`/org_profile/${userId}`);
     } else {
       navigate(`/buyer_profile/${userId}`);

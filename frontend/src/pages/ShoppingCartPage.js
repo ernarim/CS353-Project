@@ -60,7 +60,6 @@ export function ShoppingCartPage() {
         message.error("Your cart is empty. Please add tickets before purchasing.");
         return;
       }
-      console.log(tickets);
       const totalCost = calculateTotal(tickets);
       if (totalCost > balance) {
         message.error("You have insufficient balance for this purchase.");
@@ -83,14 +82,33 @@ export function ShoppingCartPage() {
       } else {
         throw new Error('Failed to complete the transaction');
       }
-    } 
-    catch (error) {
+    } catch (error) {
       const errorMessage = error.response ? error.response.data.detail : error.message;
-      if (error.response && error.response.status === 400) {
-        message.error("You have insufficient balance for this purchase.");
-      } else {
-        message.error(`Purchase failed: ${errorMessage}`);
-      }
+      handleErrorMessage(errorMessage);
+    }
+  };
+
+  const handleErrorMessage = (errorMessage) => {
+    const eventInfo = tickets.map(ticket => ticket.name).join(', ');
+    if (errorMessage.includes("Purchase limit exceeded")) {
+      console.log(eventInfo);
+      message.error({
+        content: `You have reached the maximum number of tickets allowed for the event(s): ${eventInfo}.`,
+        duration: 5,
+        style: { marginTop: '20vh', },
+      });
+    } else if (errorMessage.includes("Insufficient balance")) {
+      message.error({
+        content: "You do not have enough balance to complete this purchase.",
+        duration: 5,
+        style: { marginTop: '20vh', },
+      });
+    } else {
+      message.error({
+        content: `Purchase failed: ${errorMessage}`,
+        duration: 5,
+        style: { marginTop: '20vh', },
+      });
     }
   };
 
@@ -115,25 +133,23 @@ export function ShoppingCartPage() {
         organizer_id: ticket.organizer_id,
         buyer_id: userId,
         amount: ticket.price,
-        email: email  // Add the recipient email here
+        email: email
       }));
 
       const response = await Axios.post('/buy/transaction', { transactions });
       if (response.status === 200) {
         message.success('Tickets gifted successfully');
-        setIsModalVisible(true);  // Show the modal with the animation
-        fetchBalance(userId); 
+        setIsModalVisible(true);
+        fetchBalance(userId);
         fetchTickets(userId);
 
-        // Automatically close the modal after 2 seconds
         setTimeout(() => {
           setIsModalVisible(false);
         }, 3000);
       } else {
         throw new Error('Failed to complete the transaction');
       }
-    } 
-    catch (error) {
+    } catch (error) {
       const errorMessage = error.response ? error.response.data.detail : error.message;
       if (error.response && error.response.status === 400) {
         message.error("You have insufficient balance for this purchase.");

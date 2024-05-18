@@ -222,8 +222,8 @@ async def get_organizer_info(user_id: UUID):
         raise HTTPException(status_code=500, detail=str(e))
     
 
-@router.get("/organizer/{user_id}/min_max_revenue_events", response_model=List[EventRevenueDetails])
-async def get_min_max_revenue_events(user_id: UUID):
+@router.get("/revenue_statistics/{organizer_id}/")
+async def revenue_statistics(organizer_id: UUID):
     query = """
         WITH EventStats AS (
         SELECT
@@ -247,20 +247,130 @@ async def get_min_max_revenue_events(user_id: UUID):
         OR revenue = (SELECT MAX(revenue) FROM EventStats)
     """
     try:
-        with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            cursor.execute(query, (str(user_id),))
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query, (str(organizer_id),))
             records = cursor.fetchall()
-            min_max_revenue_events = [
-                {
-                    "name": record["name"],
-                    "time": record["date"].isoformat(),
-                    "total_sold_tickets": record["total_sold_tickets"],
-                    "total_unsold_tickets": record["total_unsold_tickets"],
-                    "revenue": float(record["revenue"])
-                }
-                for record in records
-            ]
-            return min_max_revenue_events
+            if not records:
+                return {"min_event": None, "max_event": None}
+            # Find min and max events
+            min_revenue = min(records, key=lambda x: x['revenue'])
+            max_revenue = max(records, key=lambda x: x['revenue'])
+            min_event = {
+                "name": min_revenue["name"],
+                "time": min_revenue["date"].isoformat(),
+                "total_sold_tickets": min_revenue["total_sold_tickets"],
+                "total_unsold_tickets": min_revenue["total_unsold_tickets"],
+                "revenue": float(min_revenue["revenue"])
+            }
+            max_event = {
+                "name": max_revenue["name"],
+                "time": max_revenue["date"].isoformat(),
+                "total_sold_tickets": max_revenue["total_sold_tickets"],
+                "total_unsold_tickets": max_revenue["total_unsold_tickets"],
+                "revenue": float(max_revenue["revenue"])
+            }
+            return {"min_event": min_event, "max_event": max_event}
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/age_statistics/{organizer_id}")
+async def get_age_statistics(organizer_id: UUID):
+    query = """
+    WITH AgeData AS (
+        SELECT
+            DATE_PART('year', AGE(CURRENT_DATE, tb.birth_date)) AS age
+        FROM
+            Ticket_Buyer tb
+            JOIN Ticket_List tl ON tb.user_id = tl.user_id
+            JOIN Ticket t ON tl.ticket_id = t.ticket_id
+            JOIN Event e ON t.event_id = e.event_id
+        WHERE
+            e.organizer_id = %s AND t.is_sold = TRUE
+    ),
+    AgeDistribution AS (
+        SELECT
+            CASE
+                WHEN age < 18 THEN 'Under 18'
+                WHEN age BETWEEN 18 AND 25 THEN '18-25'
+                WHEN age BETWEEN 26 AND 40 THEN '26-40'
+                WHEN age BETWEEN 41 AND 60 THEN '41-60'
+                WHEN age > 60 THEN '60+'
+            END AS age_group,
+            COUNT(*) AS count
+        FROM AgeData
+        GROUP BY 1
+        ORDER BY 1
+    ),
+    MinMaxAge AS (
+        SELECT
+            MIN(age) AS min_age,
+            MAX(age) AS max_age
+        FROM AgeData
+    ),
+    CombinedResults AS (
+        SELECT
+            (SELECT json_agg(row_to_json(AgeDistribution)) FROM AgeDistribution) AS age_distribution,
+            (SELECT min_age FROM MinMaxAge) AS min_age,
+            (SELECT max_age FROM MinMaxAge) AS max_age
+        FROM MinMaxAge
+    )
+    SELECT * FROM CombinedResults;
+    """
+    try:
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(query, (str(organizer_id),))  # Only need to pass organizer_id once
+        result = cursor.fetchone()
+        return result
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/participant_statistics/{organizer_id}")
+async def get_participant_statistics(organizer_id: UUID):
+    query = """
+    WITH TicketData AS (
+        SELECT
+            e.event_id,
+            COUNT(t.ticket_id) FILTER (WHERE t.is_sold = TRUE) AS participant_count
+        FROM
+            Event e
+            LEFT JOIN Ticket t ON e.event_id = t.event_id
+        WHERE
+            e.organizer_id = %s
+        GROUP BY e.event_id
+    ),
+    EventDetails AS (
+        SELECT
+            td.event_id,
+            td.participant_count,
+            e.name AS event_title,
+            ec.name AS event_category
+        FROM
+            TicketData td
+            JOIN Event e ON td.event_id = e.event_id
+            JOIN Event_Category ec ON e.category_id = ec.category_id
+    ),
+    MaxParticipants AS (
+        SELECT event_title, event_category, participant_count
+        FROM EventDetails
+        WHERE participant_count = (SELECT MAX(participant_count) FROM EventDetails)
+    ),
+    MinParticipants AS (
+        SELECT event_title, event_category, participant_count
+        FROM EventDetails
+        WHERE participant_count = (SELECT MIN(participant_count) FROM EventDetails)
+    )
+    SELECT
+        (SELECT json_agg(row_to_json(MaxParticipants)) FROM MaxParticipants) AS max_participants_events,
+        (SELECT json_agg(row_to_json(MinParticipants)) FROM MinParticipants) AS min_participants_events
+    """
+    try:
+        cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cursor.execute(query, (str(organizer_id),))  # Only need to pass organizer_id once
+        result = cursor.fetchone()
+        return result
     except Exception as e:
         conn.rollback()
         raise HTTPException(status_code=500, detail=str(e))

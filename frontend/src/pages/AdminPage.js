@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import Axios from "../Axios";
 import moment from 'moment';
 import "../style/admin.css";
+import { AdminReportPage } from "./AdminReportPage";
 
 const { TabPane } = Tabs;
 
@@ -31,7 +32,7 @@ export function AdminPage() {
     const [events, setEvents] = useState([]);
     const [reports, setReports] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [organizerStats, setOrganizerStats] = useState(null);
+    const [selectedReport, setSelectedReport] = useState(null);
 
     useEffect(() => {
         fetchStatistics();
@@ -152,20 +153,18 @@ export function AdminPage() {
     };
 
     const handleShowStatistics = async (organizer) => {
-        console.log("Showing statistics for organizer: ", organizer.user_id);
-        try {
-            let response = await Axios.get(`/admin/organizer_info/${organizer.user_id}`);
-            console.log("Organizer Stats: ", response.data); //TEST
-            setOrganizerStats(response.data);
-            setIsModalVisible(true);
-        } catch (error) {
-            console.error("Failed to fetch organizer statistics", error);
-        }
+        navigate(`/admin/report/${organizer.user_id}`);
+    };
+
+    const handleShowReport = (record) => {
+        console.log("Showing report: ", record);
+        setSelectedReport(record);
+        setIsModalVisible(true);
     };
 
     const handleModalClose = () => {
         setIsModalVisible(false);
-        setOrganizerStats(null);
+        setSelectedReport(null);
     };
 
     const handleEventDetails = (record) => {
@@ -332,17 +331,19 @@ export function AdminPage() {
     ];
 
     const reportColumns = [
-        { title: 'Organizer Name', dataIndex: 'organizer_name', key: 'organizer_name' },
+        { title: 'Organizer Name', dataIndex: 'organizer_name', key: 'organizer_name', render: (text, record) => record?.organizer_statistics?.organizer_name || 'N/A' },
         { title: 'Date', dataIndex: 'date', key: 'date', render: (text) => moment(text).format('YYYY-MM-DD'), },
-        { title: 'Balance', dataIndex: 'balance', key: 'balance' },
-        { title: 'Total Revenue', dataIndex: 'total_revenue', key: 'total_revenue' },
-        { title: 'Sold Tickets', dataIndex: 'sold_tickets', key: 'sold_tickets' },
-        { title: 'Unsold Tickets', dataIndex: 'unsold_tickets', key: 'unsold_tickets' },
-        { title: 'Total Events', dataIndex: 'total_events', key: 'total_events' },
         { 
             title: 'Options', 
             key: 'options',
-            render: (text, record) => (
+            render: (text, record) => ([
+                <Button 
+                    type="primary" 
+                    style={{ backgroundColor: 'green', borderColor: 'green', marginRight: 8 }}
+                    onClick={() => handleShowReport(record)}
+                >
+                    Show Report
+                </Button>,
                 <Button
                     type="primary"
                     style={{ backgroundColor: 'red', borderColor: 'green', marginRight: 8 }}
@@ -350,7 +351,7 @@ export function AdminPage() {
                 >
                     Delete Report
                 </Button>
-            ),
+            ])
         },
     ];
     
@@ -358,31 +359,7 @@ export function AdminPage() {
         setActiveTab(tabKey);
     };
 
-    const handleCreateReport = async (organizerStats) => {
-        console.log("Creating report for organizer: ", organizerStats);
-        const reportData = {
-            organizer_id: organizerStats.organizer_id,
-            organizer_name: organizerStats.organizer_name,
-            balance: organizerStats.current_balance,
-            date: moment().format('YYYY-MM-DD'),
-            total_revenue: organizerStats.total_revenue,
-            sold_tickets: organizerStats.sold_tickets,
-            unsold_tickets: organizerStats.unsold_tickets,
-            total_events: organizerStats.total_events,
-        };
 
-        try {
-            let response = await Axios.post("/report", reportData);
-            console.log("Response: ", response); //TEST
-            message.success("Report created successfully!");
-            handleModalClose();
-        }
-        catch (error) {
-            console.error("Failed to create report", error);
-        }
-
-
-    }
 
     return (
         <div className="admin-page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '90%', height: '100vh', padding: '0px 5%' }}>
@@ -475,56 +452,16 @@ export function AdminPage() {
 
             </Tabs>
 
-            <Modal
-                title="Organizer Statistics"
-                visible={isModalVisible}
-                onCancel={handleModalClose}
-                footer={[
-                    <Button key="report" type="primary" onClick={()=> handleCreateReport(organizerStats)}>
-                        Create Report
-                    </Button>,
+        <Modal width={1700}  visible={isModalVisible} onCancel={handleModalClose} footer={null} centered>
+            <AdminReportPage propOrganizerStats={selectedReport?.organizer_statistics} 
+                        propParticipantStats={selectedReport?.participant_statistics} 
+                        propAgeStats={selectedReport?.age_statistics}
+                        propRevenueStats={selectedReport?.revenue_statistics}>
 
-                    <Button key="close" onClick={handleModalClose}>
-                        Close
-                    </Button>
-                ]}
-            >
-                {organizerStats && (
-                    <>
-                        <Row span={24}>
-                            <Col span={8}>
-                                <Statistic title="Organizer Name" value={organizerStats.organizer_name} />
+                        </AdminReportPage>
+            
+        </Modal>
 
-                            </Col>
-                            <Col span={8}>
-                                <Statistic title="Current Balance" value={organizerStats.current_balance} />
-
-                            </Col>
-                            <Col span={8}>
-                                <Statistic title="Total Revenue" value={organizerStats.total_revenue} />
-
-                            </Col>
-                        </Row>
-                        <Row span={24}>
-                            <Col span={8}>
-                                <Statistic title="Sold Tickets" value={organizerStats.sold_tickets} />
-
-                            </Col>
-                            <Col span={8}>
-                                <Statistic title="Unsold Tickets" value={organizerStats.unsold_tickets} />
-
-                            </Col>
-                            <Col span={8}>
-                                <Statistic title="Total Events" value={organizerStats.total_events} />
-
-                            </Col>
-                        </Row>
-
-
-                    </>
-                    
-                )}
-            </Modal>
         </div>
     );
 }
