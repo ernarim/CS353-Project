@@ -125,9 +125,6 @@ async def transaction(transaction_data: TransactionList):
                 # Add ticket to buyer's Ticket_List table
                 cursor.execute("INSERT INTO ticket_list (user_id, ticket_id) VALUES (%s, %s)", (str(item.buyer_id), str(item.ticket_id)))
 
-            # Update organizer's balance
-            cursor.execute("UPDATE event_organizer SET balance = balance + %s WHERE user_id = %s", (item.amount, str(item.organizer_id)))
-
         conn.commit()
         return {"message": "Transaction completed successfully"}
 
