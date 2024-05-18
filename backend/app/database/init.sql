@@ -282,7 +282,6 @@ BEGIN
 
     END IF;
 
-    DROP TABLE IF EXISTS Report CASCADE;
 
     IF NOT EXISTS (
         SELECT 1
