@@ -27,6 +27,13 @@
         .ant-statistic-content {
           color: #ffffff;
         }
+
+        span,
+        h5 {
+          color: #ffffff;
+        }
+        
+        
       }
      
     }
