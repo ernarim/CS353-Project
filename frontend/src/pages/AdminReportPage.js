@@ -213,7 +213,7 @@ export function AdminReportPage() {
                     <Col span={12}>
                     <Row gutter={16}>
                         <Col span={12}>
-                            <Card title="Event with Minimum Participants" bordered={false} style={{height: '24vw', color:'white'}}>
+                            <Card title="Event with Minimum Participants" bordered={false} style={{ color:'white'}}>
                                 {participantStats && participantStats.min_participants_events && participantStats.min_participants_events.length > 0 ? (
                                     <>
                                         <div >
@@ -228,6 +228,7 @@ export function AdminReportPage() {
                                             <Title level={5}>Minimum Participants</Title>
                                             <Text>{participantStats.min_participants_events[0].participant_count} participants</Text>
                                         </div>
+                                        <div style={{height:'105px'}}></div>
                                     </>
                                 ) : (
                                     <Text>No data available</Text>
@@ -237,7 +238,7 @@ export function AdminReportPage() {
                         <Col span={12}> 
 
 
-                            <Card title="Event with Maximum Participants" bordered={false} style={{height: '24vw', color:'white'}}>
+                            <Card title="Event with Maximum Participants" bordered={false} style={{ color:'white'}}>
                                 {participantStats && participantStats.max_participants_events && participantStats.max_participants_events.length > 0 ? (
                                     <>
                                         <div >
@@ -252,6 +253,8 @@ export function AdminReportPage() {
                                             <Title level={5}>Maximum Participants</Title>
                                             <Text>{participantStats.max_participants_events[0].participant_count} participants</Text>
                                         </div>
+                                        <div style={{height:'105px'}}></div>
+
                                     </>
                                 ) : (
                                     <Text>No data available</Text>
