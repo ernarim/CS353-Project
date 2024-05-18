@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Axios from '../Axios';
-import { Card, Row, Col, Statistic, Typography, Descriptions } from 'antd';
+import { Card, Row, Col, Statistic, Typography, Button } from 'antd';
 import { PieChart, Pie, Tooltip, Legend, Cell, ResponsiveContainer } from 'recharts';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { ScatterChart, Scatter } from 'recharts';
+import { message } from 'antd';
+import moment from 'moment';
 
 
 import '../style/admin.css';
@@ -20,25 +21,40 @@ const renderCustomBarLabel = ({ payload, x, y, width, height, value }) => {
     );
 };
 
-export function AdminReportPage() {
+
+export function AdminReportPage({
+    propOrganizerStats,
+    propAgeStats,
+    propParticipantStats,
+    propRevenueStats
+  }) {
+    const navigate = useNavigate();
     const { organizer_id } = useParams();
-    
-    const [organizerStats, setOrganizerStats] = useState(null);
-    const [ageStats, setAgeStats] = useState(null);
-    const [participantStats, setParticipantStats] = useState(null);
-    const [revenueStats, setRevenueStats] = useState(null);
-
-
-    const COLORS = ["#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d", "#a4de6c"];
-
-    
-    useEffect(() => {
-        fetchOrganizerStatistics();
-        fetchAgeStatistics();
-        fetchParticipiantStatictics();
-        fetchRevenueStatistics();
-
-    }, [organizer_id]);
+  
+      const [organizerStats, setOrganizerStats] = useState(propOrganizerStats || null);
+      const [ageStats, setAgeStats] = useState(propAgeStats || null);
+      const [participantStats, setParticipantStats] = useState(propParticipantStats || null);
+      const [revenueStats, setRevenueStats] = useState(propRevenueStats || null);
+      const [showCreateButton, setShowCreateButton] = useState(false);
+  
+      const COLORS = ["#8884d8", "#83a6ed", "#8dd1e1", "#82ca9d", "#a4de6c"];
+  
+      useEffect(() => {
+          if (!propOrganizerStats) {
+              fetchOrganizerStatistics();
+              setShowCreateButton(true);
+          }
+          if (!propAgeStats) {
+              fetchAgeStatistics();
+          }
+          if (!propParticipantStats) {
+              fetchParticipiantStatictics();
+          }
+          if (!propRevenueStats) {
+              fetchRevenueStatistics();
+          }
+          
+      }, [organizer_id]);
 
     const fetchOrganizerStatistics = async () => {
         try {
@@ -80,6 +96,31 @@ export function AdminReportPage() {
         }
     }
 
+    const handleCreateReport = async (organizerStats) => {
+        console.log("Creating report for organizer: ", organizerStats);
+        const reportData = {
+            organizer_id: organizerStats.organizer_id,
+            date: moment().format('YYYY-MM-DD'),
+            organizer_statistics: organizerStats,
+            age_statistics: ageStats,
+            participant_statistics: participantStats,
+            revenue_statistics: revenueStats
+
+        };
+
+        try {
+            let response = await Axios.post("/report", reportData);
+            console.log("Response: ", response); //TEST
+            message.success("Report created successfully!");
+            navigate('/admin/panel');
+        }
+        catch (error) {
+            console.error("Failed to create report", error);
+        }
+
+
+    }
+
 
     const renderBarChart = (data, title) => (
         <ResponsiveContainer width="100%" height={300}>
@@ -102,6 +143,7 @@ export function AdminReportPage() {
 
     return (
         <div className="admin-page" style={{padding:'1%'}}>
+            {showCreateButton && <Button type="primary" style={{position:'absolute', right:'30px', top:'30px', zIndex:'10' }} onClick={() => handleCreateReport(organizerStats)}>Create Report</Button>}
             <div className="stat-card">
             {organizerStats && <>
                 <Row gutter={16} > 
@@ -115,7 +157,7 @@ export function AdminReportPage() {
                         </Col>
                         
                     
-            </Row>
+                </Row>
 
             <Row gutter={16}>
                 <>
@@ -141,7 +183,7 @@ export function AdminReportPage() {
                         <Col span={6} >
                             <Card>
                                 <Statistic
-                                    title="Sold Tickets"
+                                    title="Total Sold Tickets"
                                     value={organizerStats.sold_tickets}
                                 />
                             </Card>
@@ -149,7 +191,7 @@ export function AdminReportPage() {
                         <Col span={6} >
                             <Card>
                                 <Statistic
-                                    title="Unsold Tickets"
+                                    title="Total Unsold Tickets"
                                     value={organizerStats.unsold_tickets}
                                 />
                             </Card>

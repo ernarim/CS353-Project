@@ -3,6 +3,7 @@ from app.database.session import cursor, conn
 from app.models.report import ReportCreate, Report
 from fastapi import HTTPException
 from uuid import uuid4, UUID
+import json
 router = APIRouter()
 
 @router.post("", status_code=201)
@@ -10,17 +11,17 @@ async def create_report(report: ReportCreate):
     report_id = uuid4()
     query = """
     INSERT INTO Report (
-        report_id, date, organizer_id, organizer_name, 
-        sold_tickets, unsold_tickets, total_revenue, total_events, balance
+        report_id, date, organizer_id, 
+        organizer_statistics, participant_statistics, age_statistics, revenue_statistics
     )
-    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
     RETURNING *;
     """
     try:
         cursor.execute(query, (
-            str(report_id), report.date, str(report.organizer_id), report.organizer_name,
-            report.sold_tickets, report.unsold_tickets, report.total_revenue,
-            report.total_events, report.balance
+            str(report_id), report.date, str(report.organizer_id),
+            json.dumps(report.organizer_statistics), json.dumps(report.participant_statistics),
+            json.dumps(report.age_statistics), json.dumps(report.revenue_statistics)
         ))
         new_report = cursor.fetchone()
         conn.commit()
@@ -29,7 +30,7 @@ async def create_report(report: ReportCreate):
         conn.rollback()
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/reports/{report_id}")
+@router.get("/{report_id}")
 async def read_report(report_id: UUID):
     query = "SELECT * FROM Report WHERE report_id = %s;"
     cursor.execute(query, (str(report_id),))
@@ -38,12 +39,11 @@ async def read_report(report_id: UUID):
         "report_id": report[0],
         "date": report[1],
         "organizer_id": report[2],
-        "organizer_name": report[3],
-        "sold_tickets": report[4],
-        "unsold_tickets": report[5],
-        "total_revenue": report[6],
-        "total_events": report[7],
-        "balance": report[8]
+        "organizer_statistics": report[3],
+        "participant_statistics": report[4],
+        "age_statistics": report[5],
+        "revenue_statistics": report[6]
+
     }
     if not report:
         raise HTTPException(status_code=404, detail="Report not found")
@@ -61,36 +61,16 @@ async def read_all_reports():
             "report_id": report[0],
             "date": report[1],
             "organizer_id": report[2],
-            "organizer_name": report[3],
-            "sold_tickets": report[4],
-            "unsold_tickets": report[5],
-            "total_revenue": report[6],
-            "total_events": report[7],
-            "balance": report[8]
+            "organizer_statistics": report[3],
+            "participant_statistics": report[4],
+            "age_statistics": report[5],
+            "revenue_statistics": report[6]
+
         })
 
     return read_reports
 
-@router.patch("/{report_id}")
-async def update_report(report_id: UUID, report: ReportCreate):
-    query = """
-    UPDATE Report
-    SET date = %s, organizer_id = %s, organizer_name = %s, 
-        sold_tickets = %s, unsold_tickets = %s, total_revenue = %s, 
-        total_events = %s, balance = %s
-    WHERE report_id = %s
-    RETURNING *;
-    """
-    cursor.execute(query, (
-        report.date, str(report.organizer_id), report.organizer_name, report.sold_tickets,
-        report.unsold_tickets, report.total_revenue, report.total_events, report.balance,
-        str(report_id)
-    ))
-    updated_report = cursor.fetchone()
-    if not updated_report:
-        raise HTTPException(status_code=404, detail="Report not found")
-    conn.commit()
-    return updated_report
+
 
 @router.delete("/{report_id}", status_code=204)
 async def delete_report(report_id: UUID):

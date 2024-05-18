@@ -282,7 +282,7 @@ BEGIN
 
     END IF;
 
-
+    DROP TABLE IF EXISTS Report CASCADE;
 
     IF NOT EXISTS (
         SELECT 1
@@ -294,14 +294,13 @@ BEGIN
             report_id UUID,
             date TIMESTAMP,
             organizer_id UUID,
-            organizer_name VARCHAR(255),
-            sold_tickets INT,
-            unsold_tickets INT,
-            total_revenue DECIMAL(10, 2),
-            total_events INT,
-            balance DECIMAL(10, 2),
+            organizer_statistics JSONB,
+            participant_statistics JSONB,
+            age_statistics JSONB,
+            revenue_statistics JSONB,
             PRIMARY KEY (report_id),
             FOREIGN KEY (organizer_id) REFERENCES Event_Organizer(user_id)
+
             );
 
         RAISE NOTICE 'Table ''Report'' created successfully.';
