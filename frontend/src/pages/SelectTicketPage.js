@@ -359,7 +359,7 @@ export function SelectTicketPage() {
           ) : (
             <Card title="Area" className="loc-col-card">
               <img
-                src={`${baseURLEvents}${eventDetails.photo}`}
+                src={`${baseURLEvents}${eventDetails.photo_plan}`}
                 alt="event"
                 style={{
                   width: "60%",
