@@ -221,7 +221,7 @@ export function AdminReportPage({
                                 fill="#8884d8"
                                 label
                                 >
-                                {ageStats?.age_distribution.map((entry, index) => (
+                                {ageStats?.age_distribution?.map((entry, index) => (
                                     <Cell
                                     key={`cell-${index}`}
                                     fill={COLORS[index % COLORS.length]}
@@ -239,7 +239,7 @@ export function AdminReportPage({
                                 <Card>
                                     <Statistic
                                         title="Max Age"
-                                        value={ageStats?.max_age}
+                                        value={ageStats?.max_age ? ageStats?.max_age : " "}
                                     />
                                 </Card>
                             </Col>
@@ -247,7 +247,7 @@ export function AdminReportPage({
                                 <Card>
                                     <Statistic
                                         title="Min Age"
-                                        value={ageStats?.min_age}
+                                        value={ageStats?.min_age ? ageStats?.min_age : " "}
                                     />
                                 </Card>
                             </Col>
@@ -318,12 +318,12 @@ export function AdminReportPage({
                     <Row gutter={16}>
                         <Col span={12}>
                             <Card title="Minimum Revenue Event" bordered={false}>
-                                {revenueStats?.min_event ? renderBarChart(revenueStats.min_event, "Minimum Revenue Event") : "Loading..."}
+                                {revenueStats?.min_event ? renderBarChart(revenueStats.min_event, "Minimum Revenue Event") : "No data available"}
                             </Card>
                         </Col>
                         <Col span={12}>
                             <Card title="Maximum Revenue Event" bordered={false}>
-                                {revenueStats?.max_event ? renderBarChart(revenueStats.max_event, "Maximum Revenue Event") : "Loading..."}
+                                {revenueStats?.max_event ? renderBarChart(revenueStats.max_event, "Maximum Revenue Event") : "No data available"}
                             </Card>
                         </Col>
                     </Row>
