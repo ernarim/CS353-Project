@@ -23,6 +23,10 @@ export function EventInsightPage() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    fetchAll();
+  }, [event_id]);
+
   const fetchAll = async () => {
     if (event_id) {
       fetchEventDetails();
@@ -34,14 +38,13 @@ export function EventInsightPage() {
     }
   };
 
-  useEffect(() => {
-    fetchAll();
-  }, [event_id]);
-
   const fetchEventDetails = async () => {
     try {
       const response = await Axios.get(`/event/${event_id}`);
-      setEventDetails(response.data);
+      setEventDetails({
+        ...response.data,
+        isPast: moment().isAfter(moment(response.data.date)) // Check if current time is after the event date
+      });
       fetchVenue(response.data.venue.venue_id);
       console.log("Event Details", response.data);
     } catch (error) {
@@ -267,7 +270,11 @@ export function EventInsightPage() {
                 <p>{`${eventDetails.venue.name}, ${eventDetails.venue.city}`}</p>
 
                 <h4 style={{ marginBottom: "5px" }}>Date and Time</h4>
-                <p>{moment(eventDetails.date).format("MMMM Do YYYY, h:mm:ss a")}</p>
+                <p>
+                  {moment(eventDetails.date).format("MMMM Do YYYY, h:mm:ss a")}
+                  {(eventDetails.isPast )&& <span style={{ color: "red", marginLeft: "10px" }}>PASSED</span>}
+                  {(eventDetails.is_cancelled )&& <span style={{ color: "red", marginLeft: "10px" }}>CANCELED</span>}
+                </p>
 
                 <h4 style={{ marginBottom: "5px" }}>Category</h4>
                 <p>{eventDetails.category.category_name}</p>
@@ -348,7 +355,7 @@ export function EventInsightPage() {
                     <Button
                       block
                       onClick={handleUpdateEvent}
-                      disabled={eventDetails.is_cancelled || eventCancelled}
+                      disabled={eventDetails.is_cancelled || eventCancelled || eventDetails.isPast}
                     >
                       Update Event
                     </Button>
@@ -358,7 +365,7 @@ export function EventInsightPage() {
                       block
                       onClick={handleCancelEvent}
                       danger
-                      disabled={eventDetails.is_cancelled || eventCancelled}
+                      disabled={eventDetails.is_cancelled || eventCancelled || eventDetails.isPast}
                     >
                       Cancel Event
                     </Button>
