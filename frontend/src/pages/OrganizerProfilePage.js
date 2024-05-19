@@ -109,7 +109,6 @@ export const OrganizerProfilePage = () => {
 
 
 
-
                 {/* The Reports */}
                 <div>
                     <Title level={4}>Reports</Title>
@@ -120,11 +119,10 @@ export const OrganizerProfilePage = () => {
                             <Card key={index} style={{ marginBottom: '10px' }}>
                                 <Text strong>Report:</Text> <Text>{report.report_id}</Text><br />
                                 <Text strong>Date:</Text> <Text>{moment(report.date).format('DD/MM/YYYY')}</Text><br />
-                                <Text strong>Sold Tickets:</Text> <Text>{report.sold_tickets}</Text><br />
-                                <Text strong>Unsold Tickets:</Text> <Text>{report.unsold_tickets}</Text><br />
-                                <Text strong>Total Revenue:</Text> <Text>{report.total_revenue}</Text><br />
-                                <Text strong>Total Events:</Text> <Text>{report.total_events}</Text><br />
-                                <Text strong>Balance:</Text> <Text>{report.balance}</Text><br />
+                                <Text strong>Organizer Statistics: </Text> <Text>{report.organizer_statistics}</Text><br />
+                                <Text strong>Participant Statistics: </Text> <Text>{report.participant_statistics}</Text><br />
+                                <Text strong>Age Statistics: </Text> <Text>{report.age_statistics}</Text><br />
+                                <Text strong>Revenue Statistics: </Text> <Text>{report.revenue_statistics}</Text><br />
                             </Card>
                         ))
                     )}

@@ -35,8 +35,9 @@ async def get_org_profile(user_id: UUID):
 
         reports = []
         cursor.execute("""
-            SELECT r.report_id, r.date, r.organizer_name, r.sold_tickets,
-            r.unsold_tickets, r.total_revenue, r.total_events, r.balance
+            SELECT r.report_id, r.date, r.organizer_id, 
+                    r. organizer_statistics, r.participant_statistics,
+                    r.age_statistics, r.revenue_statistics
             FROM report r
             WHERE r.organizer_id = %s
         """, (str(user_id),))
@@ -45,12 +46,11 @@ async def get_org_profile(user_id: UUID):
             reports.append({
                 "report_id": report['report_id'],
                 "date": report['date'],
-                "organizer_name": report['organizer_name'],
-                "sold_tickets": report['sold_tickets'],
-                "unsold_tickets": report['unsold_tickets'],
-                "total_revenue": report['total_revenue'],
-                "total_events": report['total_events'],
-                "balance": report['balance']
+                "organizer_id": report['organizer_id'],
+                "organizer_statistics": report['organizer_statistics'],
+                "participant_statistics": report['participant_statistics'],
+                "age_statistics": report['age_statistics'],
+                "revenue_statistics": report['revenue_statistics']
             })
 
 
