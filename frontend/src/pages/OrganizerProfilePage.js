@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Typography, Divider, Button, Select, message  } from 'antd';
+import { Card, Typography, Divider, Button, Select, message, Modal  } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import Axios from '../Axios';
 import '../style/org_profile.css';
 import moment from 'moment';
+import { AdminReportPage } from './AdminReportPage';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -14,6 +15,9 @@ export const OrganizerProfilePage = () => {
     const [profile, setProfile] = useState(null);
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('All');
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedReport, setSelectedReport] = useState(null);
+
 
     
     const fetchProfile = async () => {
@@ -65,6 +69,16 @@ export const OrganizerProfilePage = () => {
         setFilter(value);
     };
 
+    const handleShowReport = (record) => {
+        console.log("Showing report: ", record);
+        setSelectedReport(record);
+        setIsModalVisible(true);
+    };
+
+    const handleModalClose = () => {
+        setIsModalVisible(false);
+        setSelectedReport(null);
+    };
 
     return (
         <div className="profile-container" style={{display:'flex', flexDirection:'row', justifyContent:'center', gap:'2%'}}>
@@ -116,13 +130,11 @@ export const OrganizerProfilePage = () => {
                         <Text>No Reports were available!</Text>
                     ) : (
                         reports.map((report, index) => (
-                            <Card key={index} style={{ marginBottom: '10px' }}>
+                            <Card key={index} style={{ marginBottom: '10px' }} onClick={() => handleShowReport(report)}
+                            >
                                 <Text strong>Report:</Text> <Text>{report.report_id}</Text><br />
                                 <Text strong>Date:</Text> <Text>{moment(report.date).format('DD/MM/YYYY')}</Text><br />
-                                <Text strong>Organizer Statistics: </Text> <Text>{report.organizer_statistics}</Text><br />
-                                <Text strong>Participant Statistics: </Text> <Text>{report.participant_statistics}</Text><br />
-                                <Text strong>Age Statistics: </Text> <Text>{report.age_statistics}</Text><br />
-                                <Text strong>Revenue Statistics: </Text> <Text>{report.revenue_statistics}</Text><br />
+                                
                             </Card>
                         ))
                     )}
@@ -179,6 +191,15 @@ export const OrganizerProfilePage = () => {
                 </div>
             </Card>
 
+            <Modal width={1700}  visible={isModalVisible} onCancel={handleModalClose} footer={null} centered>
+            <AdminReportPage propOrganizerStats={selectedReport?.organizer_statistics} 
+                        propParticipantStats={selectedReport?.participant_statistics} 
+                        propAgeStats={selectedReport?.age_statistics}
+                        propRevenueStats={selectedReport?.revenue_statistics}>
+
+                        </AdminReportPage>
+            
+            </Modal>
         </div>
     );
 }
