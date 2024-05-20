@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import React, { useEffect, useState } from "react";
 import Axios from "../Axios";
 import turkishCities from '../data/cities.json';
+import moment from 'moment';
 
 const { RangePicker } = DatePicker;
 
@@ -231,7 +232,7 @@ export function MainPage() {
                                         </>
                                     }
                                 >
-                                    <Card.Meta title={event.name} description={event.date} />
+                                    <Card.Meta title={event.name} description={moment ? moment(event.start_date).format('DD/MM/YYYY HH:mm') : event.start_date} />
                                 </Card>
                             </Col>
                         ))

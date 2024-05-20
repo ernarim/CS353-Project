@@ -316,7 +316,6 @@ BEGIN
             gift_id UUID,
             gift_msg TEXT,
             gift_date TIMESTAMP,
-            sender_mail VARCHAR(255) NOT NULL,
             receiver_mail VARCHAR(255) NOT NULL,
             PRIMARY KEY (gift_id)
         );
@@ -446,117 +445,6 @@ BEGIN
 
     INSERT INTO Admin (user_id)
     SELECT user_id FROM Users WHERE email = 'admin';
-
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_proc
-        WHERE proname = 'check_max_ticket_limit'
-    ) THEN
-        CREATE OR REPLACE FUNCTION check_max_ticket_limit() RETURNS TRIGGER AS $$
-        DECLARE
-            user_ticket_count INT;
-            max_tickets_allowed INT;
-            event_id_from_ticket UUID;
-        BEGIN
-            SELECT t.event_id INTO event_id_from_ticket
-            FROM ticket t
-            WHERE t.ticket_id = NEW.ticket_id;
-
-            SELECT COUNT(*) INTO user_ticket_count
-            FROM ticket_list tl
-            JOIN ticket t ON tl.ticket_id = t.ticket_id
-            WHERE tl.user_id = NEW.user_id AND t.event_id = event_id_from_ticket;
-
-            SELECT r.max_ticket INTO max_tickets_allowed
-            FROM restriction r
-            JOIN restricted rd ON r.restriction_id = rd.restriction_id
-            WHERE rd.event_id = event_id_from_ticket;
-
-            IF user_ticket_count >= max_tickets_allowed THEN
-                RAISE EXCEPTION 'Purchase limit exceeded for this event';
-            END IF;
-            RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-        RAISE NOTICE 'Function ''check_max_ticket_limit'' created successfully.';
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.triggers
-        WHERE trigger_schema = 'public'
-        AND event_object_table = 'ticket_list'
-        AND trigger_name = 'check_max_ticket_limit_trigger'
-    ) THEN
-        CREATE TRIGGER check_max_ticket_limit_trigger
-        BEFORE INSERT ON ticket_list
-        FOR EACH ROW
-        EXECUTE FUNCTION check_max_ticket_limit();
-        RAISE NOTICE 'Trigger ''check_max_ticket_limit_trigger'' created successfully.';
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.views
-        WHERE table_schema = 'public'
-        AND table_name = 'top_revenue_events'
-    ) THEN
-        CREATE VIEW top_revenue_events AS
-        SELECT e.event_id, e.name AS event_name, SUM(tc.price) AS total_revenue
-        FROM event e
-        JOIN ticket t ON e.event_id = t.event_id
-        JOIN ticket_category tc ON t.event_id = tc.event_id
-        WHERE t.is_sold = TRUE
-        GROUP BY e.event_id, e.name
-        ORDER BY total_revenue DESC;
-        RAISE NOTICE 'View ''top_revenue_events'' created successfully.';
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM pg_proc
-        WHERE proname = 'update_organizer_balance'
-    ) THEN
-        CREATE OR REPLACE FUNCTION update_organizer_balance() RETURNS TRIGGER AS $$
-        DECLARE
-            ticket_price DECIMAL;
-            organizer_id UUID;
-        BEGIN
-            SELECT tc.price INTO ticket_price
-            FROM Seating_Plan sp
-            JOIN Ticket_Category tc ON sp.event_id = tc.event_id AND sp.category_name = tc.category_name
-            WHERE sp.ticket_id = NEW.ticket_id;
-
-            SELECT e.organizer_id INTO organizer_id
-            FROM Event e
-            WHERE e.event_id = NEW.event_id;
-
-            UPDATE Event_Organizer eo
-            SET balance = balance + ticket_price
-            WHERE eo.user_id = organizer_id;
-
-            RETURN NEW;
-        END;
-        $$ LANGUAGE plpgsql;
-        RAISE NOTICE 'Function ''update_organizer_balance'' created successfully.';
-    END IF;
-
-    IF NOT EXISTS (
-        SELECT 1
-        FROM information_schema.triggers
-        WHERE trigger_schema = 'public'
-        AND event_object_table = 'ticket'
-        AND trigger_name = 'update_organizer_balance_trigger'
-    ) THEN
-        CREATE TRIGGER update_organizer_balance_trigger
-        AFTER UPDATE OF is_sold
-        ON Ticket
-        FOR EACH ROW
-        WHEN (NEW.is_sold = TRUE)
-        EXECUTE FUNCTION update_organizer_balance();
-        RAISE NOTICE 'Trigger ''update_organizer_balance_trigger'' created successfully.';
-    END IF;
 
 
 END $$;
