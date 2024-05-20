@@ -111,9 +111,9 @@ export function EventDetailPage() {
             </List.Item>
           )}
         />
-        <Button type="primary" style={{ width: '100%', marginTop: '10px' }} onClick={() => navigate(`/select_ticket/${event_id}`)}>
-          Choose Ticket
-        </Button>
+        <Button disabled={moment().isAfter(moment(eventDetails.date)) ? true : false } style={{ width: '100%', marginTop: '10px' }} onClick={() => navigate(`/select_ticket/${event_id}`)}>
+          {moment().isAfter(moment(eventDetails.date)) ? 'Event Ended' : (eventDetails.restriction.max_ticket === 0 ? 'No Tickets Available' : 'Buy Tickets' )}
+          </Button>
       </div>
     </div>
   );

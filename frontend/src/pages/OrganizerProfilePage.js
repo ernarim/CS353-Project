@@ -157,7 +157,6 @@ export const OrganizerProfilePage = () => {
                 <div>
                     <Title level={5}>Contact Information</Title>
                     <Text strong>Phone:</Text> <Text>{user.phone || '-'}</Text><br />
-                    <Text strong>Last Login:</Text> <Text>{user.last_login || '-'}</Text><br />
                     <Text strong>Balance:</Text> <Text>{user.balance}</Text><br />
                 </div>
                 <Divider />
@@ -180,8 +179,8 @@ export const OrganizerProfilePage = () => {
                                 <Card>
                                     <Text strong>Event: </Text> <Text>{event.name}</Text><br />
                                     <Text strong>Status: </Text> 
-                                    <Text style={{ color: event.is_done ? 'grey' : event.is_cancelled ? 'red' : 'green' }}>
-                                        {event.is_done ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
+                                    <Text style={{ color: moment().isAfter(moment(event.date)) ? 'red' : event.is_cancelled ? 'red' : 'green' }}>
+                                        {moment().isAfter(moment(event.date)) ? 'Passed' : event.is_cancelled ? 'Cancelled' : 'Upcoming'}
                                     </Text>
                                     <Text> / {moment(event.date).format('DD/MM/YYYY HH:mm')}</Text><br />
                                 </Card>

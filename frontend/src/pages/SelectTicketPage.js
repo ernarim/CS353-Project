@@ -204,6 +204,8 @@ export function SelectTicketPage() {
           Axios.post(`/buy/add_to_cart/${cartId}`, data)
             .then((response) => {
               message.success("Tickets added to cart successfully!");
+              window.dispatchEvent(new CustomEvent("addToCart"));
+
               navigate("/home"); //NAVIGATE TO /shopping_cart LATER
             })
             .catch((error) => {

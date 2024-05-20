@@ -195,7 +195,7 @@ export function EventInsightPage() {
 
   return (
     <div>
-      {eventDetails && venueRows && venueColumns && categorySeats && ticketCategories.length && totalSoldTickets !== null && totalAvailableTickets !== null  ? (
+      {eventDetails  && ticketCategories.length && totalAvailableTickets !== null  ? (
         <div style={{ padding: "20px" }}>
           <Row gutter={[16, 16]}>
             <Col span={16}>
@@ -242,6 +242,8 @@ export function EventInsightPage() {
                 
                 <Collapse>
                   <Panel header="Seating Plan" key="1" style={{backgroundColor:'white'}}>
+                    { venueRows  && venueColumns ?
+                    
                     <div style={{ overflowX: "auto", display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
                       <SelectionMatrix
                         rows={venueRows}
@@ -251,7 +253,24 @@ export function EventInsightPage() {
                         disableSelection={true}
                         header={[true, true, false, false]}
                       />
+                    </div> :
+
+                    
+                    <div style={{ padding: "20px" }}>
+                    {eventDetails.photo_plan  && (
+                      <img
+                        src={ `${baseURLEvents}${eventDetails.photo_plan}`}
+                        alt="event"
+                        style={{
+                          width: "60%",
+                          height: "auto",
+                          objectFit: "contain",
+                          borderRadius: "8px 8px 0 0",
+                        }}
+                      />
+                    )}
                     </div>
+                  }
                   </Panel>
                 </Collapse>
               </Card>

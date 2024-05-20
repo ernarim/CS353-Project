@@ -37,7 +37,8 @@ const searchBarStyle = {
     width: '750px',
     borderRadius: '10px',
     zIndex: '2',
-    gap: '15px'
+    gap: '15px',
+    padding:'0px 10px'
 }
 
 export function MainPage() {
@@ -50,7 +51,11 @@ export function MainPage() {
     const [selectedCity, setSelectedCity] = useState('');
     const [dateRange, setDateRange] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [isDisabled, setIsDisabled] = useState(false);
 
+    const clearSelection = () => {
+        setSelectedCity(undefined);  // Resets the selection
+      };
     eventCategories.forEach(category => {
         category.image = `${baseURLCategory}${category.name}.png`;
     });
@@ -154,13 +159,16 @@ export function MainPage() {
                         onChange={e => setSearchTerm(e.target.value)}
                         style={{ width: 200 }}
                     />
+                    
                     <Select
                         placeholder="Select a city"
                         style={{ width: 120 }}
-                        onChange={value => setSelectedCity(value)}
+                        onChange={setSelectedCity} 
+                        value={selectedCity}     
+                        allowClear                 
                     >
                         {turkishCities.map(city => (
-                            <Select.Option key={city.id} value={city.name}>{city.name}</Select.Option>
+                        <Select.Option key={city.id} value={city.name}>{city.name}</Select.Option>
                         ))}
                     </Select>
                     <RangePicker
@@ -232,7 +240,7 @@ export function MainPage() {
                                         </>
                                     }
                                 >
-                                    <Card.Meta title={event.name} description={moment ? moment(event.start_date).format('DD/MM/YYYY HH:mm') : event.start_date} />
+                                    <Card.Meta title={event.name} description={moment ? moment(event.date).format('DD/MM/YYYY HH:mm') : event.date} />
                                 </Card>
                             </Col>
                         ))

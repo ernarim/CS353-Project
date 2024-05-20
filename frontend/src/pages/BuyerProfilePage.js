@@ -39,11 +39,11 @@ export const BuyerProfilePage = () => {
         e.stopPropagation(); 
         try {
             const response = await Axios.get(`/return_ticket/${ticket_id}`);
-            alert('Ticket returned successfully');
+            message.success("Ticket returned successfully");
             fetchProfile();
         } catch (error) {
             console.error('Error returning ticket:', error.response?.data?.detail || 'Unknown error');
-            alert('Failed to return ticket');
+            message.error('Failed to return ticket');
         }
     };
 
@@ -65,11 +65,12 @@ export const BuyerProfilePage = () => {
 
     const filteredTickets = tickets.filter(ticket => {
         if (filter === 'All') return true;
-        if (filter === 'Upcoming' && !ticket.event_info.is_done && !ticket.event_info.is_cancelled) return true;
+        if (filter === 'Upcoming' && {moment: moment().isBefore(moment(ticket.event_info.date))}) return true;
         if (filter === 'Passed' && ticket.event_info.is_done) return true;
         if (filter === 'Cancelled' && ticket.event_info.is_cancelled) return true;
         return false;
     });
+    console.log(filteredTickets);
 
     const handleFilterChange = (value) => {
         setFilter(value);
@@ -146,10 +147,10 @@ export const BuyerProfilePage = () => {
                                 <Card>
                                     <Text strong>Ticket ID:</Text> <Text>{ticket.ticket_info.ticket_id}</Text><br />
                                     <Text strong>Event:</Text> <Text>{ticket.event_info.event_name} / {ticket.ticket_info.category_name}</Text><br />
-                                    <Text strong>Status:</Text> <Text style={{ color: ticket.event_info.is_done || ticket.event_info.is_cancelled ? 'red' : 'green' }}>
-                                        {ticket.event_info.is_done ? 'Passed' : ticket.event_info.is_cancelled ? 'Cancelled' : 'Upcoming'}
+                                    <Text strong>Status:</Text> <Text style={{ color: ticket.event_info.is_done || moment().isAfter(moment(ticket.event_info.event_date)) ? 'red' : ticket.event_info.is_cancelled ? 'red' : 'green' }}>
+                                        {moment().isAfter(moment(ticket.event_info.event_date))  ? 'Passed' : ticket.event_info.is_cancelled ? 'Cancelled' : 'Upcoming'}
                                     </Text><br />
-                                    <Text strong>Date:</Text> <Text>{moment(ticket.event_info.date).format('DD/MM/YYYY HH:mm')}</Text><br />
+                                    <Text strong>Date:</Text> <Text>{moment(ticket.event_info.event_date).format('DD/MM/YYYY HH:mm')}</Text><br />
                                     {moment().isBefore(moment(ticket.event_info.return_expire_date)) && (
                                         <Button onClick={(e) => handleReturnTicket(e, ticket.ticket_info.ticket_id)}>Return Ticket</Button>
                                     )}
